@@ -362,7 +362,7 @@ void MessageHandler::startThread() {
                   case MESSAGE_TYPE::RAR: {
                      [[maybe_unused]] auto& request = *reinterpret_cast<RemoteAllocationRequest*>(ctx.request);
                      // -------------------------------------------------------------------------------------
-                     PID pid = bm.pidFreeList.pop(threads::ThreadContext::my().pid_handle);
+                     PID pid = pageIdManager.addPage();
                      // -------------------------------------------------------------------------------------
                      BufferFrame& frame =bm.insertFrame(pid, [&](BufferFrame& frame){
                                                                 frame.latch.latchExclusive();

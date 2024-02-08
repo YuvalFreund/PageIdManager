@@ -1,5 +1,7 @@
 #pragma once
 #include "Guard.hpp"
+#include "scalestore/storage/buffermanager/PageIdManager.h"
+
 // -------------------------------------------------------------------------------------
 namespace scalestore {
 namespace storage {
@@ -8,7 +10,7 @@ namespace storage {
 struct Exclusive {
    LATCH_STATE type = LATCH_STATE::EXCLUSIVE;
 
-   void operator()(Guard& g, NodeID nodeId) {
+   void operator()(Guard& g, NodeID nodeId, PageIdManager& pageIdManager) {
       // -------------------------------------------------------------------------------------
       // Optimistic
       // -------------------------------------------------------------------------------------
@@ -19,8 +21,9 @@ struct Exclusive {
          return;
       }
       // -------------------------------------------------------------------------------------
+      uint64_t pidOwner = pageIdManager.getNodeIdOfPage(g.frame->pid, true);
       if (g.frame->possession != POSSESSION::EXCLUSIVE || !(g.frame->isPossessor(nodeId))) {
-         g.state = (g.frame->pid.getOwner() == nodeId) ? STATE::LOCAL_POSSESSION_CHANGE : STATE::REMOTE_POSSESSION_CHANGE;
+         g.state = (pidOwner == nodeId) ? STATE::LOCAL_POSSESSION_CHANGE : STATE::REMOTE_POSSESSION_CHANGE;
       } else
          g.state = STATE::INITIALIZED;
       // -------------------------------------------------------------------------------------
@@ -48,7 +51,7 @@ struct Exclusive {
 };
 struct Shared {
    LATCH_STATE type = LATCH_STATE::SHARED;
-   void operator()(Guard& g, NodeID nodeId) {
+   void operator()(Guard& g, NodeID nodeId, PageIdManager& pageIdManager) {
       // -------------------------------------------------------------------------------------
       // Optimistic
       // -------------------------------------------------------------------------------------
@@ -61,8 +64,9 @@ struct Shared {
       }
       // -------------------------------------------------------------------------------------
       // can be shared or exclusive as long as we are in possession
-      if (!(g.frame->isPossessor(nodeId))) {
-         g.state = (g.frame->pid.getOwner() == nodeId) ? STATE::LOCAL_POSSESSION_CHANGE : STATE::REMOTE_POSSESSION_CHANGE;
+       uint64_t pidOwner = pageIdManager.getNodeIdOfPage(g.frame->pid, true);
+       if (!(g.frame->isPossessor(nodeId))) {
+         g.state = (pidOwner == nodeId) ? STATE::LOCAL_POSSESSION_CHANGE : STATE::REMOTE_POSSESSION_CHANGE;
 
       } else
          g.state = STATE::INITIALIZED;
@@ -108,7 +112,7 @@ struct Shared {
 struct Optimistic {
    LATCH_STATE type = LATCH_STATE::OPTIMISTIC;
 
-   void operator()(Guard& g, NodeID nodeId) {
+   void operator()(Guard& g, NodeID nodeId, PageIdManager& pageIdManager) {
       // -------------------------------------------------------------------------------------
       // Optimistic
       // -------------------------------------------------------------------------------------
@@ -121,8 +125,9 @@ struct Optimistic {
       }
       // -------------------------------------------------------------------------------------
       // can be shared or exclusive as long as we are in possession
-      if (!(g.frame->isPossessor(nodeId))) {
-         g.state = (g.frame->pid.getOwner() == nodeId) ? STATE::LOCAL_POSSESSION_CHANGE : STATE::REMOTE_POSSESSION_CHANGE;
+       uint64_t pidOwner = pageIdManager.getNodeIdOfPage(g.frame->pid, true);
+       if (!(g.frame->isPossessor(nodeId))) {
+         g.state = (pidOwner == nodeId) ? STATE::LOCAL_POSSESSION_CHANGE : STATE::REMOTE_POSSESSION_CHANGE;
       } else
          g.state = STATE::INITIALIZED;
       // -------------------------------------------------------------------------------------

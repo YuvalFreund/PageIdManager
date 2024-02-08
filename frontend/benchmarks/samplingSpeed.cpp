@@ -418,7 +418,6 @@ int main(int argc, char* argv[]) {
 
                      ensure(frame.state != BF_STATE::FREE);
                      ensure(frame.state != BF_STATE::EVICTED);
-
                      if ((frame.pid.getOwner() == scalestore.getNodeID())) {
                         // -------------------------------------------------------------------------------------
                         // no interfeering writes

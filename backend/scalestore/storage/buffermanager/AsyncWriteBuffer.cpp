@@ -36,7 +36,7 @@ bool AsyncWriteBuffer::full()
    }
 }
 // -------------------------------------------------------------------------------------
-void AsyncWriteBuffer::add(BufferFrame& bf, PID pid, uint64_t epoch_added)
+void AsyncWriteBuffer::add(BufferFrame& bf,  uint64_t ssdSlot, uint64_t epoch_added)
 {
    ensure(!full());
    ensure(u64(bf.page) % 512 == 0);
@@ -49,7 +49,7 @@ void AsyncWriteBuffer::add(BufferFrame& bf, PID pid, uint64_t epoch_added)
    bf.page->magicDebuggingNumber = epoch_added;
   
    void* write_buffer_slot_ptr = bf.page;
-   io_prep_pwrite(&iocbs[slot], fd, write_buffer_slot_ptr, page_size, page_size * pid.plainPID());
+   io_prep_pwrite(&iocbs[slot], fd, write_buffer_slot_ptr, page_size, page_size * ssdSlot);
    iocbs[slot].data = write_buffer_slot_ptr;
    iocbs_ptr[slot_ptr] = &iocbs[slot];
 }

@@ -60,10 +60,11 @@ restart:
       g.frame = *current_slot;
    }
    // -------------------------------------------------------------------------------------
-   g.frame->latch.latchExclusive(); // POSSIBLE ERROR?
-   ensure(g.frame->pid == EMPTY_PID);
+    g.frame->latch.latchExclusive(); // POSSIBLE ERROR?
+    ensure(g.frame->pid == EMPTY_PID);
+    uint64_t pidOwner = pageIdManager.getNodeIdOfPage(pid, true);
    g.frame->state =
-       (pid.getOwner() == nodeId) ? BF_STATE::IO_SSD : BF_STATE::IO_RDMA;  // important to modify state before releasing the hashtable latch
+       (pidOwner == nodeId) ? BF_STATE::IO_SSD : BF_STATE::IO_RDMA;  // important to modify state before releasing the hashtable latch
    g.frame->page = page;
    g.frame->pid = pid;
    g.frame->epoch = globalEpoch.load();
@@ -71,7 +72,7 @@ restart:
    // -------------------------------------------------------------------------------------
    ht_latch.unlatchExclusive();
    // -------------------------------------------------------------------------------------
-   g.state = (pid.getOwner() == nodeId) ? STATE::SSD : STATE::REMOTE;
+   g.state = (pidOwner == nodeId) ? STATE::SSD : STATE::REMOTE;
    g.vAcquired = g.frame->latch.version;
    g.latchState = LATCH_STATE::EXCLUSIVE;
    return g;
@@ -227,14 +228,16 @@ restart:
          // -------------------------------------------------------------------------------------
          uintptr_t pageOffset = (uintptr_t)guard.frame->page;
          // -------------------------------------------------------------------------------------
-         auto& contextT = threads::Worker::my().cctxs[pid.getOwner()];
+         uint64_t ownerId = pageIdManager.getNodeIdOfPage(pid, true);
+         auto& contextT = threads::Worker::my().cctxs[ownerId];
          auto& request = *MessageFabric::createMessage<PossessionRequest>(
              contextT.outgoing, ((functor.type == LATCH_STATE::EXCLUSIVE) ? MESSAGE_TYPE::PRX : MESSAGE_TYPE::PRS), pid, pageOffset);
-         threads::Worker::my().writeMsgASync<PossessionResponse>(pid.getOwner(), request);
+         threads::Worker::my().writeMsgASync<PossessionResponse>(ownerId, request);
          // -------------------------------------------------------------------------------------
          _mm_prefetch(&guard.frame->page->data[0], _MM_HINT_T0);  // prefetch first cache line of page
          // -------------------------------------------------------------------------------------
-         auto& response = threads::Worker::my().collectResponseMsgASync<PossessionResponse>(pid.getOwner());
+          uint64_t pidOwner = pageIdManager.getNodeIdOfPage(pid, true);
+          auto& response = threads::Worker::my().collectResponseMsgASync<PossessionResponse>(pidOwner);
          // -------------------------------------------------------------------------------------
          // set version from owner
          guard.frame->pVersion = response.pVersion;
@@ -309,7 +312,8 @@ restart:
       // Upgrade we are owner and need to change possession or page evicted
       // ------------------------------------------------------------------------------------
       case STATE::LOCAL_POSSESSION_CHANGE: {
-         ensure(pid.getOwner() == nodeId);
+          uint64_t pidOwner = pageIdManager.getNodeIdOfPage(pid, true);
+          ensure(pidOwner == nodeId);
          ensure(guard.frame->latch.isLatched());
          ensure(guard.frame->possession != POSSESSION::NOBODY);
          // -------------------------------------------------------------------------------------
@@ -406,10 +410,13 @@ restart:
          auto pVersionOld = guard.frame->pVersion.load();
          guard.frame->pVersion++;  // update here to prevent distributed deadlock
          // -------------------------------------------------------------------------------------
-         auto& contextT = threads::Worker::my().cctxs[pid.getOwner()];
+          uint64_t pidOwner = pageIdManager.getNodeIdOfPage(pid, true);
+          auto& contextT = threads::Worker::my().cctxs[pidOwner];
          auto& request = *MessageFabric::createMessage<PossessionUpdateRequest>(contextT.outgoing, pid, pVersionOld);
          // -------------------------------------------------------------------------------------
-         auto& response = threads::Worker::my().writeMsgSync<PossessionUpdateResponse>(pid.getOwner(), request);
+          uint64_t pidOwner = pageIdManager.getNodeIdOfPage(pid, true);
+
+          auto& response = threads::Worker::my().writeMsgSync<PossessionUpdateResponse>(pidOwner, request);
 
          if (response.resultType == RESULT::UpdateFailed) {
             ensure(guard.frame->latch.isLatched());

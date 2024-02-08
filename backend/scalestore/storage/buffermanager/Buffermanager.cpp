@@ -163,9 +163,9 @@ BufferFrame& Buffermanager::newRemotePage(NodeID remoteNode) {
 // takes a latched bufferframe
 void Buffermanager::reclaimPage(BufferFrame& frame) {
    ensure(frame.latch.isLatched());
-   if(frame.pid.getOwner() == nodeId){
+   uint64_t pidOwner = pageIdManager.getNodeIdOfPage(frame.pid, true);
+   if(pidOwner == nodeId){
       removeFrame(frame, [&](BufferFrame& frame){
-                         pidFreeList.push(frame.pid, threads::ThreadContext::my().pid_handle);
                          pageFreeList.push(frame.page, threads::ThreadContext::my().page_handle);
                       });
    }else{
@@ -181,14 +181,17 @@ void Buffermanager::writeAllPages() {
       std::vector<uint64_t> retry_idx;
       for (size_t b_i = bf_b; b_i < bf_e; ++b_i) {
          auto& frame = bfs[b_i];
-         if ((frame.pid.getOwner() == nodeId && frame.state == BF_STATE::HOT)) {
+          uint64_t pidOwner = pageIdManager.getNodeIdOfPage(frame.pid, true);
+
+          if (pidOwner == nodeId && frame.state == BF_STATE::HOT)) {
             if (!frame.latch.tryLatchExclusive()) {
                std::cerr << "Background thread working and latched page " << std::endl;
                retry_idx.push_back(b_i);
                continue;
             }
             if (frame.dirty) {
-               const int ret = pwrite(ssd_fd, frame.page, PAGE_SIZE, PAGE_SIZE * frame.pid.plainPID());
+                uint64_t ssdSlot = pageIdManager.getSsdSlotOfPageId(pid);
+                const int ret = pwrite(ssd_fd, frame.page, PAGE_SIZE, PAGE_SIZE * ssdSlot);
                ensure(ret == PAGE_SIZE);
                frame.dirty = false;
             }
@@ -199,7 +202,8 @@ void Buffermanager::writeAllPages() {
          auto& frame = bfs[b_i];
          if (!frame.latch.tryLatchExclusive()) { throw std::runtime_error("still latched"); }
          if (frame.dirty) {
-            const int ret = pwrite(ssd_fd, frame.page, PAGE_SIZE, PAGE_SIZE * frame.pid.plainPID());
+             uint64_t ssdSlot = pageIdManager.getSsdSlotOfPageId(pid);
+             const int ret = pwrite(ssd_fd, frame.page, PAGE_SIZE, PAGE_SIZE * ssdSlot);
             ensure(ret == PAGE_SIZE);
             frame.dirty = false;
          }
@@ -212,7 +216,9 @@ void Buffermanager::readPageSync(PID pid, uint8_t* destination) {
    ensure(u64(destination) % 512 == 0);
    int64_t bytes_left = PAGE_SIZE;
    do {
-      const int bytes_read = pread(ssd_fd, destination, bytes_left, pid.plainPID() * PAGE_SIZE + (PAGE_SIZE - bytes_left));
+
+      uint64_t ssdSlot = pageIdManager.getSsdSlotOfPageId(pid);
+      const int bytes_read = pread(ssd_fd, destination, bytes_left, ssdSlot * PAGE_SIZE + (PAGE_SIZE - bytes_left));
       assert(bytes_left > 0);
       bytes_left -= bytes_read;
    } while (bytes_left > 0);

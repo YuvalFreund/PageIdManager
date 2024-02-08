@@ -94,8 +94,8 @@ struct PID {
    explicit PID(uint64_t pid_id):id(pid_id){};
    constexpr PID(uint64_t owner, uint64_t id) : id(((owner << ((sizeof(uint64_t) * 8) - PAGEID_BITS_NODEID))) | id){};
    NodeID getOwner() { return NodeID(id >> ((sizeof(uint64_t) * 8 - PAGEID_BITS_NODEID))); }
-   uint64_t plainPID() { return (id & NODEID_MASK) ; }
-   operator uint64_t(){ return id; }
+
+    operator uint64_t(){ return id; }
    inline PID& operator=(const uint64_t& other){
       id = other;
       return *this;

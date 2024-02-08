@@ -131,7 +131,7 @@ struct aio_ring {
       }
    }
    // -------------------------------------------------------------------------------------
-   inline void add(BufferFrame& bf, PID pid, uint64_t client_slot, bool recheck_msg)
+   inline void add(BufferFrame& bf, PID pid, uint64_t client_slot, bool recheck_msg, uint64_t ssdSlot)
    {
       ensure(!full());
       ensure(u64(bf.page) % 512 == 0);
@@ -142,11 +142,11 @@ struct aio_ring {
       write_buffer_commands[slot].bf = &bf;
       write_buffer_commands[slot].pid = pid;
       write_buffer_commands[slot].client_slot = client_slot;
-      write_buffer_commands[slot].recheck_msg = recheck_msg;
+      write_buffer_commands[slot].recheck_msg = recheck_msg;`
       bf.page->magicDebuggingNumber = pid;
 
       void* write_buffer_slot_ptr = bf.page;
-      io_prep_pread(&iocbs[slot], fd, write_buffer_slot_ptr, page_size, page_size * pid.plainPID());
+      io_prep_pread(&iocbs[slot], fd, write_buffer_slot_ptr, page_size, page_size * ssdSlot);
       iocbs[slot].data = write_buffer_slot_ptr;
       iocbs_ptr[slot_ptr] = &iocbs[slot];
    }
