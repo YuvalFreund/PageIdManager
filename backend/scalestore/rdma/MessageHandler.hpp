@@ -146,6 +146,7 @@ struct MessageHandler {
          guard.frame->possession = POSSESSION::SHARED;
          guard.frame->setPossessor(nodeId);
          guard.frame->dirty = false;
+         uint64_t  ssdSlot = pageIdManager.getSsdSlotOfPageId(guard.frame->pid);
          async_read_buffer.add(*guard.frame, guard.frame->pid, m_i, true);
          counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
          return;         

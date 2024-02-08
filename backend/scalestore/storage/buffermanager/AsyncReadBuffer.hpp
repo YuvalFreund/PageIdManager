@@ -131,7 +131,7 @@ struct aio_ring {
       }
    }
    // -------------------------------------------------------------------------------------
-   inline void add(BufferFrame& bf, uint64_t client_slot, bool recheck_msg, uint64_t ssdSlot)
+   inline void add(BufferFrame& bf, PID pid, uint64_t client_slot, bool recheck_msg, uint64_t ssdSlot)
    {
       ensure(!full());
       ensure(u64(bf.page) % 512 == 0);
