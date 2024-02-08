@@ -122,7 +122,7 @@ Buffermanager::Buffermanager(rdma::CM<rdma::InitMessage>& cm, NodeID nodeId, s32
 // returns a latched bufferframe & fresh page from owner
 BufferFrame& Buffermanager::newPage() {
    //-------------------------------------------------------------------------------------   
-   PID pid = pidFreeList.pop(threads::ThreadContext::my().pid_handle);
+   PID pid = PID(pageIdManager.addPage());
    Page* page = pageFreeList.pop(threads::ThreadContext::my().page_handle);
    BufferFrame& frame =insertFrame(pid, [&](BufferFrame& frame){
                   frame.latch.latchExclusive();
