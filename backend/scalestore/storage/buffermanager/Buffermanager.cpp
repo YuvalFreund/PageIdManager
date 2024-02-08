@@ -18,7 +18,6 @@ Buffermanager::Buffermanager(rdma::CM<rdma::InitMessage>& cm, NodeID nodeId, s32
       ssd_fd(ssd_fd),
       frameFreeList(bufferFrames),
       pageFreeList(dramPoolNumberPages),
-      pidFreeList(ssdSlotsSize),
       pageIdManager(pageIdManager){
    // initialize hugepages bufferframes
    // all including ht bufferframes 
@@ -86,20 +85,6 @@ Buffermanager::Buffermanager(rdma::CM<rdma::InitMessage>& cm, NodeID nodeId, s32
       }
    });
    // -------------------------------------------------------------------------------------
-   // free list PIDs
-   uint64_t ssdPages = (FLAGS_ssd_gib * 1024 * 1024 * 1024) / sizeof(Page);
-   ensure(dramPoolNumberPages < ssdPages);
-   utils::Parallelize::parallelRange(1, ssdPages, [&](uint64_t pid_b, uint64_t pid_e) {
-      storage::PartitionedQueue<PID, PARTITIONS, BATCH_SIZE, utils::Stack>::BatchHandle pid_handle;
-      for (uint64_t pid_i = pid_b; pid_i < pid_e; ++pid_i) {
-         PID currentPid{nodeId, pid_i};
-         // -------------------------------------------------------------------------------------
-         if (currentPid == CATALOG_PID) continue;  // skip reserved pid i.e. not in free list
-         // -------------------------------------------------------------------------------------
-         auto rc = pidFreeList.try_push(currentPid, pid_handle);
-         ensure(rc);
-      }
-   });
 
    // create catalog page
    if (nodeId == CATALOG_OWNER) {

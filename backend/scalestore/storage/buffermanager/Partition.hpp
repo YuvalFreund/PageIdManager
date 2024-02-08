@@ -35,7 +35,6 @@ struct Partition{
    // -------------------------------------------------------------------------------------
    MPMPCQueueWrapper<BufferFrame*> frameFreeList;
    MPMPCQueueWrapper<Page*> pageFreeList;
-   MPMPCQueueWrapper<PID> pidFreeList;
    // -------------------------------------------------------------------------------------
    Partition(u64 freeFramesSize, u64 freePagesSize, u64 freePIDsSize);
 };
