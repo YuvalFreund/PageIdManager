@@ -14,6 +14,7 @@
 #include <algorithm>
 
 #include "PageIdManagerDefs.h"
+#include "Defs.hpp"
 struct PageIdManager {
 
     // helper structs
