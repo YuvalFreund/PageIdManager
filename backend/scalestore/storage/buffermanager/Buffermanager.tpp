@@ -414,8 +414,6 @@ restart:
           auto& contextT = threads::Worker::my().cctxs[pidOwner];
          auto& request = *MessageFabric::createMessage<PossessionUpdateRequest>(contextT.outgoing, pid, pVersionOld);
          // -------------------------------------------------------------------------------------
-          uint64_t pidOwner = pageIdManager.getNodeIdOfPage(pid, true);
-
           auto& response = threads::Worker::my().writeMsgSync<PossessionUpdateResponse>(pidOwner, request);
 
          if (response.resultType == RESULT::UpdateFailed) {
