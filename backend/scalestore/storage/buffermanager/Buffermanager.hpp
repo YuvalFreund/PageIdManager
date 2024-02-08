@@ -14,6 +14,7 @@
 #include "scalestore/utils/MemoryManagement.hpp"
 #include "scalestore/utils/Parallelize.hpp"
 #include "scalestore/utils/FNVHash.hpp"
+#include "PageIdManager.h"
 // -------------------------------------------------------------------------------------
 #include <cstdint>
 #include <mutex>
@@ -75,7 +76,7 @@ class Buffermanager
    friend storage::BuffermanagerSampler;
    // -------------------------------------------------------------------------------------
   public:
-   Buffermanager(rdma::CM<rdma::InitMessage>& cm, NodeID nodeId, s32 ssd_fd);
+   Buffermanager(rdma::CM<rdma::InitMessage>& cm, NodeID nodeId, s32 ssd_fd, PageIdManager& pageIdManager);
    ~Buffermanager() noexcept;
    // -------------------------------------------------------------------------------------
    // Deleted constructors
@@ -145,6 +146,10 @@ class Buffermanager
    PartitionedQueue<BufferFrame*,PARTITIONS,BATCH_SIZE, utils::Stack> frameFreeList;
    PartitionedQueue<Page*,PARTITIONS,BATCH_SIZE, utils::Stack> pageFreeList;
    PartitionedQueue<PID,PARTITIONS,BATCH_SIZE, utils::Stack> pidFreeList;
+   // -------------------------------------------------------------------------------------
+   // Page Id Manager
+   // -------------------------------------------------------------------------------------
+   PageIdManager& pageIdManager;
    // -------------------------------------------------------------------------------------
    // private helper functions
    // -------------------------------------------------------------------------------------

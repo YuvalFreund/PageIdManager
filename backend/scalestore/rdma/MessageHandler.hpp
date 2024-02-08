@@ -3,6 +3,7 @@
 #include "CommunicationManager.hpp"
 #include "scalestore/storage/buffermanager/Buffermanager.hpp"
 #include "scalestore/storage/buffermanager/AsyncReadBuffer.hpp"
+#include "scalestore/storage/buffermanager/PageIdManager.h"
 // -------------------------------------------------------------------------------------
 #include <bitset>
 #include <iostream>
@@ -75,7 +76,7 @@ struct MessageHandler {
       std::mutex inflightCRMutex;
    };
    // -------------------------------------------------------------------------------------
-   MessageHandler(rdma::CM<InitMessage>& cm, storage::Buffermanager& bm, NodeID nodeId);
+   MessageHandler(rdma::CM<InitMessage>& cm, storage::Buffermanager& bm, NodeID nodeId, PageIdManager& pageIdManager);
    ~MessageHandler();
    // -------------------------------------------------------------------------------------
    void startThread();
@@ -86,7 +87,9 @@ struct MessageHandler {
    std::atomic<size_t> threadCount = 0;
    rdma::CM<InitMessage>& cm;
    storage::Buffermanager& bm;
-   // -------------------------------------------------------------------------------------
+   PageIdManager& pageIdManager;
+
+    // -------------------------------------------------------------------------------------
    NodeID nodeId;
    std::vector<ConnectionContext> cctxs;
    std::vector<MailboxPartition> mbPartitions;

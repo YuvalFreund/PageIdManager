@@ -8,7 +8,6 @@
 #include <fcntl.h>
 // -------------------------------------------------------------------------------------
 namespace scalestore {
-
 ScaleStore::ScaleStore(){
    // -------------------------------------------------------------------------------------
    // find node id
@@ -40,18 +39,20 @@ ScaleStore::ScaleStore(){
    ensure(fcntl(ssd_fd, F_GETFL) != -1);
    // -------------------------------------------------------------------------------------
    // order of construction is important
-   cm = std::make_unique<rdma::CM<rdma::InitMessage>>();
-   bm = std::make_unique<storage::Buffermanager>(*cm, nodeId, ssd_fd);
-   storage::BM::global = bm.get();
-   mh = std::make_unique<rdma::MessageHandler>(*cm, *bm, nodeId);
-   workerPool = std::make_unique<threads::WorkerPool>(*cm, nodeId);
-   pp = std::make_unique<storage::PageProvider>(*cm, *bm, mh->mbPartitions, ssd_fd);
-   rGuard =std::make_unique<RemoteGuard>(mh->connectedClients); 
-   bmCounters = std::make_unique<profiling::BMCounters>(*bm);
-   rdmaCounters = std::make_unique<profiling::RDMACounters>();
-   catalog = std::make_unique<storage::Catalog>();
-   // init catalog
-   workerPool->scheduleJobSync(
+    std::vector<uint64_t> nodesInCluster =  getNodeIdsVec(FLAGS_nodes);
+    pageIdManager = std::make_unique<PageIdManager>(nodeId,nodesInCluster);
+    cm = std::make_unique<rdma::CM<rdma::InitMessage>>();
+    bm = std::make_unique<storage::Buffermanager>(*cm, nodeId, ssd_fd,*pageIdManager);
+    storage::BM::global = bm.get();
+    mh = std::make_unique<rdma::MessageHandler>(*cm, *bm, nodeId,*pageIdManager);
+    workerPool = std::make_unique<threads::WorkerPool>(*cm, nodeId);
+    pp = std::make_unique<storage::PageProvider>(*cm, *bm, mh->mbPartitions, ssd_fd,*pageIdManager);
+    rGuard =std::make_unique<RemoteGuard>(mh->connectedClients);
+    bmCounters = std::make_unique<profiling::BMCounters>(*bm);
+    rdmaCounters = std::make_unique<profiling::RDMACounters>();
+    catalog = std::make_unique<storage::Catalog>();
+    // init catalog
+    workerPool->scheduleJobSync(
       0, [&]() { catalog->init(nodeId); });
 }
 

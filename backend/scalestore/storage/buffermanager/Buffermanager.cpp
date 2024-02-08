@@ -7,7 +7,7 @@
 // -------------------------------------------------------------------------------------
 namespace scalestore {
 namespace storage {
-Buffermanager::Buffermanager(rdma::CM<rdma::InitMessage>& cm, NodeID nodeId, s32 ssd_fd)
+Buffermanager::Buffermanager(rdma::CM<rdma::InitMessage>& cm, NodeID nodeId, s32 ssd_fd, PageIdManager& pageIdManager)
     : dramPoolSize(FLAGS_dramGB * 1024 * 1024 * 1024),
       dramPoolNumberPages(dramPoolSize / sizeof(Page)),
       ssdSlotsSize(((FLAGS_ssd_gib * 1024 * 1024 * 1024) / sizeof(Page))),
@@ -18,7 +18,8 @@ Buffermanager::Buffermanager(rdma::CM<rdma::InitMessage>& cm, NodeID nodeId, s32
       ssd_fd(ssd_fd),
       frameFreeList(bufferFrames),
       pageFreeList(dramPoolNumberPages),
-      pidFreeList(ssdSlotsSize) {
+      pidFreeList(ssdSlotsSize),
+      pageIdManager(pageIdManager){
    // initialize hugepages bufferframes
    // all including ht bufferframes 
    for (uint64_t bf_i = 0; bf_i < (bufferFrames); bf_i++) {

@@ -4,6 +4,8 @@
 #include "scalestore/storage/buffermanager/Buffermanager.hpp"
 #include "scalestore/rdma/MessageHandler.hpp"
 #include "scalestore/storage/buffermanager/AsyncWriteBuffer.hpp"
+#include "scalestore/storage/buffermanager/PageIdManager.h"
+
 // -------------------------------------------------------------------------------------
 
 namespace scalestore
@@ -69,6 +71,7 @@ struct PageProvider {
    rdma::CM<InitMessage>& cm;
    storage::Buffermanager& bm;
    std::vector<MessageHandler::MailboxPartition>& mhPartitions;
+   PageIdManager& pageIdManager;
    const uint64_t freeBFLimit;
    const uint64_t coolingBFLimit;
    s32 ssd_fd;
@@ -79,7 +82,7 @@ struct PageProvider {
    PageProvider(CM<rdma::InitMessage>& cm,
                 storage::Buffermanager& bm,
                 std::vector<MessageHandler::MailboxPartition>& mhPartitions,
-                s32 ssd_fd);
+                s32 ssd_fd,   PageIdManager& pageIdManager);
    ~PageProvider();
 
 

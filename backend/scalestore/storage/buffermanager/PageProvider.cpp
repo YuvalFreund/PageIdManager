@@ -12,10 +12,11 @@ namespace storage {
 PageProvider::PageProvider(CM<rdma::InitMessage>& cm,
                            storage::Buffermanager& bm,
                            std::vector<MessageHandler::MailboxPartition>& mhPartitions,
-                           s32 ssd_fd)
+                           s32 ssd_fd,   PageIdManager& pageIdManager)
     : cm(cm),
       bm(bm),
       mhPartitions(mhPartitions),
+      pageIdManager(pageIdManager),
       freeBFLimit(std::ceil((FLAGS_freePercentage * 1.0 * bm.dramPoolNumberPages / 100.0))),
       coolingBFLimit(std::ceil((FLAGS_coolingPercentage * 1.0 * bm.dramPoolNumberPages / 100.0))),
       ssd_fd(ssd_fd) {

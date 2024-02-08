@@ -8,8 +8,8 @@
 
 namespace scalestore {
 namespace rdma {
-MessageHandler::MessageHandler(rdma::CM<InitMessage>& cm, storage::Buffermanager& bm, NodeID nodeId)
-    : cm(cm), bm(bm), nodeId(nodeId), mbPartitions(FLAGS_messageHandlerThreads) {
+MessageHandler::MessageHandler(rdma::CM<InitMessage>& cm, storage::Buffermanager& bm, NodeID nodeId, PageIdManager& pageIdManager)
+    : cm(cm), bm(bm), nodeId(nodeId), mbPartitions(FLAGS_messageHandlerThreads),pageIdManager(pageIdManager) {
    // partition mailboxes
    size_t n = (FLAGS_worker) * (FLAGS_nodes - 1);
    if (n > 0) {

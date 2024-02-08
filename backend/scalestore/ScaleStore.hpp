@@ -14,8 +14,10 @@
 #include "storage/datastructures/Vector.hpp"
 #include "threads/CoreManager.hpp"
 #include "threads/WorkerPool.hpp"
+#include "storage/buffermanager/PageIdManager.h"
 // -------------------------------------------------------------------------------------
 #include <memory>
+#include <vector>
 
 namespace scalestore
 {
@@ -105,7 +107,13 @@ class ScaleStore
       catalog->insertCatalogEntry(storage::DS_TYPE::BARRIER, barrier.pid);
       return barrier;
    }
+    // -------------------------------------------------------------------------------------
 
+    std::vector<uint64_t> getNodeIdsVec(uint64_t nodesNum){
+        std::vector<uint64_t> retVal;
+        for(uint64_t i=0; i<nodesNum; i++) retVal.emplace_back(i);
+        return retVal;
+    }
    
    
    // -------------------------------------------------------------------------------------
@@ -114,6 +122,7 @@ class ScaleStore
    s32 ssd_fd;
    std::unique_ptr<rdma::CM<rdma::InitMessage>> cm;
    std::unique_ptr<storage::Buffermanager> bm;
+   std::unique_ptr<PageIdManager> pageIdManager;
    std::unique_ptr<rdma::MessageHandler> mh;
    std::unique_ptr<storage::PageProvider> pp;
    std::unique_ptr<RemoteGuard> rGuard;
