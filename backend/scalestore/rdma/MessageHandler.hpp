@@ -87,15 +87,15 @@ struct MessageHandler {
    std::atomic<size_t> threadCount = 0;
    rdma::CM<InitMessage>& cm;
    storage::Buffermanager& bm;
-   PageIdManager& pageIdManager;
-
     // -------------------------------------------------------------------------------------
    NodeID nodeId;
-   std::vector<ConnectionContext> cctxs;
-   std::vector<MailboxPartition> mbPartitions;
-   std::atomic<uint64_t> connectedClients = 0;
-   std::atomic<bool> finishedInit = false;
-   // -------------------------------------------------------------------------------------   
+
+    std::vector<ConnectionContext> cctxs;
+    std::vector<MailboxPartition> mbPartitions;
+    std::atomic<uint64_t> connectedClients = 0;
+    std::atomic<bool> finishedInit = false;
+    PageIdManager& pageIdManager;
+    // -------------------------------------------------------------------------------------
    
    // -------------------------------------------------------------------------------------
    // Invalidation Logic
