@@ -183,7 +183,7 @@ void Buffermanager::writeAllPages() {
          auto& frame = bfs[b_i];
           uint64_t pidOwner = pageIdManager.getNodeIdOfPage(frame.pid, true);
 
-          if (pidOwner == nodeId && frame.state == BF_STATE::HOT)) {
+          if (pidOwner == nodeId && frame.state == BF_STATE::HOT){
             if (!frame.latch.tryLatchExclusive()) {
                std::cerr << "Background thread working and latched page " << std::endl;
                retry_idx.push_back(b_i);
@@ -202,7 +202,7 @@ void Buffermanager::writeAllPages() {
          auto& frame = bfs[b_i];
          if (!frame.latch.tryLatchExclusive()) { throw std::runtime_error("still latched"); }
          if (frame.dirty) {
-             uint64_t ssdSlot = pageIdManager.getSsdSlotOfPageId(pid);
+             uint64_t ssdSlot = pageIdManager.getSsdSlotOfPageId(frame.pid);
              const int ret = pwrite(ssd_fd, frame.page, PAGE_SIZE, PAGE_SIZE * ssdSlot);
             ensure(ret == PAGE_SIZE);
             frame.dirty = false;
