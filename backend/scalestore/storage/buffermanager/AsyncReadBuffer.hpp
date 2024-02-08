@@ -142,7 +142,7 @@ struct aio_ring {
       write_buffer_commands[slot].bf = &bf;
       write_buffer_commands[slot].pid = pid;
       write_buffer_commands[slot].client_slot = client_slot;
-      write_buffer_commands[slot].recheck_msg = recheck_msg;`
+      write_buffer_commands[slot].recheck_msg = recheck_msg;
       bf.page->magicDebuggingNumber = pid;
 
       void* write_buffer_slot_ptr = bf.page;

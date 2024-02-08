@@ -45,7 +45,7 @@ class AsyncWriteBuffer
    AsyncWriteBuffer(int fd, u64 page_size, u64 batch_max_size);
    // Caller takes care of sync
    bool full();
-   void add(BufferFrame& bf, PID pid, uint64_t epoch_added);
+   void add(BufferFrame& bf, uint64_t ssdSlot, uint64_t epoch_added);
    u64 submit();
    u64 pollEventsSync();
    void getWrittenBfs(std::function<void(BufferFrame&, uint64_t)> callback, u64 n_events);
