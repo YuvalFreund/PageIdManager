@@ -190,7 +190,7 @@ void Buffermanager::writeAllPages() {
                continue;
             }
             if (frame.dirty) {
-                uint64_t ssdSlot = pageIdManager.getSsdSlotOfPageId(pid);
+                uint64_t ssdSlot = pageIdManager.getSsdSlotOfPageId(frame.pid);
                 const int ret = pwrite(ssd_fd, frame.page, PAGE_SIZE, PAGE_SIZE * ssdSlot);
                ensure(ret == PAGE_SIZE);
                frame.dirty = false;

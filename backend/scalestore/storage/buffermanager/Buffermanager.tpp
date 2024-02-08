@@ -99,7 +99,7 @@ restart:
       if (tmp->pid == pid) {
          g.frame = tmp;
          RESTART(!ht_latch.optimisticUnlatch(b_version.value()), restart);
-         functor(g, nodeId_);
+         functor(g, nodeId_,pageIdManager);
          // -------------------------------------------------------------------------------------
          // non-blocking does not restart
          if constexpr (method == CONTENTION_METHOD::NON_BLOCKING) {

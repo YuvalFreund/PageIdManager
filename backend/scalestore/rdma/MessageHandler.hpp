@@ -147,7 +147,7 @@ struct MessageHandler {
          guard.frame->setPossessor(nodeId);
          guard.frame->dirty = false;
          uint64_t  ssdSlot = pageIdManager.getSsdSlotOfPageId(guard.frame->pid);
-         async_read_buffer.add(*guard.frame, guard.frame->pid, m_i, true);
+         async_read_buffer.add(*guard.frame, guard.frame->pid, m_i, true,ssdSlot);
          counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
          return;         
       }
@@ -438,7 +438,7 @@ struct MessageHandler {
    // Protocol functor which is injected to Buffermanager find frame;
    template <POSSESSION DESIRED_MODE>
    struct Protocol {
-      void operator()(Guard& g, [[maybe_unused]] NodeID nodeId, [[maybe_unused]] PageIdManager pageIdManager1)
+      void operator()(Guard& g, [[maybe_unused]] NodeID nodeId, [[maybe_unused]] PageIdManager& pageIdManager1)
       {
          // -------------------------------------------------------------------------------------
          // Optimistic
@@ -480,7 +480,7 @@ struct MessageHandler {
 
    // Protocol functor which is injected to Buffermanager find frame;
    struct Invalidation {
-      void operator()(Guard& g, [[maybe_unused]] NodeID nodeId, [[maybe_unused]] PageIdManager pageIdManager1)
+      void operator()(Guard& g, [[maybe_unused]] NodeID nodeId, [[maybe_unused]] PageIdManager& pageIdManager1)
       {
          // -------------------------------------------------------------------------------------
          // Exclusive
@@ -509,7 +509,7 @@ struct MessageHandler {
 
    // Protocol functor which is injected to Buffermanager find frame;
    struct Copy {
-      void operator()(Guard& g, [[maybe_unused]] NodeID nodeId, [[maybe_unused]] PageIdManager pageIdManager1)
+      void operator()(Guard& g, [[maybe_unused]] NodeID nodeId, [[maybe_unused]] PageIdManager& pageIdManager1)
       {
          // -------------------------------------------------------------------------------------
          // Exclusive
