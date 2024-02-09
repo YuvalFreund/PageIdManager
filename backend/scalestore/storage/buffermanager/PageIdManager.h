@@ -22,7 +22,6 @@ struct PageIdManager {
     struct SsdSlotPartition{
         uint64_t begin;
         std::stack<uint64_t> freeSlots;
-        uint64_t partitionSize;
         std::mutex partitionLock;
         SsdSlotPartition(uint64_t begin,uint64_t partitionSize) : begin(begin),partitionSize(partitionSize) {
             for(uint64_t i = 0; i<partitionSize; i++){
