@@ -194,7 +194,7 @@ struct CreateOrUpdateShuffledFrameRequest : public Message {
 
 struct NodeLeavingUpdateRequest : public Message {
     uint64_t leavingNodeId;
-    NodeLeavingUpdateRequest(uint64_t shuffledPid) : Message(MESSAGE_TYPE::NLUR), leavingNodeId(leavingNodeId),{}
+    NodeLeavingUpdateRequest(uint64_t leavingNodeId) : Message(MESSAGE_TYPE::NLUR), leavingNodeId(leavingNodeId),{}
 };
 
 // -------------------------------------------------------------------------------------
