@@ -38,6 +38,9 @@ enum class MESSAGE_TYPE : uint8_t {
    // -------------------------------------------------------------------------------------
    PRFR = 14,
    PRFRR =15,
+   // Shuffled frame on the way
+    CUSFR = 16,
+    NLUR =17,
    
    // -------------------------------------------------------------------------------------
    DPMR = 96, // delegate possession request
@@ -181,21 +184,36 @@ struct DelegationResponse : public Message  {
    DelegationResponse() : Message(MESSAGE_TYPE::DRR){}
 };
 
+struct CreateOrUpdateShuffledFrameRequest : public Message {
+    uint64_t shuffledPid;
+    storage::Possessors possessors;
+    storage::POSSESSION possession;
+    CreateOrUpdateShuffledFrameRequest(uint64_t shuffledPid, scalestore::storage::Possessors possessors,storage::POSSESSION possession) : Message(MESSAGE_TYPE::CUSFR), shuffledPid(shuffledPid),
+    possessors(possessors),possession(possession){}
+};
+
+struct NodeLeavingUpdateRequest : public Message {
+    uint64_t leavingNodeId;
+    NodeLeavingUpdateRequest(uint64_t shuffledPid) : Message(MESSAGE_TYPE::NLUR), leavingNodeId(leavingNodeId),{}
+};
+
 // -------------------------------------------------------------------------------------
 // Get size of Largest Message
-union ALLDERIVED{
-   FinishRequest fm;
-   PossessionResponse pr;
-   PossessionRequest preq;
-   PossessionMoveResponse pmr;
-   PossessionMoveRequest pmrr;
-   PossessionCopyResponse pcr;
-   PossessionCopyRequest pcrr;
-   RemoteAllocationRequest rar;
-   RemoteAllocationResponse rarr;
-   DelegationRequest dr;
-   DelegationResponse drr;
-};
+union ALLDERIVED {
+    FinishRequest fm;
+    PossessionResponse pr;
+    PossessionRequest preq;
+    PossessionMoveResponse pmr;
+    PossessionMoveRequest pmrr;
+    PossessionCopyResponse pcr;
+    PossessionCopyRequest pcrr;
+    RemoteAllocationRequest rar;
+    RemoteAllocationResponse rarr;
+    DelegationRequest dr;
+    DelegationResponse drr;
+    CreateOrUpdateShuffledFrameRequest cufsr;
+    NodeLeavingUpdateRequest nlur;
+}
 
 static constexpr uint64_t LARGEST_MESSAGE = sizeof(ALLDERIVED);
 static_assert(LARGEST_MESSAGE <= 32, "Messags span more than one CL");
