@@ -1,6 +1,7 @@
 #pragma once
 // -------------------------------------------------------------------------------------
 #include "Defs.hpp"
+#include "scalestore/storage/buffermanager/BufferFrame.hpp"
 
 // -------------------------------------------------------------------------------------
 
@@ -194,7 +195,7 @@ struct CreateOrUpdateShuffledFrameRequest : public Message {
 
 struct NodeLeavingUpdateRequest : public Message {
     uint64_t leavingNodeId;
-    NodeLeavingUpdateRequest(uint64_t leavingNodeId) : Message(MESSAGE_TYPE::NLUR), leavingNodeId(leavingNodeId),{}
+    NodeLeavingUpdateRequest(uint64_t leavingNodeId) : Message(MESSAGE_TYPE::NLUR), leavingNodeId(leavingNodeId) {}
 };
 
 // -------------------------------------------------------------------------------------
