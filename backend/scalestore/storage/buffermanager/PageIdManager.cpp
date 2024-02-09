@@ -34,7 +34,7 @@ void PageIdManager::initSsdPartitions(){
     int partitionSize = 65536; // todo yuval - this needs to be parameterized for evaluation later.
     uint64_t runningSSdSlotBegin = 0;
     for(uint64_t i = 0; i < numPartitions; i++){
-        ssdSlotPartitions.try_emplace(i,runningSSdSlotBegin);
+        ssdSlotPartitions.try_emplace(i,runningSSdSlotBegin,partitionSize);
         runningSSdSlotBegin += partitionSize;
     }
 }
