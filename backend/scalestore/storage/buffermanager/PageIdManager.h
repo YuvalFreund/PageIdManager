@@ -23,7 +23,7 @@ struct PageIdManager {
         uint64_t begin;
         std::stack<uint64_t> freeSlots;
         std::mutex partitionLock;
-        SsdSlotPartition(uint64_t begin,uint64_t partitionSize) : begin(begin),partitionSize(partitionSize) {
+        SsdSlotPartition(uint64_t begin,uint64_t partitionSize) : begin(begin) {
             for(uint64_t i = 0; i<partitionSize; i++){
                 this->freeSlots.push(begin + i);
             }
