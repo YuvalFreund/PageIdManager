@@ -213,7 +213,7 @@ union ALLDERIVED {
     DelegationResponse drr;
     CreateOrUpdateShuffledFrameRequest cufsr;
     NodeLeavingUpdateRequest nlur;
-}
+};
 
 static constexpr uint64_t LARGEST_MESSAGE = sizeof(ALLDERIVED);
 static_assert(LARGEST_MESSAGE <= 32, "Messags span more than one CL");
