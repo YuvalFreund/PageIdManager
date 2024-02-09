@@ -242,7 +242,8 @@ void PageProvider::startThread() {
                   }
                   if (!frame.latch.tryDowngradeExclusiveToShared()) return true;
                   ensure(!frame.latch.isLatched());
-                  async_write_buffer.add(frame, frame.pid, epoch);
+                  uint64_t ssdSlot = pageIdManager.getSsdSlotOfPageId(frame.pid);
+                  async_write_buffer.add(frame, ssdSlot, epoch);
                   return true;
                }
                // -------------------------------------------------------------------------------------
