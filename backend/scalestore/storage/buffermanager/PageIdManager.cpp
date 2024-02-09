@@ -6,7 +6,7 @@
 
 
 void PageIdManager::initPageIdManager(){
-    numPartitions = 200; // todo yuval - this needs to be parameterized later..
+    numPartitions = 300; // todo yuval - this needs to be parameterized later..
     std::srand (std::time (0)); // this generates a new seed for randomness
     initConsistentHashingInfo(true);
     initSsdPartitions();
