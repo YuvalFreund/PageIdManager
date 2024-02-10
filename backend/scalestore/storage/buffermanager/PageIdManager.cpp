@@ -147,6 +147,17 @@ PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
     return retVal;
 }
 
+void  PageIdManager::gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr ){
+    for(auto nodeToUpdate : nodeIdsInCluster){
+        if(nodeToUpdate == nodeId) continue;
+        auto& context_ = workerPtr->cctxs[nodeToUpdate];
+        auto nodeLeavingRequest = *scalestore::rdma::MessageFabric::createMessage<scalestore::rdma::NodeLeavingUpdateRequest>(context_.outgoing,nodeId);
+        [[maybe_unused]]auto& nodeLeavingResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(nodeToUpdate, nodeLeavingRequest);
+    }
+}
+void PageIdManager::shuffleFrame(){
+
+}
 
 uint64_t PageIdManager::getFreeSsdSlot(){
     uint64_t  retVal;

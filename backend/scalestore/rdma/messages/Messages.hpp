@@ -41,8 +41,10 @@ enum class MESSAGE_TYPE : uint8_t {
    PRFRR =15,
    // Shuffled frame on the way
     CUSFR = 16,
-    NLUR =17,
-   
+    // -------------------------------------------------------------------------------------
+    //node leaving update
+    NLUR = 17,
+    NLURR = 18,
    // -------------------------------------------------------------------------------------
    DPMR = 96, // delegate possession request
    // Remote information for delegation
@@ -198,6 +200,11 @@ struct NodeLeavingUpdateRequest : public Message {
     NodeLeavingUpdateRequest(uint64_t leavingNodeId) : Message(MESSAGE_TYPE::NLUR), leavingNodeId(leavingNodeId) {}
 };
 
+struct NodeLeavingUpdateResponse : public Message {
+    uint8_t receiveFlag = 1;
+    NodeLeavingUpdateResponse() : Message(MESSAGE_TYPE::NLURR) {}
+};
+
 // -------------------------------------------------------------------------------------
 // Get size of Largest Message
 union ALLDERIVED {
@@ -214,6 +221,7 @@ union ALLDERIVED {
     DelegationResponse drr;
     CreateOrUpdateShuffledFrameRequest cufsr;
     NodeLeavingUpdateRequest nlur;
+    NodeLeavingUpdateResponse nlurr;
 };
 
 static constexpr uint64_t LARGEST_MESSAGE = sizeof(ALLDERIVED);

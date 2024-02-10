@@ -39,6 +39,7 @@ class WorkerPool
    // -------------------------------------------------------------------------------------
    WorkerPool(rdma::CM<rdma::InitMessage>& cm, NodeID nodeId);
    ~WorkerPool();
+   Worker* getWorkerByTid(uint64_t t_i){return workers[t_i];}
    // -------------------------------------------------------------------------------------
    void scheduleJobAsync(uint64_t t_i, std::function<void()> job);
    void scheduleJobSync(uint64_t t_i, std::function<void()> job);

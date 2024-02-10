@@ -11,6 +11,7 @@
 // -------------------------------------------------------------------------------------
 DEFINE_uint32(YCSB_read_ratio, 100, "");
 DEFINE_bool(YCSB_all_workloads, false , "Execute all workloads i.e. 50 95 100 ReadRatio on same tree");
+DEFINE_double(YCSB_trigger_leave_percentage, 10.0, "");
 DEFINE_uint64(YCSB_tuple_count, 1, " Tuple count in");
 DEFINE_double(YCSB_zipf_factor, 0.0, "Default value according to spec");
 DEFINE_double(YCSB_run_for_seconds, 10.0, "");
@@ -20,6 +21,7 @@ DEFINE_bool(YCSB_record_latency, false, "");
 DEFINE_bool(YCSB_all_zipf, false, "");
 DEFINE_bool(YCSB_local_zipf, false, "");
 DEFINE_bool(YCSB_flush_pages, false, "");
+DEFINE_uint32(YCSB_shuffle_ratio, 0, "");
 // -------------------------------------------------------------------------------------
 using u64 = uint64_t;
 using u8 = uint8_t;
@@ -169,7 +171,15 @@ int main(int argc, char* argv[])
    // -------------------------------------------------------------------------------------
    u64 YCSB_tuple_count = FLAGS_YCSB_tuple_count;
    // -------------------------------------------------------------------------------------
-   auto nodePartition = partition(scalestore.getNodeID(), FLAGS_nodes, YCSB_tuple_count);
+    uint64_t shuffleRatio = 0;
+    if(FLAGS_YCSB_shuffle_ratio){
+        shuffleRatio = FLAGS_YCSB_shuffle_ratio;
+    }
+
+    uint64_t nodeLeavingTrigger = YCSB_tuple_count * FLAGS_YCSB_trigger_leave_percentage / 100;
+
+
+    auto nodePartition = partition(scalestore.getNodeID(), FLAGS_nodes, YCSB_tuple_count);
    // -------------------------------------------------------------------------------------
    // Build YCSB Table / Tree
    // -------------------------------------------------------------------------------------
@@ -229,6 +239,7 @@ int main(int argc, char* argv[])
          for (auto TYPE : workload_type) {
             barrier_wait();
             std::atomic<bool> keep_running = true;
+            std::atomic<bool> tryShuffle = false;
             std::atomic<u64> running_threads_counter = 0;
 
             uint64_t zipf_offset = 0;
@@ -236,36 +247,58 @@ int main(int argc, char* argv[])
 
             YCSB_workloadInfo experimentInfo{TYPE, YCSB_tuple_count, READ_RATIO, ZIPF, (FLAGS_YCSB_local_zipf?"local_zipf":"global_zipf")};
             scalestore.startProfiler(experimentInfo);
-            for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i) {
-               scalestore.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]() {
-                  running_threads_counter++;
-                  storage::DistributedBarrier barrier(catalog.getCatalogEntry(BARRIER_ID).pid);
-                  storage::BTree<K, V> tree(catalog.getCatalogEntry(BTREE_ID).pid);
-                  barrier.wait();
+            rdma::MessageHandler& mh = scalestore.getMessageHandler();
+            threads::Worker* workerPtr;
 
-                  while (keep_running) {
-                     K key = zipf_random->rand(zipf_offset);
-                     ensure(key < YCSB_tuple_count);
-                     V result;
+             for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i) {
+                scalestore.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]() {
+                   workerPtr = scalestore.getWorkerPool().getWorkerByTid(t_i);
+                   running_threads_counter++;
+                   storage::DistributedBarrier barrier(catalog.getCatalogEntry(BARRIER_ID).pid);
+                   storage::BTree<K, V> tree(catalog.getCatalogEntry(BTREE_ID).pid);
+                   barrier.wait();
+                   bool finishedShuffling = false;
+                   uint64_t checkToStartShuffle = 0;
+                   PageIdManager& pageIdManager = scalestore.getPageIdManager();
+                   while (keep_running) {
+                       if(scalestore.getNodeID() == 0 && t_i == 0) {
+                           checkToStartShuffle++;
+                           if(checkToStartShuffle == nodeLeavingTrigger){
+                               pageIdManager.gossipNodeIsLeaving(workerPtr); // todo yuval - implement calling to start shuffling
+                           }
+                       }
+                       if(finishedShuffling && scalestore.getNodeID() == 0){
+                           break;
+                           // todo yuval - this means that a node that a leaving n finished shuffling
+                           // todo yuval - stops processing any transactions
+                       }
 
-                     if (READ_RATIO == 100 || utils::RandomGenerator::getRandU64(0, 100) < READ_RATIO) {
-                        auto start = utils::getTimePoint();
-                        auto success = tree.lookup_opt(key, result);
-                        ensure(success);
-                        auto end = utils::getTimePoint();
-                        threads::Worker::my().counters.incr_by(profiling::WorkerCounters::latency, (end - start));
-                     } else {
-                        V payload;
-                        utils::RandomGenerator::getRandString(reinterpret_cast<u8*>(&payload), sizeof(V));
-                        auto start = utils::getTimePoint();
-                        tree.insert(key, payload);
-                        auto end = utils::getTimePoint();
-                        threads::Worker::my().counters.incr_by(profiling::WorkerCounters::latency, (end - start));
-                     }
-                     threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
-                  }
-                  running_threads_counter--;
-               });
+                       K key = zipf_random->rand(zipf_offset);
+                       ensure(key < YCSB_tuple_count);
+                       V result;
+
+                       if(utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio && tryShuffle) { // worker will go and shuffle
+                           mh.shuffleFrame();
+                       } else {
+                           if (READ_RATIO == 100 || utils::RandomGenerator::getRandU64(0, 100) < READ_RATIO) {
+                               auto start = utils::getTimePoint();
+                               auto success = tree.lookup_opt(key, result);
+                               ensure(success);
+                               auto end = utils::getTimePoint();
+                               threads::Worker::my().counters.incr_by(profiling::WorkerCounters::latency, (end - start));
+                           } else {
+                               V payload;
+                               utils::RandomGenerator::getRandString(reinterpret_cast<u8*>(&payload), sizeof(V));
+                               auto start = utils::getTimePoint();
+                               tree.insert(key, payload);
+                               auto end = utils::getTimePoint();
+                               threads::Worker::my().counters.incr_by(profiling::WorkerCounters::latency, (end - start));
+                           }
+                           threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
+                       }
+                   }
+                   running_threads_counter--;
+                });
             }
             // -------------------------------------------------------------------------------------
             // Join Threads

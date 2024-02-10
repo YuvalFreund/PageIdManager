@@ -15,6 +15,7 @@
 
 #include "PageIdManagerDefs.h"
 #include "Defs.hpp"
+#include "scalestore/threads/Worker.hpp"
 struct PageIdManager {
 
     // helper structs
@@ -146,6 +147,10 @@ struct PageIdManager {
     // shuffling functions
     void prepareForShuffle(uint64_t nodeIdLeft);
     PageShuffleJob getNextPageShuffleJob();
+
+    // shuffling message
+    void gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr );
+    void shuffleFrame();
 
 
     //helper functions
