@@ -387,22 +387,6 @@ struct MessageHandler {
       wqe++;
    }
 
-   void gossipNodeIsLeaving(  threads::Worker* workerPtr ){
-       std::set<uint64_t> nodeIdsInCluster = pageIdManager.nodeIdsInCluster;
-       uint64_t nodeIdLeaving = 0; // todo yuval - currently hard coded node 0 to be the leaving node;
-       nodeIdsInCluster.erase(nodeIdLeaving);
-       for(auto nodeToUpdate : nodeIdsInCluster){
-           auto& context_ = workerPtr->cctxs[nodeToUpdate];
-           auto nodeLeavingRequest = *MessageFabric::createMessage<NodeLeavingUpdateRequest>(context_.outgoing,nodeIdLeaving);  // move possesion in page
-           auto& nodeLeavingResponse = threads::Worker::my().writeMsgSync<NodeLeavingUpdateResponse>(nodeToUpdate, nodeLeavingRequest);
-       }
-   }
-
-   void shuffleFrame(){
-       PageIdManager::PageShuffleJob shuffleJob = pageIdManager.getNextPageShuffleJob();
-       auto& response = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(ctx.response, RESULT::WithPage);
-
-   }
 
    template <typename MSG>
    void writeMsg(NodeID clientId, MSG& msg, storage::PartitionedQueue<storage::Page*, PARTITIONS, BATCH_SIZE, utils::Stack>::BatchHandle& page_handle)

@@ -278,7 +278,7 @@ int main(int argc, char* argv[])
                        V result;
 
                        if(utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio && tryShuffle) { // worker will go and shuffle
-                           mh.shuffleFrame();
+                           pageIdManager.shuffleFrame();
                        } else {
                            if (READ_RATIO == 100 || utils::RandomGenerator::getRandU64(0, 100) < READ_RATIO) {
                                auto start = utils::getTimePoint();
