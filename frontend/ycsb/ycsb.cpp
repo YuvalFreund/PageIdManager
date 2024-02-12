@@ -244,10 +244,10 @@ int main(int argc, char* argv[])
 
             uint64_t zipf_offset = 0;
             if (FLAGS_YCSB_local_zipf) zipf_offset = (YCSB_tuple_count / FLAGS_nodes) * scalestore.getNodeID();
-
+            uint64_t leavingNodeId = 0;
             YCSB_workloadInfo experimentInfo{TYPE, YCSB_tuple_count, READ_RATIO, ZIPF, (FLAGS_YCSB_local_zipf?"local_zipf":"global_zipf")};
             scalestore.startProfiler(experimentInfo);
-            //rdma::MessageHandler& mh = scalestore.getMessageHandler(); // todo yuval - remove if not necessary
+            storage::Buffermanager& bm = scalestore.getBuffermanager();
              for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i) {
                 scalestore.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]() {
                     threads::Worker* workerPtr = scalestore.getWorkerPool().getWorkerByTid(t_i);
@@ -259,13 +259,13 @@ int main(int argc, char* argv[])
                    uint64_t checkToStartShuffle = 0;
                    PageIdManager& pageIdManager = scalestore.getPageIdManager();
                    while (keep_running) {
-                       if(scalestore.getNodeID() == 0 && t_i == 0) {
+                       if(scalestore.getNodeID() == leavingNodeId && t_i == 0) {
                            checkToStartShuffle++;
                            if(checkToStartShuffle == nodeLeavingTrigger){
                                pageIdManager.gossipNodeIsLeaving(workerPtr); // todo yuval - implement calling to start shuffling
                            }
                        }
-                       if(finishedShuffling && scalestore.getNodeID() == 0){
+                       if(finishedShuffling && scalestore.getNodeID() == leavingNodeId){
                            break;
                            // todo yuval - this means that a node that a leaving n finished shuffling
                            // todo yuval - stops processing any transactions
@@ -276,7 +276,7 @@ int main(int argc, char* argv[])
                        V result;
 
                        if(utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio && tryShuffle) { // worker will go and shuffle
-                           pageIdManager.shuffleFrame();
+                           bm.shuffleFrameAndIsLastShuffle(workerPtr);
                        } else {
                            if (READ_RATIO == 100 || utils::RandomGenerator::getRandU64(0, 100) < READ_RATIO) {
                                auto start = utils::getTimePoint();

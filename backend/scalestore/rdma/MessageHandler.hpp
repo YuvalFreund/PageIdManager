@@ -4,6 +4,8 @@
 #include "scalestore/storage/buffermanager/Buffermanager.hpp"
 #include "scalestore/storage/buffermanager/AsyncReadBuffer.hpp"
 #include "scalestore/storage/buffermanager/PageIdManager.h"
+#include "scalestore/rdma/messages/Messages.hpp"
+
 // -------------------------------------------------------------------------------------
 #include <bitset>
 #include <iostream>
@@ -435,6 +437,9 @@ struct MessageHandler {
       }
       wqe++;
    }
+
+
+    bool shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr);
    // -------------------------------------------------------------------------------------
    // Protocol functor which is injected to Buffermanager find frame;
    template <POSSESSION DESIRED_MODE>

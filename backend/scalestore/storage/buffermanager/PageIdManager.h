@@ -140,6 +140,7 @@ struct PageIdManager {
 
     // page id manager normal functionalities
     uint64_t addPage();
+    void addPageWithExistingPageId(uint64_t pageId);
     void removePage(uint64_t pageId);
     uint64_t getNodeIdOfPage(uint64_t pageId, bool searchOldRing);
     uint64_t getSsdSlotOfPageId(uint64_t pageId);
@@ -150,7 +151,6 @@ struct PageIdManager {
 
     // shuffling message
     void gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr );
-    void shuffleFrame();
 
 
     //helper functions

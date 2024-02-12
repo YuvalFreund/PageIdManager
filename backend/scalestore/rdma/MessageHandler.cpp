@@ -382,7 +382,24 @@ void MessageHandler::startThread() {
                      break;
                   }
 
+                  case MESSAGE_TYPE::NLUR:{
+                      auto& request = *reinterpret_cast<NodeLeavingUpdateRequest*>(ctx.request);
+                      pageIdManager.prepareForShuffle(request.leavingNodeId);
+                      auto& response = *MessageFabric::createMessage<rdma::NodeLeavingUpdateResponse>(ctx.response);
+                      writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
+                      break;
+                  }
+
                   case MESSAGE_TYPE::CUSFR: {
+                      auto& incomingBucketMessage = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
+                      pageIdManager.addPageWithExistingPageId(incomingBucketMessage.shuffledPid);
+                      PID shuffledPid = PID(incomingBucketMessage.shuffledPid);
+                      // todo yuval - organize this after deciding on the method
+                      auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(shuffledPid, Invalidation(), ctx.bmId); // todo yuval - think of functor here
+                      guard.frame->possessors = incomingBucketMessage.possessors;
+                      guard.frame->possession = incomingBucketMessage.possession;
+                      guard.frame->pid = shuffledPid;
+                      guard.unlock();
                       break;
                   }
                   default:
@@ -416,6 +433,26 @@ void MessageHandler::startThread() {
       t.detach();
    }
 }
+
+
+bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr){
+    PageIdManager::PageShuffleJob nextJobToShuffle = pageIdManager.getNextPageShuffleJob();
+    if(nextJobToShuffle.last){
+        return true;
+    }
+    auto pageId = nextJobToShuffle.pageId;
+    auto newNodeId = nextJobToShuffle.newNodeId;
+    auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Invalidation(), newNodeId);
+    ensure(guard.state != storage::STATE::UNINITIALIZED);
+    ensure(guard.state != storage::STATE::NOT_FOUND);
+    ensure(guard.state != storage::STATE::RETRY);
+    auto& context_ = workerPtr->cctxs[nextJobToShuffle.newNodeId];
+    auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, guard.frame->possessors,guard.frame->possession);
+    auto& nodeLeavingResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(nodeToUpdate, onTheWayUpdateRequest);
+    // todo yuval -ensure this frame is only realesed once acknowledge by remote node taking responsibility
+    guard.frame->latch.unlatchExclusive();
+}
+
 // -------------------------------------------------------------------------------------
 void MessageHandler::stopThread() {
    threadsRunning = false;

@@ -67,6 +67,17 @@ uint64_t PageIdManager::addPage(){
     return retVal;
 }
 
+void PageIdManager::addPageWithExistingPageId(uint64_t existingPageId){
+    uint64_t ssdSlotForNewPage = getFreeSsdSlot();
+    pageIdSsdMapMtx.lock();
+    pageIdToSsdSlotMap[existingPageId] = ssdSlotForNewPage;
+    pageIdSsdMapMtx.unlock(); // todo yuval - this is of course a performance disaster
+    uint64_t pageSet = existingPageId & PAGE_ID_MASK;
+    pageIdSetPartitions[pageSet].addToSet(existingPageId);
+}
+
+
+
 void PageIdManager::removePage(uint64_t pageId){
     pageIdSsdMapMtx.lock();
     uint64_t slotToFree = pageIdToSsdSlotMap[pageId]; //todo yuval - deal with page not found
@@ -115,9 +126,9 @@ uint64_t PageIdManager::getSsdSlotOfPageId(uint64_t pageId){
 
 
 void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
-    isBeforeShuffle = false;
     nodeIdsInCluster.erase(nodeIdLeft);
     initConsistentHashingInfo(false);
+    isBeforeShuffle = false;
 }
 
 PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
@@ -155,9 +166,7 @@ void  PageIdManager::gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr
         [[maybe_unused]]auto& nodeLeavingResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(nodeToUpdate, nodeLeavingRequest);
     }
 }
-void PageIdManager::shuffleFrame(){
 
-}
 
 uint64_t PageIdManager::getFreeSsdSlot(){
     uint64_t  retVal;
