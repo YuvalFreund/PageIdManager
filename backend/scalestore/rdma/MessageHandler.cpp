@@ -448,7 +448,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     ensure(guard.state != storage::STATE::RETRY);
     auto& context_ = workerPtr->cctxs[newNodeId];
     auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, guard.frame->possessors,guard.frame->possession);
-    auto& nodeLeavingResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(newNodeId, onTheWayUpdateRequest);
+    [[maybe_unused]]auto& nodeLeavingResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(newNodeId, onTheWayUpdateRequest);
     // todo yuval -ensure this frame is only realesed once acknowledge by remote node taking responsibility
     guard.frame->latch.unlatchExclusive();
     return false;
