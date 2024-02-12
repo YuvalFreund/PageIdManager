@@ -157,6 +157,8 @@ struct PageIdManager {
     void removePage(uint64_t pageId);
     uint64_t getNodeIdOfPage(uint64_t pageId, bool searchOldRing);
     uint64_t getSsdSlotOfPageId(uint64_t pageId);
+    void addPageWithExistingPageId(uint64_t pageId);
+
 
     // shuffling functions
     void prepareForShuffle(uint64_t nodeIdLeft);
