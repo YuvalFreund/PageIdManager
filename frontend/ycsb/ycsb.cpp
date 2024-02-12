@@ -248,6 +248,7 @@ int main(int argc, char* argv[])
             YCSB_workloadInfo experimentInfo{TYPE, YCSB_tuple_count, READ_RATIO, ZIPF, (FLAGS_YCSB_local_zipf?"local_zipf":"global_zipf")};
             scalestore.startProfiler(experimentInfo);
             storage::Buffermanager& bm = scalestore.getBuffermanager();
+            rdma::MessageHandler& mh = scalestore.getMessageHandler();
              for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i) {
                 scalestore.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]() {
                     threads::Worker* workerPtr = scalestore.getWorkerPool().getWorkerByTid(t_i);
@@ -276,7 +277,7 @@ int main(int argc, char* argv[])
                        V result;
 
                        if(utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio && tryShuffle) { // worker will go and shuffle
-                           bm.shuffleFrameAndIsLastShuffle(workerPtr);
+                           mh.shuffleFrameAndIsLastShuffle(workerPtr);
                        } else {
                            if (READ_RATIO == 100 || utils::RandomGenerator::getRandU64(0, 100) < READ_RATIO) {
                                auto start = utils::getTimePoint();
