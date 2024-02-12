@@ -11,7 +11,7 @@ void PageIdManager::initPageIdManager(){
     initConsistentHashingInfo(true);
     initSsdPartitions();
     initPageIdIvs();
-    initPageIdSets();
+    initPageIdToSsdSlotMaps();
 }
 
 void PageIdManager::initConsistentHashingInfo(bool firstInit){
@@ -49,42 +49,25 @@ void PageIdManager::initPageIdIvs(){
     }
 }
 
-void PageIdManager::initPageIdSets(){
-    for(uint64_t i = 0; i< 65536; i++){ // todo yuval this needs to be parameterized
-        pageIdSetPartitions.try_emplace(i);
+void PageIdManager::initPageIdToSsdSlotMaps(){
+    int partitionSize =  65536; // todo yuval - this needs to be parameterized for evaluation later.
+    for(int i = 0; i<partitionSize; i++){
+        pageIdToSsdSlotMap.try_emplace(i);
     }
 }
 
 uint64_t PageIdManager::addPage(){
     uint64_t retVal = getNewPageId(isBeforeShuffle);
     uint64_t ssdSlotForNewPage = getFreeSsdSlot();
-    pageIdSsdMapMtx.lock();
-    pageIdToSsdSlotMap[retVal] = ssdSlotForNewPage;
-    pageIdSsdMapMtx.unlock(); // todo yuval - this is of course a performance disaster
-    uint64_t pageSet = retVal & PAGE_ID_MASK;
-
-    pageIdSetPartitions[pageSet].addToSet(retVal);
+    uint64_t partition = retVal & PAGE_ID_MASK;
+    pageIdToSsdSlotMap[partition].insertToMap(retVal,ssdSlotForNewPage);
     return retVal;
 }
 
-void PageIdManager::addPageWithExistingPageId(uint64_t existingPageId){
-    uint64_t ssdSlotForNewPage = getFreeSsdSlot();
-    pageIdSsdMapMtx.lock();
-    pageIdToSsdSlotMap[existingPageId] = ssdSlotForNewPage;
-    pageIdSsdMapMtx.unlock(); // todo yuval - this is of course a performance disaster
-    uint64_t pageSet = existingPageId & PAGE_ID_MASK;
-    pageIdSetPartitions[pageSet].addToSet(existingPageId);
-}
-
-
-
 void PageIdManager::removePage(uint64_t pageId){
-    pageIdSsdMapMtx.lock();
-    uint64_t slotToFree = pageIdToSsdSlotMap[pageId]; //todo yuval - deal with page not found
-    pageIdSsdMapMtx.unlock();
+    uint64_t partition = pageId & PAGE_ID_MASK;
+    uint64_t slotToFree = pageIdToSsdSlotMap[partition].getSsdSlotOfPage(pageId); //todo yuval - deal with page not found
     redeemSsdSlot(slotToFree);
-    uint64_t pageSet = pageId & PAGE_ID_MASK;
-    pageIdSetPartitions[pageSet].removeFromSet(pageId);
 }
 
 uint64_t PageIdManager::getNodeIdOfPage(uint64_t pageId, bool searchOldRing){
@@ -118,31 +101,43 @@ uint64_t PageIdManager::getNodeIdOfPage(uint64_t pageId, bool searchOldRing){
 
 uint64_t PageIdManager::getSsdSlotOfPageId(uint64_t pageId){
     uint64_t retVal;
-    pageIdSsdMapMtx.lock();
-    retVal = pageIdToSsdSlotMap.at(pageId);
-    pageIdSsdMapMtx.unlock(); // todo yuval - this is of course a performance disaster. will be replaced by b-tree
+    uint64_t partition = pageId & PAGE_ID_MASK;
+    retVal = pageIdToSsdSlotMap[partition].getSsdSlotOfPage(pageId);
     return retVal;
 }
 
 
 void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
+    isBeforeShuffle = false;
     nodeIdsInCluster.erase(nodeIdLeft);
     initConsistentHashingInfo(false);
-    isBeforeShuffle = false;
 }
+
+bool PageIdManager::hasPageMovedDirectory(uint64_t pageId){
+    bool retVal;
+    uint64_t partition = pageId & PAGE_ID_MASK;
+    retVal = pageIdToSsdSlotMap[partition].isDirectoryChangedForPage(pageId);
+    return retVal;
+}
+
+void PageIdManager::setPageMovedDirectory(uint64_t pageId){
+    uint64_t partition = pageId & PAGE_ID_MASK;
+    pageIdToSsdSlotMap[partition].setDirectoryChangedForPage(pageId);
+}
+
 
 PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
     PageShuffleJob retVal(0,0);
     pageIdShuffleMtx.lock();
 
     while(stackForShuffleJob.empty()){
-        workingShuffleSetIdx++;
-        if(workingShuffleSetIdx < shuffleSetAmount) {
+        workingShuffleMapIdx++;
+        if(workingShuffleMapIdx < ShuffleMapAmount) {
             retVal.last = true; // done shuffling
             return retVal;
         }
-        if(pageIdSetPartitions.find(workingShuffleSetIdx) != pageIdSetPartitions.end()){
-            stackForShuffleJob = pageIdSetPartitions[workingShuffleSetIdx].getAllIdsFromSet();
+        if(pageIdToSsdSlotMap.find(workingShuffleMapIdx) != pageIdToSsdSlotMap.end()){
+            stackForShuffleJob = pageIdToSsdSlotMap[workingShuffleMapIdx].getStackForShuffling();
         }
     }
     while(true){
@@ -158,15 +153,17 @@ PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
     return retVal;
 }
 
-void  PageIdManager::gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr ){
-    for(auto nodeToUpdate : nodeIdsInCluster){
-        if(nodeToUpdate == nodeId) continue;
-        auto& context_ = workerPtr->cctxs[nodeToUpdate];
-        auto nodeLeavingRequest = *scalestore::rdma::MessageFabric::createMessage<scalestore::rdma::NodeLeavingUpdateRequest>(context_.outgoing,nodeId);
-        [[maybe_unused]]auto& nodeLeavingResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(nodeToUpdate, nodeLeavingRequest);
+
+void  PageIdManager::gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr ) {
+    for (auto nodeToUpdate: nodeIdsInCluster) {
+        if (nodeToUpdate == nodeId) continue;
+        auto &context_ = workerPtr->cctxs[nodeToUpdate];
+        auto nodeLeavingRequest = *scalestore::rdma::MessageFabric::createMessage<scalestore::rdma::NodeLeavingUpdateRequest>(
+                context_.outgoing, nodeId);
+        [[maybe_unused]]auto &nodeLeavingResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(
+                nodeToUpdate, nodeLeavingRequest);
     }
 }
-
 
 uint64_t PageIdManager::getFreeSsdSlot(){
     uint64_t  retVal;

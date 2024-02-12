@@ -23,8 +23,9 @@ struct PageIdManager {
     struct SsdSlotPartition{
         uint64_t begin;
         std::stack<uint64_t> freeSlots;
+        uint64_t partitionSize;
         std::mutex partitionLock;
-        SsdSlotPartition(uint64_t begin,uint64_t partitionSize) : begin(begin) {
+        SsdSlotPartition(uint64_t begin,uint64_t partitionSize) : begin(begin),partitionSize(partitionSize) {
             for(uint64_t i = 0; i<partitionSize; i++){
                 this->freeSlots.push(begin + i);
             }
@@ -67,32 +68,47 @@ struct PageIdManager {
             pageIdPartitionMtx.unlock();
         }
     };
-    struct PageIdSetPartition{
-        std::set<uint64_t> partitionedPageIdSet;
-        std::mutex mtxForSet;
+    struct SsdSlotMapPartition{
+        std::map<uint64_t, uint64_t> map;
+        std::mutex partitionLock;
 
-        void addToSet(uint64_t pageId){
-            mtxForSet.lock();
-            partitionedPageIdSet.emplace(pageId);
-            mtxForSet.unlock();
+        void insertToMap(uint64_t pageId, uint64_t ssdSlot){
+            partitionLock.lock();
+            map[pageId] = ssdSlot;
+            partitionLock.unlock();
         }
 
-        void removeFromSet(uint64_t pageId){
-            mtxForSet.lock();
-            partitionedPageIdSet.erase(pageId);
-            mtxForSet.unlock();
-        }
-
-        std::stack<uint64_t> getAllIdsFromSet(){
-            std::stack <uint64_t> retVal;
-            mtxForSet.lock();
-            for(auto i :  partitionedPageIdSet){
-                retVal.push(i);
-            }
-            mtxForSet.unlock();
+        bool isDirectoryChangedForPage(uint64_t pageId){
+            bool retVal;
+            partitionLock.lock();
+            retVal = map[pageId] & DIRECTORY_CHANGED_MASK;
+            partitionLock.unlock();
             return retVal;
         }
 
+        void setDirectoryChangedForPage(uint64_t pageId){
+            partitionLock.lock();
+            map[pageId] |= DIRECTORY_CHANGED_MASK;
+            partitionLock.unlock();
+        }
+
+        uint64_t getSsdSlotOfPage(uint64_t pageId){
+            uint64_t retVal;
+            partitionLock.lock();
+            retVal = map[pageId] & DIRECTORY_CHANGED_MASK_NEGATIVE;
+            partitionLock.unlock();
+            return retVal;
+        }
+
+        std::stack<uint64_t> getStackForShuffling(){
+            partitionLock.lock();
+            std::stack<uint64_t> retVal;
+            for(auto pair : map){
+                retVal.push(pair.first);
+            }
+            return retVal;
+            partitionLock.unlock();
+        }
     };
     //constructor
     PageIdManager(uint64_t nodeId, const std::vector<uint64_t>& nodeIdsInput) : nodeId(nodeId){
@@ -103,16 +119,14 @@ struct PageIdManager {
     }
 
     // data structures for mapping
-
-    std::map<uint64_t,uint64_t> pageIdToSsdSlotMap;
     std::map<uint64_t, SsdSlotPartition> ssdSlotPartitions;
     std::map<uint64_t, PageIdIv> pageIdIvPartitions;
-    std::map<uint64_t, PageIdSetPartition> pageIdSetPartitions;
+    std::map<uint64_t, SsdSlotMapPartition> pageIdToSsdSlotMap;
 
     // constants
     uint64_t numPartitions;
     uint64_t nodeId;
-    int shuffleSetAmount = 65536; // todo yuval -this needs to be parameterized
+    int ShuffleMapAmount = 65536; // todo yuval -this needs to be parameterized
 
     // consistent hashing data
     std::set<uint64_t> nodeIdsInCluster;
@@ -123,7 +137,7 @@ struct PageIdManager {
 
     //locks and atomics
     std::atomic<bool> isBeforeShuffle = true;
-    std::atomic<int> workingShuffleSetIdx = -1;
+    std::atomic<int> workingShuffleMapIdx = -1;
     std::mutex pageIdSsdMapMtx;
     std::mutex pageIdShuffleMtx;
 
@@ -135,12 +149,11 @@ struct PageIdManager {
     void initSsdPartitions();
     void initConsistentHashingInfo(bool firstInit);
     void initPageIdIvs();
-    void initPageIdSets();
+    void initPageIdToSsdSlotMaps();
 
 
     // page id manager normal functionalities
     uint64_t addPage();
-    void addPageWithExistingPageId(uint64_t pageId);
     void removePage(uint64_t pageId);
     uint64_t getNodeIdOfPage(uint64_t pageId, bool searchOldRing);
     uint64_t getSsdSlotOfPageId(uint64_t pageId);
@@ -148,10 +161,11 @@ struct PageIdManager {
     // shuffling functions
     void prepareForShuffle(uint64_t nodeIdLeft);
     PageShuffleJob getNextPageShuffleJob();
+    bool hasPageMovedDirectory(uint64_t pageId);
+    void setPageMovedDirectory(uint64_t pageId);
 
     // shuffling message
     void gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr );
-
 
     //helper functions
     void redeemSsdSlot(uint64_t freedSsdSlot);
@@ -160,6 +174,7 @@ struct PageIdManager {
     inline uint64_t FasterHash(uint64_t input);
     uint64_t tripleHash(uint64_t input);
 };
+
 
 
 

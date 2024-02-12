@@ -239,7 +239,6 @@ int main(int argc, char* argv[])
          for (auto TYPE : workload_type) {
             barrier_wait();
             std::atomic<bool> keep_running = true;
-            std::atomic<bool> tryShuffle = false;
             std::atomic<u64> running_threads_counter = 0;
 
             uint64_t zipf_offset = 0;
@@ -271,13 +270,12 @@ int main(int argc, char* argv[])
                            // todo yuval - stops processing any transactions
                        }
 
-                       K key = zipf_random->rand(zipf_offset);
-                       ensure(key < YCSB_tuple_count);
-                       V result;
-
-                       if(utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio && tryShuffle) { // worker will go and shuffle
+                       if(pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio) { // worker will go and shuffle
                            mh.shuffleFrameAndIsLastShuffle(workerPtr);
                        } else {
+                           K key = zipf_random->rand(zipf_offset);
+                           ensure(key < YCSB_tuple_count);
+                           V result;
                            if (READ_RATIO == 100 || utils::RandomGenerator::getRandU64(0, 100) < READ_RATIO) {
                                auto start = utils::getTimePoint();
                                auto success = tree.lookup_opt(key, result);
