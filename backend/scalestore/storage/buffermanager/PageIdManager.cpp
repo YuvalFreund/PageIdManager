@@ -105,9 +105,9 @@ uint64_t PageIdManager::getSsdSlotOfPageId(uint64_t pageId){
 
 
 void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
-    isBeforeShuffle = false;
     nodeIdsInCluster.erase(nodeIdLeft);
     initConsistentHashingInfo(false);
+    isBeforeShuffle = false;
 }
 
 bool PageIdManager::hasPageMovedDirectory(uint64_t pageId){
@@ -144,7 +144,6 @@ PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
         if(destNode != nodeId){
             retVal = PageShuffleJob(pageToShuffle,destNode);
             pageIdShuffleMtx.unlock();
-            setPageMovedDirectory(pageToShuffle); // todo yuval - should also be inside lock protection
             break;
         }
     }
@@ -153,6 +152,7 @@ PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
 
 
 void  PageIdManager::gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr ) {
+    prepareForShuffle(nodeId);
     for (auto nodeToUpdate: nodeIdsInCluster) {
         if (nodeToUpdate == nodeId) continue;
         auto &context_ = workerPtr->cctxs[nodeToUpdate];

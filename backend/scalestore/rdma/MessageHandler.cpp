@@ -442,14 +442,14 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     }
     auto pageId = nextJobToShuffle.pageId;
     auto newNodeId = nextJobToShuffle.newNodeId;
-    auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Invalidation(), newNodeId);
+    auto guard = bm.findFrameOrInsert<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Invalidation(), newNodeId);
     ensure(guard.state != storage::STATE::UNINITIALIZED);
     ensure(guard.state != storage::STATE::NOT_FOUND);
     ensure(guard.state != storage::STATE::RETRY);
     auto& context_ = workerPtr->cctxs[newNodeId];
     auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, guard.frame->possessors,guard.frame->possession);
     [[maybe_unused]]auto& nodeLeavingResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(newNodeId, onTheWayUpdateRequest);
-    // todo yuval -ensure this frame is only realesed once acknowledge by remote node taking responsibility
+    pageIdManager.setPageMovedDirectory(pageId);
     guard.frame->latch.unlatchExclusive();
     return false;
 }

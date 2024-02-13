@@ -81,7 +81,7 @@ struct PageIdManager {
         bool isDirectoryChangedForPage(uint64_t pageId){
             bool retVal;
             partitionLock.lock();
-            retVal = map[pageId] & DIRECTORY_CHANGED_MASK;
+            retVal = (map[pageId] & DIRECTORY_CHANGED_MASK) > 0;
             partitionLock.unlock();
             return retVal;
         }

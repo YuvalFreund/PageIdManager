@@ -240,9 +240,10 @@ void PageProvider::startThread() {
                      frame.latch.unlatchExclusive();
                      return false;
                   }
-                  if (!frame.latch.tryDowngradeExclusiveToShared()) return true;
-                  ensure(!frame.latch.isLatched());
-                  uint64_t ssdSlot = pageIdManager.getSsdSlotOfPageId(frame.pid);
+                   uint64_t ssdSlot = pageIdManager.getSsdSlotOfPageId(frame.pid);
+                   if (!frame.latch.tryDowngradeExclusiveToShared()) return true;
+                   ensure(!frame.latch.isLatched());
+
                   async_write_buffer.add(frame, ssdSlot, epoch);
                   return true;
                }

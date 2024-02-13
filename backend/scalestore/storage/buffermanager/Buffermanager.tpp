@@ -62,7 +62,7 @@ restart:
    // -------------------------------------------------------------------------------------
     g.frame->latch.latchExclusive(); // POSSIBLE ERROR?
     ensure(g.frame->pid == EMPTY_PID);
-    uint64_t pidOwner = pageIdManager.getNodeIdOfPage(pid, true);
+    uint64_t pidOwner = pageIdManager.getNodeIdOfPage(pid, true); // todo yuval balagan
    g.frame->state =
        (pidOwner == nodeId) ? BF_STATE::IO_SSD : BF_STATE::IO_RDMA;  // important to modify state before releasing the hashtable latch
    g.frame->page = page;
@@ -72,7 +72,7 @@ restart:
    // -------------------------------------------------------------------------------------
    ht_latch.unlatchExclusive();
    // -------------------------------------------------------------------------------------
-   g.state = (pidOwner == nodeId) ? STATE::SSD : STATE::REMOTE;
+   g.state = (pidOwner == nodeId) ? STATE::SSD : STATE::REMOTE; // here - it is still locked!
    g.vAcquired = g.frame->latch.version;
    g.latchState = LATCH_STATE::EXCLUSIVE;
    return g;

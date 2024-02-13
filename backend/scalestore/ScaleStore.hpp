@@ -115,7 +115,7 @@ class ScaleStore
 
     std::vector<uint64_t> getNodeIdsVec(uint64_t nodesNum){
         std::vector<uint64_t> retVal;
-        for(uint64_t i=0; i<nodesNum; i++) retVal.emplace_back(i);
+        for(uint64_t i = 0; i<nodesNum; i++) retVal.emplace_back(i);
         return retVal;
     }
    
