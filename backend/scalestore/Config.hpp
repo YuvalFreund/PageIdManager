@@ -46,4 +46,4 @@ DECLARE_uint32(socket);
 DECLARE_bool(pinThreads);
 DECLARE_bool(cpuCounters);
 // -------------------------------------------------------------------------------------
-DEFINE_uint32(pageIdManagerPartitions, 400 , "page id manager partitions of ssd slot maps");
+DECLARE_uint32(pageIdManagerPartitions);
