@@ -36,3 +36,6 @@ DEFINE_uint32(sockets, 2 , "Number Sockets");
 DEFINE_uint32(socket, 0, " Socket we are running on");
 DEFINE_bool(pinThreads, true, " Pin threads");
 DEFINE_bool(cpuCounters,true, " CPU counters profiling ");
+// -------------------------------------------------------------------------------------
+DEFINE_uint32(pageIdManagerPartitions, 400 , "page id manager partitions of ssd slot maps");
+

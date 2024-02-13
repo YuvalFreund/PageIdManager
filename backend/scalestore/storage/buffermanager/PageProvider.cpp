@@ -597,7 +597,7 @@ void PageProvider::startThread() {
                             // Remote Page
                             // -------------------------------------------------------------------------------------
                             {
-                                auto targetNode = pageIdManager.getNodeIdOfPage(frame.pid, true);
+                               auto targetNode = pageIdManager.getNodeIdOfPage(frame.pid, true);
                                if (partition.cctxs[targetNode].outgoing.current->full()) {
                                   ensure(frame.latch.isLatched());
                                   frame.latch.unlatchExclusive();

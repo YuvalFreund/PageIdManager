@@ -125,6 +125,7 @@ struct MessageHandler {
        storage::AsyncReadBuffer& async_read_buffer,
        storage::PartitionedQueue<storage::Page*, PARTITIONS, BATCH_SIZE, utils::Stack>::BatchHandle& page_handle)
    {
+
       uint8_t* mailboxes = partition.mailboxes;
       auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(request.pid, Protocol<DESIRED_MODE>(), ctx.bmId);
       // -------------------------------------------------------------------------------------
@@ -134,6 +135,13 @@ struct MessageHandler {
          counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
          return;
       }
+       // todo yuval BALAGAN - activate this after checking all the other code
+
+       /*bool pageChangedDirectory = pageIdManager.hasPageMovedDirectory(request.pid);
+       if (pageChangedDirectory){
+           auto& response = *MessageFabric::createMessage<rdma::PossessionResponse>(ctx.response, RESULT::DirectoryChanged);
+           writeMsg(clientId, response,page_handle);
+       }*/
 
       if(guard.state == STATE::SSD){
          // -------------------------------------------------------------------------------------

@@ -6,7 +6,7 @@
 
 
 void PageIdManager::initPageIdManager(){
-    numPartitions = 400; // todo yuval - this needs to be parameterized later..
+    numPartitions = FLAGS_pageIdManagerPartitions;
     std::srand (std::time (0)); // this generates a new seed for randomness
     initConsistentHashingInfo(true);
     initSsdPartitions();
@@ -31,7 +31,8 @@ void PageIdManager::initConsistentHashingInfo(bool firstInit){
 }
 
 void PageIdManager::initSsdPartitions(){
-    int partitionSize = 65536; // todo yuval - this needs to be parameterized for evaluation later.
+    int ssdMaximumPagesAmount = (FLAGS_ssd_gib * 1024 * 1024) / 4;
+    int partitionSize = ssdMaximumPagesAmount / FLAGS_pageIdManagerPartitions; // todo yuval - this needs to be parameterized for evaluation later.
     uint64_t runningSSdSlotBegin = 0;
     for(uint64_t i = 0; i < numPartitions; i++){
         ssdSlotPartitions.try_emplace(i,runningSSdSlotBegin,partitionSize);
@@ -77,31 +78,20 @@ void PageIdManager::removePage(uint64_t pageId){
     redeemSsdSlot(slotToFree);
 }
 
+
+
 uint64_t PageIdManager::getNodeIdOfPage(uint64_t pageId, bool searchOldRing){
     uint64_t retVal;
-    std::map<uint64_t, uint64_t> *mapToSearch = searchOldRing ? (&nodesRingLocationMap ) : (&newNodesRingLocationMap);
-    std::vector<uint64_t> * vectorToSearch = searchOldRing ? (&nodeRingLocationsVector) : (&newNodeRingLocationsVector);
-    uint64_t hashedPageId = tripleHash(pageId);
-    uint64_t l = 0;
-    uint64_t r = vectorToSearch->size() - 1;
-    // edge case for cyclic operation
-    if(hashedPageId < vectorToSearch->at(l) || hashedPageId > vectorToSearch->at(r)) {
-        auto itr = mapToSearch->find(vectorToSearch->at(r));
-        return itr->second;
-    }
-    // binary search
-    while (l <= r) {
-        uint64_t m = l + (r - l) / 2;
-        if (vectorToSearch->at(m) <= hashedPageId && vectorToSearch->at(m + 1) > hashedPageId) {
-            auto itr = mapToSearch->find(vectorToSearch->at(r));
-            retVal = itr->second;
-            break;
+    if(searchOldRing){
+        retVal = searchRingForNode(pageId, true);
+        if(isBeforeShuffle == false){ // worth checking that we still have the page - faster than messaging
+            bool pageMoved = hasPageMovedDirectory(pageId);
+            if(pageMoved){
+                retVal = searchRingForNode(pageId, false);
+            }
         }
-        if (vectorToSearch->at(m) < hashedPageId) {
-            l = m + 1;
-        } else{
-            r = m - 1;
-        }
+    }else{
+        retVal = searchRingForNode(pageId, false);
     }
     return retVal;
 }
@@ -154,6 +144,7 @@ PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
         if(destNode != nodeId){
             retVal = PageShuffleJob(pageToShuffle,destNode);
             pageIdShuffleMtx.unlock();
+            setPageMovedDirectory(pageToShuffle); // todo yuval - should also be inside lock protection
             break;
         }
     }
@@ -188,6 +179,36 @@ void PageIdManager::redeemSsdSlot(uint64_t freedSsdSlot){
     auto chosenPartition = ssdSlotPartitions.find(rand() % numPartitions);
     chosenPartition->second.insertFreedSsdSlot(freedSsdSlot);
 }
+
+uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
+    uint64_t retVal;
+    std::map<uint64_t, uint64_t> *mapToSearch = searchOldRing ? (&nodesRingLocationMap ) : (&newNodesRingLocationMap);
+    std::vector<uint64_t> * vectorToSearch = searchOldRing ? (&nodeRingLocationsVector) : (&newNodeRingLocationsVector);
+    uint64_t hashedPageId = tripleHash(pageId);
+    uint64_t l = 0;
+    uint64_t r = vectorToSearch->size() - 1;
+    // edge case for cyclic operation
+    if(hashedPageId < vectorToSearch->at(l) || hashedPageId > vectorToSearch->at(r)) {
+        auto itr = mapToSearch->find(vectorToSearch->at(r));
+        return itr->second;
+    }
+    // binary search
+    while (l <= r) {
+        uint64_t m = l + (r - l) / 2;
+        if (vectorToSearch->at(m) <= hashedPageId && vectorToSearch->at(m + 1) > hashedPageId) {
+            auto itr = mapToSearch->find(vectorToSearch->at(r));
+            retVal = itr->second;
+            break;
+        }
+        if (vectorToSearch->at(m) < hashedPageId) {
+            l = m + 1;
+        } else{
+            r = m - 1;
+        }
+    }
+    return retVal;
+}
+
 
 uint64_t PageIdManager::getNewPageId(bool oldRing){
     uint64_t retVal;

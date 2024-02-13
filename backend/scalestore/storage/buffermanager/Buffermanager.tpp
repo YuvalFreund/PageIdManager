@@ -128,7 +128,7 @@ restart:
 template <typename ACCESS>
 Guard Buffermanager::fix(PID pid, ACCESS functor) {
    using namespace rdma;
-
+   bool usingOldRing = true; // this is for the page id manager
    // -------------------------------------------------------------------------------------
 restart:
    Guard guard = findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(pid, functor, nodeId);
@@ -216,6 +216,7 @@ restart:
       // Remote Fix - no page and need to request it from remote
       // -------------------------------------------------------------------------------------
       case STATE::REMOTE: {
+remote:
          // ------------------------------------------------------------------------------------->
          ensure(guard.frame);
          ensure(guard.frame->state == BF_STATE::IO_RDMA);
@@ -228,7 +229,7 @@ restart:
          // -------------------------------------------------------------------------------------
          uintptr_t pageOffset = (uintptr_t)guard.frame->page;
          // -------------------------------------------------------------------------------------
-         uint64_t ownerId = pageIdManager.getNodeIdOfPage(pid, true);
+         uint64_t ownerId = pageIdManager.getNodeIdOfPage(pid, usingOldRing);
          auto& contextT = threads::Worker::my().cctxs[ownerId];
          auto& request = *MessageFabric::createMessage<PossessionRequest>(
              contextT.outgoing, ((functor.type == LATCH_STATE::EXCLUSIVE) ? MESSAGE_TYPE::PRX : MESSAGE_TYPE::PRS), pid, pageOffset);
@@ -236,11 +237,11 @@ restart:
          // -------------------------------------------------------------------------------------
          _mm_prefetch(&guard.frame->page->data[0], _MM_HINT_T0);  // prefetch first cache line of page
          // -------------------------------------------------------------------------------------
-          uint64_t pidOwner = pageIdManager.getNodeIdOfPage(pid, true);
-          auto& response = threads::Worker::my().collectResponseMsgASync<PossessionResponse>(pidOwner);
+          auto& response = threads::Worker::my().collectResponseMsgASync<PossessionResponse>(ownerId);
          // -------------------------------------------------------------------------------------
          // set version from owner
          guard.frame->pVersion = response.pVersion;
+
          // -------------------------------------------------------------------------------------
          if (response.resultType == RESULT::NoPageExclusiveConflict) {
             // -------------------------------------------------------------------------------------
@@ -286,6 +287,10 @@ restart:
                }
                goto restartNoPageEvicted;
             }
+            // todo yuval BALAGAN - activate this after checking all the other code
+         } else if (response.resultType == RESULT::DirectoryChanged){
+             usingOldRing = false;
+             goto remote;
          }
          // -------------------------------------------------------------------------------------
          // ensure(guard.frame->page->magicDebuggingNumber == pid);
@@ -312,8 +317,10 @@ restart:
       // Upgrade we are owner and need to change possession or page evicted
       // ------------------------------------------------------------------------------------
       case STATE::LOCAL_POSSESSION_CHANGE: {
-          uint64_t pidOwner = pageIdManager.getNodeIdOfPage(pid, true);
-          ensure(pidOwner == nodeId);
+          // todo yuval BALAGAN - activate this after checking all the other code
+         uint64_t pidOwner = pageIdManager.getNodeIdOfPage(pid, true);
+
+         ensure(pidOwner == nodeId);
          ensure(guard.frame->latch.isLatched());
          ensure(guard.frame->possession != POSSESSION::NOBODY);
          // -------------------------------------------------------------------------------------
@@ -401,6 +408,7 @@ restart:
       // Upgrade case we have the page, but need to upgrade possession on the owner / remote
       // -------------------------------------------------------------------------------------
       case STATE::REMOTE_POSSESSION_CHANGE: {
+remote_possession_change:
          threads::Worker::my().counters.incr(profiling::WorkerCounters::w_rpc_tried);
          ensure(FLAGS_nodes > 1);
          ensure(guard.frame != nullptr);
@@ -415,7 +423,13 @@ restart:
          auto& request = *MessageFabric::createMessage<PossessionUpdateRequest>(contextT.outgoing, pid, pVersionOld);
          // -------------------------------------------------------------------------------------
           auto& response = threads::Worker::my().writeMsgSync<PossessionUpdateResponse>(pidOwner, request);
+          // todo yuval BALAGAN - activate this after checking all the other code
 
+          if(response.resultType == RESULT::DirectoryChanged){
+             usingOldRing = false;
+             guard.frame->pVersion = pVersionOld;
+             goto remote_possession_change;
+         }
          if (response.resultType == RESULT::UpdateFailed) {
             ensure(guard.frame->latch.isLatched());
             guard.frame->pVersion = pVersionOld;

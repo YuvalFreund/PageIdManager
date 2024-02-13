@@ -159,7 +159,6 @@ struct PageIdManager {
     uint64_t getSsdSlotOfPageId(uint64_t pageId);
     void addPageWithExistingPageId(uint64_t pageId);
 
-
     // shuffling functions
     void prepareForShuffle(uint64_t nodeIdLeft);
     PageShuffleJob getNextPageShuffleJob();
@@ -175,6 +174,8 @@ struct PageIdManager {
     uint64_t getFreeSsdSlot();
     inline uint64_t FasterHash(uint64_t input);
     uint64_t tripleHash(uint64_t input);
+    uint64_t searchRingForNode(uint64_t pageId, bool searchOldRing);
+
 };
 
 
