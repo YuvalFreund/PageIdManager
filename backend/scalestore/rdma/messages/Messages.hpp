@@ -192,7 +192,7 @@ struct DelegationResponse : public Message  {
    DelegationResponse() : Message(MESSAGE_TYPE::DRR){}
 };
 
-struct __attribute__((packed)) CreateOrUpdateShuffledFrameRequest : public Message {
+struct CreateOrUpdateShuffledFrameRequest : public Message {
     uint64_t shuffledPid;
     storage::Possessors possessors;
     storage::POSSESSION possession;
