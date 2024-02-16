@@ -296,7 +296,7 @@ remote:
              uint64_t oldNode = pageIdManager.searchRingForNode(pid,true);
              auto& context_ = threads::Worker::my().cctxs[oldNode];
              auto& iptrRequest = *MessageFabric::createMessage<ImmediatePageTransferRequest>(context_.outgoing, pid, pageOffset);
-             auto& iptrResponse = threads::Worker::my().writeMsgSync<ImmediatePageTransferResponse>(oldNode,iptrRequest);
+             [[maybe_unused]]auto& iptrResponse = threads::Worker::my().writeMsgSync<ImmediatePageTransferResponse>(oldNode,iptrRequest);
          }
          // -------------------------------------------------------------------------------------
          // ensure(guard.frame->page->magicDebuggingNumber == pid);
