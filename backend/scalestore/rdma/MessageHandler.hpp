@@ -153,13 +153,13 @@ struct MessageHandler {
 
       bool pageStillAtOldDirectory = pageIdManager.isPageInOldNodeAndResetBit();
       if(pageStillAtOldDirectory){
-          uint64_t oldNodeId = pageIdManager.searchRingForNode(request.pid, true);// here we search directly at the ring!
-          auto& response = *MessageFabric::createMessage<rdma::PossessionResponse>(ctx.response, RESULT::PageAtOldNode);
+         /* uint64_t oldNodeId = pageIdManager.searchRingForNode(request.pid, true);// here we search directly at the ring!
+          auto& response = *MessageFabric::createMessage<rdma::ImmediatePageTransferRequest>(ctx.response, RESULT::PageAtOldNode);
           response.type = (DESIRED_MODE == POSSESSION::SHARED ? MESSAGE_TYPE::PRRS : MESSAGE_TYPE::PRRX);
           writeMsg(clientId, response,page_handle);
           guard.frame->possession = DESIRED_MODE;
           guard.frame->setPossessor(ctx.bmId);
-          guard.frame->latch.unlatchExclusive();
+          guard.frame->latch.unlatchExclusive();*/
           return;
       }
 
