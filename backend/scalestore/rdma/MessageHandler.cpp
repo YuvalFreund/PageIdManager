@@ -297,10 +297,20 @@ void MessageHandler::startThread() {
                      break;
                   }
                   case MESSAGE_TYPE::PUR: {
-                     auto& request = *reinterpret_cast<PossessionUpdateRequest*>(ctx.request);
-                     auto guard = bm.findFrame<CONTENTION_METHOD::NON_BLOCKING>(request.pid, Invalidation(), ctx.bmId);
-                     auto& response = *MessageFabric::createMessage<rdma::PossessionUpdateResponse>(ctx.response, RESULT::UpdateSucceed);
-                     // -------------------------------------------------------------------------------------
+                      auto& request = *reinterpret_cast<PossessionUpdateRequest*>(ctx.request);
+                      auto& response = *MessageFabric::createMessage<rdma::PossessionUpdateResponse>(ctx.response, RESULT::UpdateSucceed);
+                      //first check if we are even the directory - otherwise it there is no need to lock
+                      bool pageChangedDirectory = pageIdManager.hasPageMovedDirectory(request.pid);
+                      if(pageChangedDirectory){
+                          response.resultType = RESULT::DirectoryChanged;
+                          writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
+                          break;
+                      }
+                      auto guard = bm.findFrame<CONTENTION_METHOD::NON_BLOCKING>(request.pid, Invalidation(), ctx.bmId);
+                      // -------------------------------------------------------------------------------------
+
+
+
                      if ((guard.state == STATE::RETRY) && (guard.frame->pVersion == request.pVersion)) {
                         guard.frame->mhWaiting = true;
                         ensure(guard.latchState == LATCH_STATE::UNLATCHED);
@@ -396,8 +406,7 @@ void MessageHandler::startThread() {
                       auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(shuffledPid, Invalidation(), ctx.bmId);
                       guard.frame->possessors = createShuffledFrameRequest.possessors;
                       guard.frame->possession = createShuffledFrameRequest.possession;
-                      bool pageLocatedOnlyAtOldNode = isOldNodeSolePossessor(createShuffledFrameRequest.possession, createShuffledFrameRequest.possessors, ctx.bmId);
-                      pageIdManager.addPageWithExistingPageId(createShuffledFrameRequest.shuffledPid,pageLocatedOnlyAtOldNode);
+                      pageIdManager.addPageWithExistingPageId(createShuffledFrameRequest.shuffledPid,createShuffledFrameRequest.pageLeftAtOldNode);
                       guard.frame->pid = shuffledPid;
                       guard.unlock();
                       break;
@@ -454,13 +463,19 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     }
     auto pageId = nextJobToShuffle.pageId;
     auto newNodeId = nextJobToShuffle.newNodeId;
-    auto guard = bm.findFrameOrInsert<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Invalidation(), newNodeId);
-    ensure(guard.state != storage::STATE::UNINITIALIZED);
-    ensure(guard.state != storage::STATE::NOT_FOUND);
-    ensure(guard.state != storage::STATE::RETRY);
     auto& context_ = workerPtr->cctxs[newNodeId];
-    auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, guard.frame->possessors,guard.frame->possession);
-    [[maybe_unused]]auto& nodeLeavingResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(newNodeId, onTheWayUpdateRequest);
+    auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Invalidation(), nodeId); // node id doesn't matter
+    if(guard.state == storage::STATE::NOT_FOUND || guard.frame->possession == POSSESSION::NOBODY){
+        Possessors emptyPossessors = {0};
+        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, emptyPossessors,POSSESSION::NOBODY, true);
+        [[maybe_unused]]auto& nodeLeavingResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(newNodeId, onTheWayUpdateRequest);
+    }else{
+        ensure(guard.state != storage::STATE::UNINITIALIZED);
+        ensure(guard.state != storage::STATE::NOT_FOUND);
+        ensure(guard.state != storage::STATE::RETRY);
+        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, guard.frame->possessors,guard.frame->possession, true);
+        [[maybe_unused]]auto& nodeLeavingResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(newNodeId, onTheWayUpdateRequest);
+    }
     pageIdManager.setPageMovedDirectory(pageId);
     guard.frame->latch.unlatchExclusive();
     return false;
