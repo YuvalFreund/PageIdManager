@@ -416,11 +416,13 @@ void MessageHandler::startThread() {
                       auto& immediateTransferRequest = *reinterpret_cast<ImmediatePageTransferRequest*>(ctx.request);
                       PID shuffledPid = PID(immediateTransferRequest.requestedPid);
                       auto guard = bm.findFrame<CONTENTION_METHOD::BLOCKING>(shuffledPid, Invalidation(), ctx.bmId); // todo yuval - think of functor here
-                      if(guard.state == STATE::NOT_FOUND){
-                          // TODO YUVAL - FETCH FROM ssd
-                      }else{
-                          // todo yuval - send immediately from BM
+                      ensure(guard.state == STATE::NOT_FOUND);
+                      if(async_read_buffer.full()){
+                          throw std::runtime_error("read buffer is full ");
                       }
+                      uint64_t ssdSlot = pageIdManager.getSsdSlotOfPageId(shuffledPid.id);
+                      async_read_buffer.add(*guard.frame, shuffledPid, m_i, true,ssdSlot);
+                      //counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
                       break;
                   }
                   default:

@@ -293,7 +293,7 @@ remote:
              usingOldRing = false;
              goto remote;
          } else if (response.resultType == RESULT::PageAtOldNode){ // node already is possessor! now just get the page that stayed behind at old node
-             uint64_t oldNode = pageIdManager.searchRingForNode(pid,true);
+             uint64_t oldNode = response.conflictingNodeId;
              auto& context_ = threads::Worker::my().cctxs[oldNode];
              auto& iptrRequest = *MessageFabric::createMessage<ImmediatePageTransferRequest>(context_.outgoing, pid, pageOffset);
              [[maybe_unused]]auto& iptrResponse = threads::Worker::my().writeMsgSync<ImmediatePageTransferResponse>(oldNode,iptrRequest);
