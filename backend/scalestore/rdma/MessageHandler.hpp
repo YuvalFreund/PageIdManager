@@ -151,7 +151,7 @@ struct MessageHandler {
           return;
       }
 
-      bool pageStillAtOldDirectory = pageIdManager.isPageInOldNodeAndResetBit();
+      bool pageStillAtOldDirectory = pageIdManager.isPageInOldNodeAndResetBit(request.pid);
       if(pageStillAtOldDirectory){
          /* uint64_t oldNodeId = pageIdManager.searchRingForNode(request.pid, true);// here we search directly at the ring!
           auto& response = *MessageFabric::createMessage<rdma::ImmediatePageTransferRequest>(ctx.response, RESULT::PageAtOldNode);
