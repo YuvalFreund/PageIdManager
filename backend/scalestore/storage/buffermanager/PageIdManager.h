@@ -96,6 +96,16 @@ struct PageIdManager {
             uint64_t retVal;
             partitionLock.lock();
             retVal = map[pageId] & DIRECTORY_CHANGED_MASK_NEGATIVE;
+            retVal &= PAGE_AT_OLD_NODE_MASK_NEGATIVE;
+            partitionLock.unlock();
+            return retVal;
+        }
+
+        bool isPageInOldDirectoryAndReset(uint64_t pageId){
+            bool retVal;
+            partitionLock.lock();
+            retVal = (map[pageId] & PAGE_AT_OLD_NODE_MASK) > 0;
+            map[pageId] &= PAGE_AT_OLD_NODE_MASK_NEGATIVE;
             partitionLock.unlock();
             return retVal;
         }
@@ -157,13 +167,14 @@ struct PageIdManager {
     void removePage(uint64_t pageId);
     uint64_t getNodeIdOfPage(uint64_t pageId, bool searchOldRing);
     uint64_t getSsdSlotOfPageId(uint64_t pageId);
-    void addPageWithExistingPageId(uint64_t pageId);
+    void addPageWithExistingPageId(uint64_t existingPageId, bool pageAtOld);
 
     // shuffling functions
     void prepareForShuffle(uint64_t nodeIdLeft);
     PageShuffleJob getNextPageShuffleJob();
     bool hasPageMovedDirectory(uint64_t pageId);
     void setPageMovedDirectory(uint64_t pageId);
+    bool isPageInOldNodeAndResetBit(uint64_t pageId); // todo implement this
 
     // shuffling message
     void gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr );

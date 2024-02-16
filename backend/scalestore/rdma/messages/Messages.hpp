@@ -45,7 +45,10 @@ enum class MESSAGE_TYPE : uint8_t {
     //node leaving update
     NLUR = 17,
     NLURR = 18,
-   // -------------------------------------------------------------------------------------
+    // -------------------------------------------------------------------------------------
+    IPTR = 19,
+    IPTRR = 20,
+    // -------------------------------------------------------------------------------------
    DPMR = 96, // delegate possession request
    // Remote information for delegation
    DR = 97, 
@@ -69,7 +72,8 @@ enum class RESULT : uint8_t {
    UpdateSucceedWithSharedConflict =9,
    CopyFailedWithRestart =10,
    CopyFailedWithInvalidation =11,
-   DirectoryChanged = 12
+   DirectoryChanged = 12, // this node is no longer the directory - node has to look in the new node
+   PageAtOldNode = 13 // page is still in the old node
 };
 // -------------------------------------------------------------------------------------
 // INIT Message is exchanged via RDMA S/R hence not in inheritance hierarchy
@@ -188,7 +192,7 @@ struct DelegationResponse : public Message  {
    DelegationResponse() : Message(MESSAGE_TYPE::DRR){}
 };
 
-struct CreateOrUpdateShuffledFrameRequest : public Message {
+struct __attribute__((packed)) CreateOrUpdateShuffledFrameRequest : public Message {
     uint64_t shuffledPid;
     storage::Possessors possessors;
     storage::POSSESSION possession;
@@ -206,6 +210,17 @@ struct NodeLeavingUpdateResponse : public Message {
     NodeLeavingUpdateResponse() : Message(MESSAGE_TYPE::NLURR) {}
 };
 
+struct ImmediatePageTransferRequest : public Message {
+    uint64_t requestedPid;
+    uintptr_t pageOffset;
+    ImmediatePageTransferRequest(uint64_t requestedPid, uintptr_t pageOffset) : Message(MESSAGE_TYPE::IPTR), requestedPid(requestedPid), pageOffset(pageOffset) {}
+};
+
+struct ImmediatePageTransferResponse: public Message {
+    uint8_t receiveFlag = 1;
+    RESULT resultType;
+    ImmediatePageTransferResponse() : Message(MESSAGE_TYPE::IPTRR){}
+};
 // -------------------------------------------------------------------------------------
 // Get size of Largest Message
 union ALLDERIVED {
@@ -223,6 +238,8 @@ union ALLDERIVED {
     CreateOrUpdateShuffledFrameRequest cufsr;
     NodeLeavingUpdateRequest nlur;
     NodeLeavingUpdateResponse nlurr;
+    ImmediatePageTransferRequest iptr;
+    ImmediatePageTransferResponse iptrr;
 };
 
 static constexpr uint64_t LARGEST_MESSAGE = sizeof(ALLDERIVED);

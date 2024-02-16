@@ -38,4 +38,5 @@ DEFINE_bool(pinThreads, true, " Pin threads");
 DEFINE_bool(cpuCounters,true, " CPU counters profiling ");
 // -------------------------------------------------------------------------------------
 DEFINE_uint32(pageIdManagerPartitions, 400 , "page id manager partitions of ssd slot maps");
+DEFINE_uint32(max_nodes, 8 , "maximal nodes at all times in cluster");
 

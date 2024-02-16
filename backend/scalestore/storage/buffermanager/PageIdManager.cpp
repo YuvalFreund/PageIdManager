@@ -42,11 +42,13 @@ void PageIdManager::initSsdPartitions(){
 
 void PageIdManager::initPageIdIvs(){
     uint64_t maxValue = 0xFFFFFFFFFFFFFFFF;
-    uint64_t partitionSize = maxValue / numPartitions + 1; // this +1 is to avoid page id being exactly on the ring separators
-    uint64_t rollingIvStart = partitionSize;
+    uint64_t nodeAllowedIvSpaceStart = maxValue / FLAGS_max_nodes * nodeId;
+    uint64_t nodePartitionSize = maxValue / FLAGS_max_nodes;
+    uint64_t ivPartitionsSize = nodePartitionSize / (numPartitions + 1); // this +1 is to avoid page id being exactly on the ring separators
+    uint64_t rollingIvStart = nodeAllowedIvSpaceStart + ivPartitionsSize;
     for(uint64_t i = 0; i < numPartitions; i++){
         pageIdIvPartitions.try_emplace(i,rollingIvStart);
-        rollingIvStart += partitionSize;
+        rollingIvStart += ivPartitionsSize;
     }
 }
 
@@ -65,8 +67,12 @@ uint64_t PageIdManager::addPage(){
     return retVal;
 }
 
-void PageIdManager::addPageWithExistingPageId(uint64_t existingPageId){
+void PageIdManager::addPageWithExistingPageId(uint64_t existingPageId, bool pageAtOld){
     uint64_t ssdSlotForNewPage = getFreeSsdSlot();
+    ssdSlotForNewPage |= DIRECTORY_CHANGED_MASK;
+    if(pageAtOld){
+        ssdSlotForNewPage |= PAGE_AT_OLD_NODE_MASK;
+    }
     uint64_t partition = existingPageId & PAGE_ID_MASK;
     pageIdToSsdSlotMap[partition].insertToMap(existingPageId,ssdSlotForNewPage);
 }
@@ -100,6 +106,8 @@ uint64_t PageIdManager::getSsdSlotOfPageId(uint64_t pageId){
     uint64_t retVal;
     uint64_t partition = pageId & PAGE_ID_MASK;
     retVal = pageIdToSsdSlotMap[partition].getSsdSlotOfPage(pageId);
+    retVal &= DIRECTORY_CHANGED_MASK_NEGATIVE;
+    retVal &= PAGE_AT_OLD_NODE_MASK_NEGATIVE;
     return retVal;
 }
 
@@ -111,6 +119,13 @@ void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
 }
 
 bool PageIdManager::hasPageMovedDirectory(uint64_t pageId){
+    bool retVal;
+    uint64_t partition = pageId & PAGE_ID_MASK;
+    retVal = pageIdToSsdSlotMap[partition].isDirectoryChangedForPage(pageId);
+    return retVal;
+}
+
+bool PageIdManager::isPageInOldNodeAndResetBit(uint64_t pageId){
     bool retVal;
     uint64_t partition = pageId & PAGE_ID_MASK;
     retVal = pageIdToSsdSlotMap[partition].isDirectoryChangedForPage(pageId);

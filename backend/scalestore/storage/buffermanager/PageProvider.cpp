@@ -539,6 +539,7 @@ void PageProvider::startThread() {
                            begin_sampling, end_sampling,
                            [&](BufferFrame& frame) {
                               if(samples == required_samples) return false;
+                              // todo yuval - maybe add here as well - page at old
                               if ((frame.state == BF_STATE::FREE) | (frame.state == BF_STATE::EVICTED)) { return true; }
                               sample_epochs[samples++] = frame.epoch;
                               return true;
@@ -579,7 +580,7 @@ void PageProvider::startThread() {
                             auto version = frame.latch.optimisticLatchOrRestart();
                             if (!version.has_value()) continue;
 
-                            if (epoch != frame.epoch.load()) { continue; }
+                            if (epoch != frame.epoch.load()) { continue; } // todo yuval - maybe add here aswell - page at old
                             if ((frame.pid == EMPTY_PID) || (frame.state == BF_STATE::FREE) || (frame.state == BF_STATE::EVICTED)) {
                                continue;
                             }
@@ -589,7 +590,7 @@ void PageProvider::startThread() {
                             // -------------------------------------------------------------------------------------
                              uint64_t pidOwner = pageIdManager.getNodeIdOfPage(frame.pid, true);
 
-                             if ((pidOwner == bm.nodeId)) {
+                             if (pidOwner == bm.nodeId) {
                                auto rc = evict_owner_page(frame, epoch);
                                if (!rc) break;  // encountered dirty page and we cannot write it to the buffer
                                continue;

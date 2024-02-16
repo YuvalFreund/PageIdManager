@@ -391,15 +391,27 @@ void MessageHandler::startThread() {
                   }
 
                   case MESSAGE_TYPE::CUSFR: {
-                      auto& incomingBucketMessage = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
-                      pageIdManager.addPageWithExistingPageId(incomingBucketMessage.shuffledPid);
-                      PID shuffledPid = PID(incomingBucketMessage.shuffledPid);
-                      // todo yuval - organize this after deciding on the method
-                      auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(shuffledPid, Invalidation(), ctx.bmId); // todo yuval - think of functor here
-                      guard.frame->possessors = incomingBucketMessage.possessors;
-                      guard.frame->possession = incomingBucketMessage.possession;
+                      auto& createShuffledFrameRequest = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
+                      PID shuffledPid = PID(createShuffledFrameRequest.shuffledPid);
+                      auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(shuffledPid, Invalidation(), ctx.bmId);
+                      guard.frame->possessors = createShuffledFrameRequest.possessors;
+                      guard.frame->possession = createShuffledFrameRequest.possession;
+                      bool pageLocatedOnlyAtOldNode = isOldNodeSolePossessor(createShuffledFrameRequest.possession, createShuffledFrameRequest.possessors, ctx.bmId);
+                      pageIdManager.addPageWithExistingPageId(createShuffledFrameRequest.shuffledPid,pageLocatedOnlyAtOldNode);
                       guard.frame->pid = shuffledPid;
                       guard.unlock();
+                      break;
+                  }
+
+                  case MESSAGE_TYPE::IPTR: {
+                      auto& immediateTransferRequest = *reinterpret_cast<ImmediatePageTransferRequest*>(ctx.request);
+                      PID shuffledPid = PID(immediateTransferRequest.requestedPid);
+                      auto guard = bm.findFrame<CONTENTION_METHOD::BLOCKING>(shuffledPid, Invalidation(), ctx.bmId); // todo yuval - think of functor here
+                      if(guard.state == STATE::NOT_FOUND){
+                          // TODO YUVAL - FETCH FROM ssd
+                      }else{
+                          // todo yuval - send immediately from BM
+                      }
                       break;
                   }
                   default:

@@ -130,6 +130,7 @@ struct MessageHandler {
        if (pageChangedDirectory){
            auto& response = *MessageFabric::createMessage<rdma::PossessionResponse>(ctx.response, RESULT::DirectoryChanged);
            writeMsg(clientId, response,page_handle);
+           return;
        }
 
       uint8_t* mailboxes = partition.mailboxes;
@@ -142,11 +143,25 @@ struct MessageHandler {
          return;
       }
 
-       pageChangedDirectory = pageIdManager.hasPageMovedDirectory(request.pid);
-       if (pageChangedDirectory){
-           auto& response = *MessageFabric::createMessage<rdma::PossessionResponse>(ctx.response, RESULT::DirectoryChanged);
-           writeMsg(clientId, response,page_handle);
-       }
+      pageChangedDirectory = pageIdManager.hasPageMovedDirectory(request.pid);
+      if (pageChangedDirectory){
+          auto& response = *MessageFabric::createMessage<rdma::PossessionResponse>(ctx.response, RESULT::DirectoryChanged);
+          writeMsg(clientId, response,page_handle);
+          guard.frame->latch.unlatchExclusive();
+          return;
+      }
+
+      bool pageStillAtOldDirectory = pageIdManager.isPageInOldNodeAndResetBit();
+      if(pageStillAtOldDirectory){
+          uint64_t oldNodeId = pageIdManager.searchRingForNode(request.pid, true);// here we search directly at the ring!
+          auto& response = *MessageFabric::createMessage<rdma::PossessionResponse>(ctx.response, RESULT::PageAtOldNode);
+          response.type = (DESIRED_MODE == POSSESSION::SHARED ? MESSAGE_TYPE::PRRS : MESSAGE_TYPE::PRRX);
+          writeMsg(clientId, response,page_handle);
+          guard.frame->possession = DESIRED_MODE;
+          guard.frame->setPossessor(ctx.bmId);
+          guard.frame->latch.unlatchExclusive();
+          return;
+      }
 
 
       if(guard.state == STATE::SSD){
@@ -556,6 +571,18 @@ struct MessageHandler {
          }
       }
    };
+
+    bool isOldNodeSolePossessor(POSSESSION possession, Possessors possessors, uint64_t oldNodeId){
+        bool retVal = false;
+        if(possession == POSSESSION::EXCLUSIVE && possessors.exclusive == oldNodeId){
+            retVal = true;
+        }
+        if(possession == POSSESSION::SHARED){
+            possessors.shared.reset(oldNodeId);
+            retVal = possessors.shared.none();
+        }
+        return retVal;
+    }
 
    // -------------------------------------------------------------------------------------
    // -------------------------------------------------------------------------------------

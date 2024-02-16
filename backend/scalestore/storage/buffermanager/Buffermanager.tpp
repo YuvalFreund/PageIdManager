@@ -127,8 +127,8 @@ restart:
 // -------------------------------------------------------------------------------------
 template <typename ACCESS>
 Guard Buffermanager::fix(PID pid, ACCESS functor) {
-   using namespace rdma;
-   bool usingOldRing = true; // this is for the page id manager
+    bool usingOldRing = true; // this is for the page id manager
+    using namespace rdma;
    // -------------------------------------------------------------------------------------
 restart:
    Guard guard = findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(pid, functor, nodeId);
@@ -191,7 +191,8 @@ restart:
    // -------------------------------------------------------------------------------------
    volatile int mask = 1;  // for backoff
    switch (guard.state) {
-      case STATE::SSD: {
+      case STATE::SSD:
+      {
          ensure(guard.frame != nullptr);
          ensure(guard.frame->latch.isLatched());
          readPageSync(guard.frame->pid, reinterpret_cast<uint8_t*>(guard.frame->page));
@@ -291,6 +292,11 @@ remote:
          } else if (response.resultType == RESULT::DirectoryChanged){
              usingOldRing = false;
              goto remote;
+         } else if (response.resultType == RESULT::PageAtOldNode){ // node already is possessor! now just get the page that stayed behind at old node
+             uint64_t oldNode = pageIdManager.searchRingForNode(pid,true);
+             auto& context_ = threads::Worker::my().cctxs[oldNode];
+             auto& iptrRequest = *MessageFabric::createMessage<ImmediatePageTransferRequest>(context_.outgoing, pid, pageOffset);
+             auto& iptrResponse = threads::Worker::my().writeMsgSync<ImmediatePageTransferResponse>(oldNode,iptrRequest);
          }
          // -------------------------------------------------------------------------------------
          // ensure(guard.frame->page->magicDebuggingNumber == pid);

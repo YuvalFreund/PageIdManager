@@ -47,3 +47,4 @@ DECLARE_bool(pinThreads);
 DECLARE_bool(cpuCounters);
 // -------------------------------------------------------------------------------------
 DECLARE_uint32(pageIdManagerPartitions);
+DECLARE_uint32(max_nodes);

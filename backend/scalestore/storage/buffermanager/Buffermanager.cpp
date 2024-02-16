@@ -151,6 +151,7 @@ void Buffermanager::reclaimPage(BufferFrame& frame) {
    uint64_t pidOwner = pageIdManager.getNodeIdOfPage(frame.pid, true);
    if(pidOwner == nodeId){
       removeFrame(frame, [&](BufferFrame& frame){
+                        pageIdManager.removePage(frame.pid);
                          pageFreeList.push(frame.page, threads::ThreadContext::my().page_handle);
                       });
    }else{
