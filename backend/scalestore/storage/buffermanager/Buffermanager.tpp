@@ -140,7 +140,7 @@ restart:
    if (guard.state == STATE::INITIALIZED) {
       _mm_prefetch(&guard.frame->page->data[0], _MM_HINT_T0);
       if (guard.frame->epoch < globalEpoch) guard.frame->epoch = globalEpoch.load();
-      return guard;
+      return guard; // here paged is avaiable locally and fix finsihes
    }
    // -------------------------------------------------------------------------------------
    // helper lambdas
@@ -294,9 +294,13 @@ remote:
              goto remote;
          } else if (response.resultType == RESULT::PageAtOldNode){ // node already is possessor! now just get the page that stayed behind at old node
              uint64_t oldNode = response.conflictingNodeId;
-             auto& context_ = threads::Worker::my().cctxs[oldNode];
-             auto& iptrRequest = *MessageFabric::createMessage<ImmediatePageTransferRequest>(context_.outgoing, pid, pageOffset);
-             [[maybe_unused]]auto& iptrResponse = threads::Worker::my().writeMsgSync<ImmediatePageTransferResponse>(oldNode,iptrRequest);
+             if(oldNode == nodeId){
+                 readPageSync(guard.frame->pid, reinterpret_cast<uint8_t*>(guard.frame->page));
+             }else{
+                 auto& context_ = threads::Worker::my().cctxs[oldNode];
+                 auto& iptrRequest = *MessageFabric::createMessage<ImmediatePageTransferRequest>(context_.outgoing, pid, pageOffset);
+                 [[maybe_unused]]auto& iptrResponse = threads::Worker::my().writeMsgSync<ImmediatePageTransferResponse>(oldNode,iptrRequest);
+             }
          }
          // -------------------------------------------------------------------------------------
          // ensure(guard.frame->page->magicDebuggingNumber == pid);

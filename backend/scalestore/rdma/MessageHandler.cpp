@@ -408,7 +408,7 @@ void MessageHandler::startThread() {
                       guard.frame->possession = createShuffledFrameRequest.possession;
                       pageIdManager.addPageWithExistingPageId(createShuffledFrameRequest.shuffledPid,createShuffledFrameRequest.pageLeftAtOldNode);
                       guard.frame->pid = shuffledPid;
-                      guard.unlock();
+                      guard.frame->latch.unlatchExclusive();
                       break;
                   }
 
@@ -422,7 +422,6 @@ void MessageHandler::startThread() {
                       }
                       uint64_t ssdSlot = pageIdManager.getSsdSlotOfPageId(shuffledPid.id);
                       async_read_buffer.add(*guard.frame, shuffledPid, m_i, true,ssdSlot);
-                      //counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
                       break;
                   }
                   default:
@@ -475,7 +474,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         ensure(guard.state != storage::STATE::UNINITIALIZED);
         ensure(guard.state != storage::STATE::NOT_FOUND);
         ensure(guard.state != storage::STATE::RETRY);
-        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, guard.frame->possessors,guard.frame->possession, true);
+        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, guard.frame->possessors,guard.frame->possession, false);
         [[maybe_unused]]auto& nodeLeavingResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(newNodeId, onTheWayUpdateRequest);
     }
     pageIdManager.setPageMovedDirectory(pageId);
