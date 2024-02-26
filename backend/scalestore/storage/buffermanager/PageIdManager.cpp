@@ -15,19 +15,26 @@ void PageIdManager::initPageIdManager(){
 }
 
 void PageIdManager::initConsistentHashingInfo(bool firstInit){
-    std::map<uint64_t, uint64_t> * mapToUpdate = firstInit ?  (&nodesRingLocationMap) : (&newNodesRingLocationMap);
-    std::vector<uint64_t> * vectorToUpdate = firstInit ? (&nodeRingLocationsVector) :(&newNodeRingLocationsVector);
-    std::vector<uint64_t> nodeIdsVector(nodeIdsInCluster.begin(), nodeIdsInCluster.end());
-
-    for(unsigned long long i : nodeIdsVector){
-        for(uint64_t j = 0; j<CONSISTENT_HASHING_WEIGHT; j++){
-            (*mapToUpdate)[tripleHash(i * CONSISTENT_HASHING_WEIGHT + j) ] = i;
+    if(firstInit){
+        for(unsigned long long i : nodeIdsInCluster){ //key - place on ring. value - node id
+            for(uint64_t j = 0; j<CONSISTENT_HASHING_WEIGHT; j++){
+                nodesRingLocationMap[tripleHash(i * CONSISTENT_HASHING_WEIGHT + j) ] = i;
+            }
         }
+        for(auto & it : nodesRingLocationMap) {
+            nodeRingLocationsVector.push_back(it.first);
+        }
+        std::sort (nodeRingLocationsVector.begin(), nodeRingLocationsVector.end());
+    }else{
+        for(auto it : nodesRingLocationMap){
+            auto check = nodeIdsInCluster.find(it.second);
+            if (check != nodeIdsInCluster.end()){
+                newNodesRingLocationMap[it.first] = it.second;
+                newNodeRingLocationsVector.push_back(it.first);
+            }
+        }
+        std::sort (newNodeRingLocationsVector.begin(), newNodeRingLocationsVector.end());
     }
-    for(auto & it : *mapToUpdate) {
-        vectorToUpdate->push_back(it.first );
-    }
-    std::sort (vectorToUpdate->begin(), vectorToUpdate->end());
 }
 
 void PageIdManager::initSsdPartitions(){
