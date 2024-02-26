@@ -397,8 +397,6 @@ void MessageHandler::startThread() {
                       pageIdManager.prepareForShuffle(request.leavingNodeId);
                       auto& response = *MessageFabric::createMessage<rdma::NodeLeavingUpdateResponse>(ctx.response);
                       writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
-                      ensure(1==3);
-
                       break;
                   }
 
