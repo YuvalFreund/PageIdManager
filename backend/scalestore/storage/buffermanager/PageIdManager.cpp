@@ -149,6 +149,8 @@ void PageIdManager::setPageMovedDirectory(uint64_t pageId){
 
 PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
     PageShuffleJob retVal(0,0);
+    ensure(1==e);
+
     pageIdShuffleMtx.lock();
 
     while(stackForShuffleJob.empty()){
