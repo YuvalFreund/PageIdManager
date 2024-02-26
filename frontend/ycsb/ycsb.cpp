@@ -262,8 +262,9 @@ int main(int argc, char* argv[])
                            checkToStartShuffle++;
                            if(checkToStartShuffle == nodeLeavingTrigger){
                                std::cout<<"begin shuffling" <<std::endl;
-                               pageIdManager.gossipNodeIsLeaving(workerPtr); // todo yuval - implement calling to start shuffling
+                               pageIdManager.gossipNodeIsLeaving(workerPtr);
                                std::cout<<"done shuffling" <<std::endl;
+                               pageIdManager.isBeforeShuffle = false;
                            }
                        }
                        if(finishedShuffling && scalestore.getNodeID() == leavingNodeId){
@@ -274,7 +275,7 @@ int main(int argc, char* argv[])
 
                        if(scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio) { // worker will go and shuffle
                            std::cout<<"shuffling" <<std::endl;
-                           mh.shuffleFrameAndIsLastShuffle(workerPtr);
+                           finishedShuffling = mh.shuffleFrameAndIsLastShuffle(workerPtr);
                        } else {
                            K key = zipf_random->rand(zipf_offset);
                            ensure(key < YCSB_tuple_count);

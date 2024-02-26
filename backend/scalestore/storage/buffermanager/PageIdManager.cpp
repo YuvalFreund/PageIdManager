@@ -122,8 +122,9 @@ uint64_t PageIdManager::getSsdSlotOfPageId(uint64_t pageId){
 void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
     nodeIdsInCluster.erase(nodeIdLeft);
     initConsistentHashingInfo(false);
-    isBeforeShuffle = false;
-    ensure(nodeIdLeft == 0);
+    if(nodeIdLeft != nodeId){
+        isBeforeShuffle = false;
+    }
 }
 
 bool PageIdManager::hasPageMovedDirectory(uint64_t pageId){
