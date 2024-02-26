@@ -178,10 +178,12 @@ void  PageIdManager::gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr
     ensure(nodeId == 1);
     for (auto nodeToUpdate: nodeIdsInCluster) {
         if (nodeToUpdate == nodeId) continue;
+        ensure(nodeId == 1);
+
         auto &context_ = workerPtr->cctxs[nodeToUpdate];
         auto nodeLeavingRequest = *scalestore::rdma::MessageFabric::createMessage<scalestore::rdma::NodeLeavingUpdateRequest>(
                 context_.outgoing, nodeId);
-        [[maybe_unused]]auto &nodeLeavingResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(
+        [[maybe_unused]]auto &nodeLeavingResponse = workerPtr->writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(
                 nodeToUpdate, nodeLeavingRequest);
     }
 }

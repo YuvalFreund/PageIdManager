@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
         shuffleRatio = FLAGS_YCSB_shuffle_ratio;
     }
 
-    uint64_t nodeLeavingTrigger = YCSB_tuple_count * FLAGS_YCSB_trigger_leave_percentage / 100;
+    uint64_t nodeLeavingTrigger = 1000000;
 
 
     auto nodePartition = partition(scalestore.getNodeID(), FLAGS_nodes, YCSB_tuple_count);
