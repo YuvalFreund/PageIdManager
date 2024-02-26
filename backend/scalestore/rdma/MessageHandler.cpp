@@ -394,7 +394,6 @@ void MessageHandler::startThread() {
 
                   case MESSAGE_TYPE::NLUR:{
                       auto& request = *reinterpret_cast<NodeLeavingUpdateRequest*>(ctx.request);
-                      ensure(1==20);
                       pageIdManager.prepareForShuffle(request.leavingNodeId);
                       auto& response = *MessageFabric::createMessage<rdma::NodeLeavingUpdateResponse>(ctx.response);
                       writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
@@ -402,6 +401,7 @@ void MessageHandler::startThread() {
                   }
 
                   case MESSAGE_TYPE::CUSFR: {
+                      ensure(1==2);
                       auto& createShuffledFrameRequest = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
                       PID shuffledPid = PID(createShuffledFrameRequest.shuffledPid);
                       auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(shuffledPid, Invalidation(), ctx.bmId);
