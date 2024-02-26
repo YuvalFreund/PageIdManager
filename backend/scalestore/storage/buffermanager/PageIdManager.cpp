@@ -175,6 +175,7 @@ PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
 
 void  PageIdManager::gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr ) {
     prepareForShuffle(nodeId);
+    ensure(nodeId == 1 );
     for (auto nodeToUpdate: nodeIdsInCluster) {
         if (nodeToUpdate == nodeId) continue;
         auto &context_ = workerPtr->cctxs[nodeToUpdate];
