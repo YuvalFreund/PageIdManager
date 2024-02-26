@@ -187,8 +187,6 @@ void  PageIdManager::gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr
         [[maybe_unused]]auto &nodeLeavingResponse = workerPtr->writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(
                 nodeToUpdate, nodeLeavingRequest);
     }
-    ensure(1==5);
-
 }
 
 uint64_t PageIdManager::getFreeSsdSlot(){
