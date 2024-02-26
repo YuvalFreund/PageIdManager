@@ -124,6 +124,8 @@ void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
     initConsistentHashingInfo(false);
     if(nodeIdLeft != nodeId){
         isBeforeShuffle = false;
+    }else{
+        stackForShuffleJob = pageIdToSsdSlotMap[workingShuffleMapIdx].getStackForShuffling();
     }
 }
 

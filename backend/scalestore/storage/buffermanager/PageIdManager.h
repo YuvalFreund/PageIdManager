@@ -147,7 +147,7 @@ struct PageIdManager {
 
     //locks and atomics
     std::atomic<bool> isBeforeShuffle = true;
-    std::atomic<int> workingShuffleMapIdx = -1;
+    std::atomic<int> workingShuffleMapIdx = 0;
     std::mutex pageIdSsdMapMtx;
     std::mutex pageIdShuffleMtx;
 
