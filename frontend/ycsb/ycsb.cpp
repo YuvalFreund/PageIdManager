@@ -271,7 +271,8 @@ int main(int argc, char* argv[])
                            // todo yuval - stops processing any transactions
                        }
 
-                       if(pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio) { // worker will go and shuffle
+                       if(scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio) { // worker will go and shuffle
+                           std::cout<<"shuffling" <<std::endl;
                            mh.shuffleFrameAndIsLastShuffle(workerPtr);
                        } else {
                            K key = zipf_random->rand(zipf_offset);

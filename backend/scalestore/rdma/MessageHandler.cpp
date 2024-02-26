@@ -469,14 +469,20 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Invalidation(), nodeId); // node id doesn't matter
     if(guard.state == storage::STATE::NOT_FOUND || guard.frame->possession == POSSESSION::NOBODY){
         Possessors emptyPossessors = {0};
+        std::cout<<"a" <<std::endl;
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, emptyPossessors,POSSESSION::NOBODY, true);
         [[maybe_unused]]auto& nodeLeavingResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(newNodeId, onTheWayUpdateRequest);
+        std::cout<<"b" <<std::endl;
+
     }else{
+        std::cout<<"c" <<std::endl;
         ensure(guard.state != storage::STATE::UNINITIALIZED);
         ensure(guard.state != storage::STATE::NOT_FOUND);
         ensure(guard.state != storage::STATE::RETRY);
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, guard.frame->possessors,guard.frame->possession, false);
         [[maybe_unused]]auto& nodeLeavingResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(newNodeId, onTheWayUpdateRequest);
+        std::cout<<"d" <<std::endl;
+
     }
     pageIdManager.setPageMovedDirectory(pageId);
     guard.frame->latch.unlatchExclusive();
