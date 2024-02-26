@@ -11,7 +11,7 @@
 // -------------------------------------------------------------------------------------
 DEFINE_uint32(YCSB_read_ratio, 100, "");
 DEFINE_bool(YCSB_all_workloads, false , "Execute all workloads i.e. 50 95 100 ReadRatio on same tree");
-DEFINE_double(YCSB_trigger_leave_percentage, 10.0, "");
+DEFINE_double(YCSB_trigger_leave_percentage, 1.0, "");
 DEFINE_uint64(YCSB_tuple_count, 1, " Tuple count in");
 DEFINE_double(YCSB_zipf_factor, 0.0, "Default value according to spec");
 DEFINE_double(YCSB_run_for_seconds, 10.0, "");
@@ -261,6 +261,7 @@ int main(int argc, char* argv[])
                        if(scalestore.getNodeID() == leavingNodeId && t_i == 0) {
                            checkToStartShuffle++;
                            if(checkToStartShuffle == nodeLeavingTrigger){
+                               std::cout<<"begin shuffling" <<std::endl;
                                pageIdManager.gossipNodeIsLeaving(workerPtr); // todo yuval - implement calling to start shuffling
                            }
                        }
