@@ -249,7 +249,7 @@ int main(int argc, char* argv[])
             rdma::MessageHandler& mh = scalestore.getMessageHandler();
              for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i) {
                 scalestore.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]() {
-                    threads::Worker* workerPtr = scalestore.getWorkerPool().getWorkerByTid(t_i);
+                   threads::Worker* workerPtr = scalestore.getWorkerPool().getWorkerByTid(t_i);
                    running_threads_counter++;
                    storage::DistributedBarrier barrier(catalog.getCatalogEntry(BARRIER_ID).pid);
                    storage::BTree<K, V> tree(catalog.getCatalogEntry(BTREE_ID).pid);
@@ -263,6 +263,7 @@ int main(int argc, char* argv[])
                            if(checkToStartShuffle == nodeLeavingTrigger){
                                std::cout<<"begin shuffling" <<std::endl;
                                pageIdManager.gossipNodeIsLeaving(workerPtr); // todo yuval - implement calling to start shuffling
+                               std::cout<<"done shuffling" <<std::endl;
                            }
                        }
                        if(finishedShuffling && scalestore.getNodeID() == leavingNodeId){
