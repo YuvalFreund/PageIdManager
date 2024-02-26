@@ -123,6 +123,7 @@ void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
     nodeIdsInCluster.erase(nodeIdLeft);
     initConsistentHashingInfo(false);
     isBeforeShuffle = false;
+    ensure(nodeIdLeft == 0);
 }
 
 bool PageIdManager::hasPageMovedDirectory(uint64_t pageId){
@@ -182,8 +183,6 @@ void  PageIdManager::gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr
                 context_.outgoing, nodeId);
         [[maybe_unused]]auto &nodeLeavingResponse = workerPtr->writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(
                 nodeToUpdate, nodeLeavingRequest);
-        ensure(nodeId == 3);
-
     }
 }
 
