@@ -394,6 +394,7 @@ void MessageHandler::startThread() {
 
                   case MESSAGE_TYPE::NLUR:{
                       auto& request = *reinterpret_cast<NodeLeavingUpdateRequest*>(ctx.request);
+                      ensure(1==20);
                       pageIdManager.prepareForShuffle(request.leavingNodeId);
                       auto& response = *MessageFabric::createMessage<rdma::NodeLeavingUpdateResponse>(ctx.response);
                       writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
