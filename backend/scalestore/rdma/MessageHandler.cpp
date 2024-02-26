@@ -409,6 +409,7 @@ void MessageHandler::startThread() {
                       pageIdManager.addPageWithExistingPageId(createShuffledFrameRequest.shuffledPid,createShuffledFrameRequest.pageLeftAtOldNode);
                       guard.frame->pid = shuffledPid;
                       guard.frame->latch.unlatchExclusive();
+                      std::cout<<"balagan"<<std::endl;
                       break;
                   }
 
