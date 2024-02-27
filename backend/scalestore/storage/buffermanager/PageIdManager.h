@@ -124,8 +124,8 @@ struct PageIdManager {
             for(auto pair : map){
                 retVal.push(pair.first);
             }
-            return retVal;
             partitionLock.unlock();
+            return retVal;
         }
     };
     //constructor
