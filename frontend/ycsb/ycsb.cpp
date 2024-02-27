@@ -274,7 +274,6 @@ int main(int argc, char* argv[])
                        }
 
                        if(scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio) { // worker will go and shuffle
-                           std::cout<<"shuffling" <<std::endl;
                            finishedShuffling = mh.shuffleFrameAndIsLastShuffle(workerPtr);
                        } else {
                            K key = zipf_random->rand(zipf_offset);
