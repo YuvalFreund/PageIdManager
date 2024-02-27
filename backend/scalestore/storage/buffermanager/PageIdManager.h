@@ -87,16 +87,9 @@ struct PageIdManager {
         }
 
         void setDirectoryChangedForPage(uint64_t pageId){
-            std::cout<<"g" <<std::endl;
-
             partitionLock.lock();
-            std::cout<<"h" <<std::endl;
-
             map[pageId] |= DIRECTORY_CHANGED_MASK;
-            std::cout<<"i" <<std::endl;
-
             partitionLock.unlock();
-            std::cout<<"k" <<std::endl;
 
         }
 
