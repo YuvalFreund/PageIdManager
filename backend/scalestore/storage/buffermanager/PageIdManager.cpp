@@ -153,12 +153,9 @@ void PageIdManager::setPageMovedDirectory(uint64_t pageId){
 PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
     PageShuffleJob retVal(0,0);
     pageIdShuffleMtx.lock();
-    std::cout<<"working stack size: :" << stackForShuffleJob.size() << std::endl;
-
     while(stackForShuffleJob.empty()){
         workingShuffleMapIdx++;
-        std::cout<<"workingShuffleMapIdx :" << workingShuffleMapIdx << std::endl;
-        if(workingShuffleMapIdx < ShuffleMapAmount) {
+        if(workingShuffleMapIdx > ShuffleMapAmount) {
             retVal.last = true; // done shuffling
             return retVal;
         }
