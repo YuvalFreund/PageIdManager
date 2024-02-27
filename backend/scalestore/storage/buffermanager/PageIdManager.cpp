@@ -169,7 +169,6 @@ PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
     uint64_t destNode = getNodeIdOfPage(pageToShuffle, false);
     retVal = PageShuffleJob(pageToShuffle,destNode);
     pageIdShuffleMtx.unlock();
-
     return retVal;
 }
 
