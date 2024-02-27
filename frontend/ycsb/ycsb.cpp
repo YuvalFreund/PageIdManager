@@ -239,6 +239,7 @@ int main(int argc, char* argv[])
          for (auto TYPE : workload_type) {
             barrier_wait();
             std::atomic<bool> keep_running = true;
+            std::atomic<bool> finishedShuffling =false;
             std::atomic<u64> running_threads_counter = 0;
 
             uint64_t zipf_offset = 0;
@@ -254,16 +255,15 @@ int main(int argc, char* argv[])
                    storage::DistributedBarrier barrier(catalog.getCatalogEntry(BARRIER_ID).pid);
                    storage::BTree<K, V> tree(catalog.getCatalogEntry(BTREE_ID).pid);
                    barrier.wait();
-                   bool finishedShuffling = false;
                    uint64_t checkToStartShuffle = 0;
                    PageIdManager& pageIdManager = scalestore.getPageIdManager();
                    while (keep_running) {
                        if(scalestore.getNodeID() == leavingNodeId && t_i == 0) {
                            checkToStartShuffle++;
                            if(checkToStartShuffle == nodeLeavingTrigger){
-                               std::cout<<"begin shuffling" <<std::endl;
+                               std::cout<<"begin trigger" <<std::endl;
                                pageIdManager.gossipNodeIsLeaving(workerPtr);
-                               std::cout<<"done shuffling" <<std::endl;
+                               std::cout<<"done trigger" <<std::endl;
                                pageIdManager.isBeforeShuffle = false;
                            }
                        }
@@ -275,6 +275,8 @@ int main(int argc, char* argv[])
 
                        if(scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio) { // worker will go and shuffle
                            finishedShuffling = mh.shuffleFrameAndIsLastShuffle(workerPtr);
+                           std::cout<<"j" <<std::endl;
+
                        } else {
                            K key = zipf_random->rand(zipf_offset);
                            ensure(key < YCSB_tuple_count);

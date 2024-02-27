@@ -478,17 +478,17 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         std::cout<<"b" <<std::endl;
 
     }else{
-        std::cout<<"c" <<std::endl;
         ensure(guard.state != storage::STATE::UNINITIALIZED);
         ensure(guard.state != storage::STATE::NOT_FOUND);
         ensure(guard.state != storage::STATE::RETRY);
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, guard.frame->possessors,guard.frame->possession, false);
         [[maybe_unused]]auto& nodeLeavingResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(newNodeId, onTheWayUpdateRequest);
-        std::cout<<"d" <<std::endl;
 
     }
     pageIdManager.setPageMovedDirectory(pageId);
     guard.frame->latch.unlatchExclusive();
+    std::cout<<"q" <<std::endl;
+
     return false;
 }
 
