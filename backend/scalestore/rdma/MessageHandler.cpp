@@ -401,23 +401,17 @@ void MessageHandler::startThread() {
                   }
 
                   case MESSAGE_TYPE::CUSFR: {
-                      //ensure(1==2);
-                      std::cout<<"G"<<std::endl;
                       auto& createShuffledFrameRequest = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
-                      std::cout<<"H"<<std::endl;
                       PID shuffledPid = PID(createShuffledFrameRequest.shuffledPid);
-                      std::cout<<"I"<<std::endl;
                       auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(shuffledPid, Invalidation(), ctx.bmId);
-                      std::cout<<"J"<<std::endl;
                       guard.frame->possessors = createShuffledFrameRequest.possessors;
                       guard.frame->possession = createShuffledFrameRequest.possession;
                       pageIdManager.addPageWithExistingPageId(createShuffledFrameRequest.shuffledPid,createShuffledFrameRequest.pageLeftAtOldNode);
-                      std::cout<<"K"<<std::endl;
                       guard.frame->pid = shuffledPid;
                       guard.frame->latch.unlatchExclusive();
-                      std::cout<<"L"<<std::endl;
-
-                      break;
+                      auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
+                      writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
+ה                     break;
                   }
 
                   case MESSAGE_TYPE::IPTR: {
