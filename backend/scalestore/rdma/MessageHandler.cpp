@@ -401,7 +401,7 @@ void MessageHandler::startThread() {
                   }
 
                   case MESSAGE_TYPE::CUSFR: {
-                      ensure(1==2);
+                      //ensure(1==2);
                       auto& createShuffledFrameRequest = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
                       PID shuffledPid = PID(createShuffledFrameRequest.shuffledPid);
                       auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(shuffledPid, Invalidation(), ctx.bmId);
