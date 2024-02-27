@@ -144,11 +144,8 @@ bool PageIdManager::isPageInOldNodeAndResetBit(uint64_t pageId){
 }
 
 void PageIdManager::setPageMovedDirectory(uint64_t pageId){
-    std::cout<<"e" <<std::endl;
 
     uint64_t partition = pageId & PAGE_ID_MASK;
-    std::cout<<"pageId: "<<pageId <<std::endl;
-
     pageIdToSsdSlotMap[partition].setDirectoryChangedForPage(pageId);
 }
 
@@ -156,7 +153,6 @@ void PageIdManager::setPageMovedDirectory(uint64_t pageId){
 PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
     PageShuffleJob retVal(0,0);
     pageIdShuffleMtx.lock();
-
     while(stackForShuffleJob.empty()){
         workingShuffleMapIdx++;
         std::cout<<"workingShuffleMapIdx :" << workingShuffleMapIdx << std::endl;
@@ -168,16 +164,12 @@ PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
             stackForShuffleJob = pageIdToSsdSlotMap[workingShuffleMapIdx].getStackForShuffling();
         }
     }
-    while(true){
-        uint64_t pageToShuffle = stackForShuffleJob.top();
-        stackForShuffleJob.pop();
-        uint64_t destNode = getNodeIdOfPage(pageToShuffle, false);
-        if(destNode != nodeId){
-            retVal = PageShuffleJob(pageToShuffle,destNode);
-            pageIdShuffleMtx.unlock();
-            break;
-        }
-    }
+    uint64_t pageToShuffle = stackForShuffleJob.top();
+    stackForShuffleJob.pop();
+    uint64_t destNode = getNodeIdOfPage(pageToShuffle, false);
+    retVal = PageShuffleJob(pageToShuffle,destNode);
+    pageIdShuffleMtx.unlock();
+
     return retVal;
 }
 
