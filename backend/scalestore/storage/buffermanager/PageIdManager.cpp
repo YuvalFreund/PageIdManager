@@ -144,7 +144,11 @@ bool PageIdManager::isPageInOldNodeAndResetBit(uint64_t pageId){
 }
 
 void PageIdManager::setPageMovedDirectory(uint64_t pageId){
+    std::cout<<"e" <<std::endl;
+
     uint64_t partition = pageId & PAGE_ID_MASK;
+    std::cout<<"pageId: "<<pageId <<std::endl;
+
     pageIdToSsdSlotMap[partition].setDirectoryChangedForPage(pageId);
 }
 
