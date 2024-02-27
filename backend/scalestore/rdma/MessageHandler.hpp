@@ -575,19 +575,6 @@ struct MessageHandler {
          }
       }
    };
-
-    bool isOldNodeSolePossessor(POSSESSION possession, Possessors possessors, uint64_t oldNodeId){
-        bool retVal = false;
-        if(possession == POSSESSION::EXCLUSIVE && possessors.exclusive == oldNodeId){
-            retVal = true;
-        }
-        if(possession == POSSESSION::SHARED){
-            possessors.shared.reset(oldNodeId);
-            retVal = possessors.shared.none();
-        }
-        return retVal;
-    }
-
    // -------------------------------------------------------------------------------------
    // -------------------------------------------------------------------------------------
 };  // namespace rdma
