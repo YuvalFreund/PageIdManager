@@ -411,7 +411,7 @@ void MessageHandler::startThread() {
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
                       writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
-ה                     break;
+                      break;
                   }
 
                   case MESSAGE_TYPE::IPTR: {
