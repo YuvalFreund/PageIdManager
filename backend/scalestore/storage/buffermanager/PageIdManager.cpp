@@ -159,6 +159,7 @@ PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
 
     while(stackForShuffleJob.empty()){
         workingShuffleMapIdx++;
+        std::cout<<"workingShuffleMapIdx :" << workingShuffleMapIdx << std::endl;
         if(workingShuffleMapIdx < ShuffleMapAmount) {
             retVal.last = true; // done shuffling
             return retVal;
