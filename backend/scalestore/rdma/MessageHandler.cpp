@@ -404,9 +404,12 @@ void MessageHandler::startThread() {
                       auto& createShuffledFrameRequest = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
                       PID shuffledPid = PID(createShuffledFrameRequest.shuffledPid);
                       auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(shuffledPid, Invalidation(), ctx.bmId);
+                      pageIdManager.addPageWithExistingPageId(createShuffledFrameRequest.shuffledPid,createShuffledFrameRequest.pageLeftAtOldNode);
                       guard.frame->possessors = createShuffledFrameRequest.possessors;
                       guard.frame->possession = createShuffledFrameRequest.possession;
-                      pageIdManager.addPageWithExistingPageId(createShuffledFrameRequest.shuffledPid,createShuffledFrameRequest.pageLeftAtOldNode);
+                      if(guard.state == STATE::SSD){ // That means this frame did not exist here before or was evicted. it will be marked as evicted
+                          guard.frame->state = BF_STATE::EVICTED;
+                      }
                       guard.frame->pid = shuffledPid;
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);

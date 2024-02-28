@@ -374,13 +374,10 @@ remote:
                invalidateSharedConflicts(shared, guard.frame->pVersion);
                // -------------------------------------------------------------------------------------
             } else { // this means - this page is held by another node is shared possession and we also want it shared, we are the directory
-               if(pageIdManager.isPageInThisDirectory(pid) ==false ){
-                   // todo yuval- is this a worry?
-               }else{
-                   ensure(guard.frame->state == BF_STATE::EVICTED);
-               }
+               bool pageShuffledIntoThisNode;
+               ensure(guard.frame->state == BF_STATE::EVICTED);
 
-                auto& shared = guard.frame->possessors.shared;
+               auto& shared = guard.frame->possessors.shared;
                ensure(shared.any());
                RESULT result;
                uint64_t randomId = 0;
