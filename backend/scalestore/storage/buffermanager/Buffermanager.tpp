@@ -374,7 +374,7 @@ remote:
                invalidateSharedConflicts(shared, guard.frame->pVersion);
                // -------------------------------------------------------------------------------------
             } else { // this means - this page is held by another node is shared possession and we also want it shared, we are the directory
-               ensure(guard.frame->state == BF_STATE::EVICTED);
+               ensure(guard.frame->state == BF_STATE::EVICTED || guard.frame->state == BF_STATE::SHUFFLED_IN );
                auto& shared = guard.frame->possessors.shared;
                ensure(shared.any());
                RESULT result;
