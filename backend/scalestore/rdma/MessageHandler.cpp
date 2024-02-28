@@ -461,7 +461,7 @@ void MessageHandler::startThread() {
 
 bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr){
     PageIdManager::PageShuffleJob nextJobToShuffle = pageIdManager.getNextPageShuffleJob();
-    std::cout<<"page id to shuffle: "<<nextJobToShuffle.pageId<<std::endl;
+    //std::cout<<"page id to shuffle: "<<nextJobToShuffle.pageId<<std::endl;
     if(nextJobToShuffle.last){
         return true;
     }
