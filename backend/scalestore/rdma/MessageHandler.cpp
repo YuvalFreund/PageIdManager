@@ -483,8 +483,6 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     }
     pageIdManager.setPageMovedDirectory(pageId);
     guard.frame->latch.unlatchExclusive();
-    std::cout<<"q" <<std::endl;
-
     return false;
 }
 
