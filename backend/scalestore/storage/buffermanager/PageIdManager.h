@@ -78,25 +78,29 @@ struct PageIdManager {
             partitionLock.unlock();
         }
 
-        bool isDirectoryChangedForPage(uint64_t pageId){
-            bool retVal;
+        void setDirectoryForPage(uint64_t pageId, uint64_t directory){
             partitionLock.lock();
-            retVal = (map[pageId] & DIRECTORY_CHANGED_MASK) > 0;
+            uint64_t directoryIn64Bit = directory;
+            directoryIn64Bit <<= 48;
+            map[pageId] = map[pageId] & PAGE_DIRECTORY_NEGATIVE_MASK;
+            map[pageId] = map[pageId] | directoryIn64Bit;
             partitionLock.unlock();
-            return retVal;
         }
 
-        void setDirectoryChangedForPage(uint64_t pageId){
-            partitionLock.lock();
-            map[pageId] |= DIRECTORY_CHANGED_MASK;
-            partitionLock.unlock();
 
+        uint64_t getDirectoryOfPage(uint64_t pageId){
+            uint64_t retVal;
+            partitionLock.lock();
+            retVal = map[pageId];
+            partitionLock.unlock();
+            retVal >>= 48;
+            return retVal;
         }
 
         uint64_t getSsdSlotOfPage(uint64_t pageId){
             uint64_t retVal;
             partitionLock.lock();
-            retVal = map[pageId] & DIRECTORY_CHANGED_MASK_NEGATIVE;
+            retVal = map[pageId];
             retVal &= PAGE_AT_OLD_NODE_MASK_NEGATIVE;
             partitionLock.unlock();
             return retVal;
@@ -173,10 +177,10 @@ struct PageIdManager {
     // shuffling functions
     void prepareForShuffle(uint64_t nodeIdLeft);
     PageShuffleJob getNextPageShuffleJob();
-    bool hasPageMovedDirectory(uint64_t pageId);
-    void setPageMovedDirectory(uint64_t pageId);
+    uint64_t getDirectoryOfPage(uint64_t pageId);
+    void setDirectoryOfPage(uint64_t pageId, uint64_t directory);
     bool isPageInOldNodeAndResetBit(uint64_t pageId); // todo implement this
-
+    bool isPageInThisDirectory(uint64_t pageId);
     // shuffling message
     void gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr );
 

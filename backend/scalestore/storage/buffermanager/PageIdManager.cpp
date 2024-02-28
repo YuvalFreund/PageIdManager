@@ -98,7 +98,7 @@ uint64_t PageIdManager::getNodeIdOfPage(uint64_t pageId, bool searchOldRing){
     if(searchOldRing){
         retVal = searchRingForNode(pageId, true);
         if(isBeforeShuffle == false){ // worth checking that we still have the page - faster than messaging
-            bool pageMoved = hasPageMovedDirectory(pageId);
+            bool pageMoved = isPageInThisDirectory(pageId);
             if(pageMoved){
                 retVal = searchRingForNode(pageId, false);
             }
@@ -129,31 +129,35 @@ void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
     }
 }
 
-bool PageIdManager::hasPageMovedDirectory(uint64_t pageId){
-    bool retVal;
-    uint64_t partition = pageId & PAGE_ID_MASK;
-    retVal = pageIdToSsdSlotMap[partition].isDirectoryChangedForPage(pageId);
-    return retVal;
-}
 
 bool PageIdManager::isPageInOldNodeAndResetBit(uint64_t pageId){
-    bool retVal;
+
+    return false;
+}
+
+uint64_t PageIdManager::getDirectoryOfPage(uint64_t pageId){
+    uint64_t retVal;
     uint64_t partition = pageId & PAGE_ID_MASK;
-    retVal = pageIdToSsdSlotMap[partition].isDirectoryChangedForPage(pageId);
+    retVal = pageIdToSsdSlotMap[partition].getDirectoryOfPage(pageId);
     return retVal;
 }
 
-void PageIdManager::setPageMovedDirectory(uint64_t pageId){
-
-    uint64_t partition = pageId & PAGE_ID_MASK;
-    pageIdToSsdSlotMap[partition].setDirectoryChangedForPage(pageId);
+bool PageIdManager::isPageInThisDirectory(uint64_t pageId){
+    return getDirectoryOfPage(pageId) == nodeId;
 }
+
+void PageIdManager::setDirectoryOfPage(uint64_t pageId, uint64_t directory){
+    uint64_t partition = pageId & PAGE_ID_MASK;
+    pageIdToSsdSlotMap[partition].setDirectoryForPage(pageId,directory);
+}
+
 
 
 PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
     PageShuffleJob retVal(55885,0);
     pageIdShuffleMtx.lock();
     while(stackForShuffleJob.empty()){
+        std::cout<<"stack swap"<<std::endl;
         workingShuffleMapIdx++;
         if(workingShuffleMapIdx > ShuffleMapAmount) {
             retVal.last = true; // done shuffling
