@@ -294,10 +294,13 @@ remote:
              usingOldRing = false;
              goto remote;
          } else if (response.resultType == RESULT::PageAtOldNode){ // node already is possessor! now just get the page that stayed behind at old node
+             std::cout<<"t"<<std::endl;
              uint64_t oldNode = response.conflictingNodeId;
              if(oldNode == nodeId){
+                 std::cout<<"q"<<std::endl;
                  readPageSync(guard.frame->pid, reinterpret_cast<uint8_t*>(guard.frame->page));
              }else{
+                 std::cout<<"k"<<std::endl;
                  auto& context_ = threads::Worker::my().cctxs[oldNode];
                  auto& iptrRequest = *MessageFabric::createMessage<ImmediatePageTransferRequest>(context_.outgoing, pid, pageOffset);
                  [[maybe_unused]]auto& iptrResponse = threads::Worker::my().writeMsgSync<ImmediatePageTransferResponse>(oldNode,iptrRequest);
@@ -371,11 +374,9 @@ remote:
                // -------------------------------------------------------------------------------------
             } else { // this means - this page is held by another node is shared possession and we also want it shared, we are the directory
                if(pageIdManager.hasPageMovedDirectory(pid)){
-                   std::cout<<"j"<<std::endl;
                }else{
                    ensure(guard.frame->state == BF_STATE::EVICTED);
                }
-                std::cout<<"k"<<std::endl;
 
                 auto& shared = guard.frame->possessors.shared;
                ensure(shared.any());
