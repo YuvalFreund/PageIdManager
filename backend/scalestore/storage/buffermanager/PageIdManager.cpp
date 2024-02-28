@@ -114,7 +114,7 @@ uint64_t PageIdManager::getSsdSlotOfPageId(uint64_t pageId){
     uint64_t retVal;
     uint64_t partition = pageId & PAGE_ID_MASK;
     retVal = pageIdToSsdSlotMap[partition].getSsdSlotOfPage(pageId);
-    retVal &= DIRECTORY_CHANGED_MASK_NEGATIVE;
+    retVal &= PAGE_DIRECTORY_NEGATIVE_MASK;
     retVal &= PAGE_AT_OLD_NODE_MASK_NEGATIVE;
     return retVal;
 }
@@ -131,7 +131,7 @@ void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
 }
 
 
-bool PageIdManager::isPageInOldNodeAndResetBit(uint64_t pageId){
+bool PageIdManager::isPageInOldNodeAndResetBit([[maybe_unused]]uint64_t pageId){
 
     return false;
 }
