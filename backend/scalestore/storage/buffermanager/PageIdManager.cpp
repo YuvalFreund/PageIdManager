@@ -101,7 +101,6 @@ uint64_t PageIdManager::getNodeIdOfPage(uint64_t pageId, bool searchOldRing){
             bool pageMoved = hasPageMovedDirectory(pageId);
             if(pageMoved){
                 retVal = searchRingForNode(pageId, false);
-                std::cout<<"H"<<std::endl;
             }
         }
     }else{
