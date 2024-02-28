@@ -142,6 +142,7 @@ struct PageIdManager {
     uint64_t numPartitions;
     uint64_t nodeId;
     int ShuffleMapAmount = 65536; // todo yuval -this needs to be parameterized
+    uint64_t nodeIdAtMSB;
 
     // consistent hashing data
     std::set<uint64_t> nodeIdsInCluster;
