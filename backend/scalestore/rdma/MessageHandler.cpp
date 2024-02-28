@@ -481,8 +481,8 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, guard.frame->possessors,guard.frame->possession, false);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
     }
+    pageIdManager.setDirectoryOfPage(pageId,nextJobToShuffle.newNodeId);
     guard.frame->latch.unlatchExclusive();
-    pageIdManager.setPageMovedDirectory(pageId);
     return false;
 }
 
