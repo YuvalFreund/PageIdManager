@@ -127,6 +127,8 @@ struct PageIdManager {
     };
     //constructor
     PageIdManager(uint64_t nodeId, const std::vector<uint64_t>& nodeIdsInput) : nodeId(nodeId){
+        nodeIdAtMSB = nodeId;
+        nodeIdAtMSB <<= 48;
         for(auto node: nodeIdsInput){
             nodeIdsInCluster.insert(node);
         }
