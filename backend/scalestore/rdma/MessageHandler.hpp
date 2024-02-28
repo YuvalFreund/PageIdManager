@@ -128,7 +128,7 @@ struct MessageHandler {
        //todo balagan - check before latch is just to improve preformance - maybe will be removed
        bool pageChangedDirectory = pageIdManager.hasPageMovedDirectory(request.pid);
        if (pageChangedDirectory){
-           std::cout<<"ggggggg"<<std::endl;
+           std::cout<<"y"<<std::endl;
 
            auto& response = *MessageFabric::createMessage<rdma::PossessionResponse>(ctx.response, RESULT::DirectoryChanged);
            writeMsg(clientId, response,page_handle);

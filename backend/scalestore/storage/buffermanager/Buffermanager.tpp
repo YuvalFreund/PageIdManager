@@ -290,6 +290,7 @@ remote:
             }
             // todo yuval BALAGAN - activate this after checking all the other code
          } else if (response.resultType == RESULT::DirectoryChanged){
+
              usingOldRing = false;
              goto remote;
          } else if (response.resultType == RESULT::PageAtOldNode){ // node already is possessor! now just get the page that stayed behind at old node
@@ -327,7 +328,6 @@ remote:
       // Upgrade we are owner and need to change possession or page evicted
       // ------------------------------------------------------------------------------------
       case STATE::LOCAL_POSSESSION_CHANGE: {
-          // todo yuval BALAGAN - activate this after checking all the other code
          uint64_t pidOwner = pageIdManager.getNodeIdOfPage(pid, true);
 
          ensure(pidOwner == nodeId);
@@ -369,11 +369,12 @@ remote:
                // -------------------------------------------------------------------------------------
                invalidateSharedConflicts(shared, guard.frame->pVersion);
                // -------------------------------------------------------------------------------------
-            } else {
+            } else { // this means - this page is held by another node is shared possession and we also want it shared, we are the directory
                if(pageIdManager.hasPageMovedDirectory(pid)){
                    std::cout<<"j"<<std::endl;
+               }else{
+                   ensure(guard.frame->state == BF_STATE::EVICTED);
                }
-               ensure(guard.frame->state == BF_STATE::EVICTED);
                 std::cout<<"k"<<std::endl;
 
                 auto& shared = guard.frame->possessors.shared;
