@@ -475,14 +475,14 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
 
     }else{
-        ensure(guard.state != storage::STATE::UNINITIALIZED);
+        ensure(guard.state != storage::STATE::UNINITIALIZED)
         ensure(guard.state != storage::STATE::NOT_FOUND);
         ensure(guard.state != storage::STATE::RETRY);
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, guard.frame->possessors,guard.frame->possession, false);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
     }
-    pageIdManager.setPageMovedDirectory(pageId);
     guard.frame->latch.unlatchExclusive();
+    pageIdManager.setPageMovedDirectory(pageId);
     return false;
 }
 
