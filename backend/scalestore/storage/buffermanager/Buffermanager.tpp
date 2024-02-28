@@ -370,8 +370,13 @@ remote:
                invalidateSharedConflicts(shared, guard.frame->pVersion);
                // -------------------------------------------------------------------------------------
             } else {
+               if(pageIdManager.hasPageMovedDirectory(pid)){
+                   std::cout<<"j"<<std::endl;
+               }
                ensure(guard.frame->state == BF_STATE::EVICTED);
-               auto& shared = guard.frame->possessors.shared;
+                std::cout<<"k"<<std::endl;
+
+                auto& shared = guard.frame->possessors.shared;
                ensure(shared.any());
                RESULT result;
                uint64_t randomId = 0;
