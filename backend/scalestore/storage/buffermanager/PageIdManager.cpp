@@ -99,10 +99,7 @@ uint64_t PageIdManager::getNodeIdOfPage(uint64_t pageId, bool searchOldRing){
     if(searchOldRing){
         retVal = searchRingForNode(pageId, true);
         if(isBeforeShuffle == false){ // worth checking that we still have the page - faster than messaging
-            bool pageMoved = isPageInThisDirectory(pageId);
-            if(pageMoved){
-                retVal = searchRingForNode(pageId, false);
-            }
+            retVal = isPageInThisDirectory(pageId);
         }
     }else{
         retVal = searchRingForNode(pageId, false);
