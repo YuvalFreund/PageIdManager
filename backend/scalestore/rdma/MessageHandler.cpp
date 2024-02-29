@@ -300,8 +300,8 @@ void MessageHandler::startThread() {
                       auto& request = *reinterpret_cast<PossessionUpdateRequest*>(ctx.request);
                       auto& response = *MessageFabric::createMessage<rdma::PossessionUpdateResponse>(ctx.response, RESULT::UpdateSucceed);
                       //first check if we are even the directory - otherwise it there is no need to lock
-                      bool pageIsStillInDirectory = pageIdManager.isPageInThisDirectory(request.pid);
-                      if(pageIsStillInDirectory == false){
+                      bool localPage = pageIdManager.isNodeDirectoryOfPageId(request.pid);
+                      if(localPage == false){
                           response.resultType = RESULT::DirectoryChanged;
                           writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
                           break;

@@ -145,9 +145,7 @@ uint64_t PageIdManager::getCachedDirectoryOfPage(uint64_t pageId){
     return retVal;
 }
 
-bool PageIdManager::isPageInThisDirectory(uint64_t pageId){
-    return getCachedDirectoryOfPage(pageId) == nodeId;
-}
+
 
 void PageIdManager::setDirectoryOfPage(uint64_t pageId, uint64_t directory){
     uint64_t partition = pageId & PAGE_ID_MASK;
