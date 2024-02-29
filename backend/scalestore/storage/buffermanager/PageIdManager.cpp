@@ -96,7 +96,7 @@ bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
     bool retVal;
     if(isBeforeShuffle){
         uint64_t foundNodeId = searchRingForNode(pageId, true);
-        retVal = foundNodeId == nodeId;
+        retVal = (foundNodeId == nodeId);
     }else{
         uint64_t cachedDir = getCachedDirectoryOfPage(pageId);
         if (cachedDir == nodeId){
