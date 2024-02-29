@@ -92,7 +92,7 @@ struct PageIdManager {
             uint64_t retVal;
             partitionLock.lock();
             auto iter = map.find(pageId);
-            if(iter!= map.end()){
+            if(iter != map.end()){
                 retVal = iter->second;
             }else{
                 retVal = INVALID_NODE_ID;
@@ -107,15 +107,6 @@ struct PageIdManager {
             partitionLock.lock();
             retVal = map[pageId];
             retVal &= PAGE_AT_OLD_NODE_MASK_NEGATIVE;
-            partitionLock.unlock();
-            return retVal;
-        }
-
-        bool isPageInOldDirectoryAndReset(uint64_t pageId){
-            bool retVal;
-            partitionLock.lock();
-            retVal = (map[pageId] & PAGE_AT_OLD_NODE_MASK) > 0;
-            map[pageId] &= PAGE_AT_OLD_NODE_MASK_NEGATIVE;
             partitionLock.unlock();
             return retVal;
         }

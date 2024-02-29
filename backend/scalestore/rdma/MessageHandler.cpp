@@ -404,7 +404,7 @@ void MessageHandler::startThread() {
                       auto& createShuffledFrameRequest = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
                       PID shuffledPid = PID(createShuffledFrameRequest.shuffledPid);
                       auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(shuffledPid, Invalidation(), ctx.bmId);
-                      if(guard.state== STATE::RETRY){
+                      if(guard.state == STATE::RETRY){
                           auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
                           response.accepted = false;
                           writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
@@ -471,7 +471,7 @@ void MessageHandler::startThread() {
 
 bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr){
     PageIdManager::PageShuffleJob nextJobToShuffle = pageIdManager.getNextPageShuffleJob();
-    //std::cout<<"page id to shuffle: "<<nextJobToShuffle.pageId<<std::endl;
+    std::cout<<"page id to shuffle: "<<nextJobToShuffle.pageId<<std::endl;
     if(nextJobToShuffle.last){
         return true;
     }
@@ -498,8 +498,10 @@ try_shuffle:
     if(succeededToShuffle){
         pageIdManager.setDirectoryOfPage(pageId,nextJobToShuffle.newNodeId);
         guard.frame->latch.unlatchExclusive();
+        std::cout<<"p"<<std::endl;
+
     }else{
-        std::cout<<"f"<<std::endl;
+        std::cout<<"k"<<std::endl;
         goto try_shuffle;
     }
     return false;
