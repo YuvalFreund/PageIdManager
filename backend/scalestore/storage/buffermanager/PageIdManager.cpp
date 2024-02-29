@@ -98,10 +98,13 @@ uint64_t PageIdManager::getNodeIdOfPage(uint64_t pageId, bool searchOldRing){
     uint64_t retVal;
     if(searchOldRing){
         if(isBeforeShuffle == false){ // worth checking that we still have the page - faster than messaging
+            std::cout<<"s"<<std::endl;
             bool pageMoved = isPageInThisDirectory(pageId);
             if(pageMoved){
                 retVal = searchRingForNode(pageId, false);
             }
+            std::cout<<"f"<<std::endl;
+
         }else{
             retVal = searchRingForNode(pageId, true);
         }
