@@ -499,6 +499,7 @@ try_shuffle:
         pageIdManager.setDirectoryOfPage(pageId,nextJobToShuffle.newNodeId);
         guard.frame->latch.unlatchExclusive();
     }else{
+        std::cout<<"f"<<std::endl;
         goto try_shuffle;
     }
     return false;
