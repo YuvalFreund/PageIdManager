@@ -331,7 +331,7 @@ restart:
       // Upgrade we are owner and need to change possession or page evicted
       // ------------------------------------------------------------------------------------
       case STATE::LOCAL_POSSESSION_CHANGE: {
-          bool localPage = pageIdManager.isNodeDirectoryOfPageId(guard.frame->pid);
+         bool localPage = pageIdManager.isNodeDirectoryOfPageId(guard.frame->pid);
 
          ensure(localPage);
          ensure(guard.frame->latch.isLatched());
