@@ -404,7 +404,7 @@ void MessageHandler::startThread() {
                       auto& createShuffledFrameRequest = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
                       PID shuffledPid = PID(createShuffledFrameRequest.shuffledPid);
                       auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(shuffledPid, Invalidation(), ctx.bmId);
-                      if(guard.state == STATE::RETRY){
+                      if(guard.state == STATE::RETRY){ // this it to deal with a case of deadlock
                           auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
                           response.accepted = false;
                           writeMsg(clientId, response, threads::ThreadContext::my().page_handle);

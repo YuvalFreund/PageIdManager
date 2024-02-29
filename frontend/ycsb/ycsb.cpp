@@ -261,10 +261,10 @@ int main(int argc, char* argv[])
                        if(scalestore.getNodeID() == leavingNodeId && t_i == 0) {
                            checkToStartShuffle++;
                            if(checkToStartShuffle == nodeLeavingTrigger){
-                               std::cout<<"begin trigger" <<std::endl;
-                               pageIdManager.gossipNodeIsLeaving(workerPtr);
-                               std::cout<<"done trigger" <<std::endl;
-                               pageIdManager.isBeforeShuffle = false;
+                              // std::cout<<"begin trigger" <<std::endl;
+                              // pageIdManager.gossipNodeIsLeaving(workerPtr);
+                             //  std::cout<<"done trigger" <<std::endl;
+                              // pageIdManager.isBeforeShuffle = false;
                            }
                        }
                        if(finishedShuffling && scalestore.getNodeID() == leavingNodeId){

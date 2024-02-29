@@ -287,7 +287,6 @@ restart:
                }
                goto restartNoPageEvicted;
             }
-            // todo yuval BALAGAN - activate this after checking all the other code
          } else if (response.resultType == RESULT::DirectoryChanged){
              std::cout<<"o"<<std::endl;
              usingOldRing = false;
