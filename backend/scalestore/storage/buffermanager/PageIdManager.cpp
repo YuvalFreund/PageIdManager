@@ -51,7 +51,7 @@ void PageIdManager::initPageIdIvs(){
     uint64_t maxValue = 0xFFFFFFFFFFFFFFFF;
     uint64_t nodeAllowedIvSpaceStart = maxValue / FLAGS_max_nodes * nodeId;
     uint64_t nodePartitionSize = maxValue / FLAGS_max_nodes;
-    uint64_t ivPartitionsSize = nodePartitionSize / (numPartitions + 1); // this +1 is to avoid page id being exactly on the ring separators
+    uint64_t ivPartitionsSize = nodePartitionSize / numPartitions ; // this +1 is to avoid page id being exactly on the ring separators
     uint64_t rollingIvStart = nodeAllowedIvSpaceStart + ivPartitionsSize;
     for(uint64_t i = 0; i < numPartitions; i++){
         pageIdIvPartitions.try_emplace(i,rollingIvStart);

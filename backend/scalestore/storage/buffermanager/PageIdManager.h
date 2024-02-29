@@ -50,6 +50,7 @@ struct PageIdManager {
             partitionLock.unlock();
         }
     };
+
     struct PageShuffleJob{
         uint64_t pageId;
         uint64_t newNodeId;
