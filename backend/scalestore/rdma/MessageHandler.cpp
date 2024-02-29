@@ -475,13 +475,12 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     if(nextJobToShuffle.last){
         return true;
     }
-try_shuffle:
-    bool succeededToShuffle;
     auto pageId = nextJobToShuffle.pageId;
     auto newNodeId = nextJobToShuffle.newNodeId;
     auto& context_ = workerPtr->cctxs[newNodeId];
-    auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Invalidation(), nodeId); // node id doesn't matter
-
+    auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Invalidation(), nodeId); // node id doesn't matt
+try_shuffle:
+    bool succeededToShuffle;
     if(guard.state == storage::STATE::NOT_FOUND || guard.frame->possession == POSSESSION::NOBODY){
         Possessors emptyPossessors = {0};
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, emptyPossessors,POSSESSION::NOBODY, true);
