@@ -137,7 +137,7 @@ bool PageIdManager::isPageInOldNodeAndResetBit([[maybe_unused]]uint64_t pageId){
     return false;
 }
 
-uint64_t PageIdManager::getDirectoryOfPage(uint64_t pageId){
+uint64_t PageIdManager::getCachedDirectoryOfPage(uint64_t pageId){
     uint64_t retVal;
     uint64_t partition = pageId & PAGE_ID_MASK;
     retVal = pageIdToSsdSlotMap[partition].getDirectoryOfPage(pageId);
@@ -145,7 +145,7 @@ uint64_t PageIdManager::getDirectoryOfPage(uint64_t pageId){
 }
 
 bool PageIdManager::isPageInThisDirectory(uint64_t pageId){
-    return getDirectoryOfPage(pageId) == nodeId;
+    return getCachedDirectoryOfPage(pageId) == nodeId;
 }
 
 void PageIdManager::setDirectoryOfPage(uint64_t pageId, uint64_t directory){

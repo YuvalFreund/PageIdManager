@@ -185,7 +185,7 @@ struct PageIdManager {
     // shuffling functions
     void prepareForShuffle(uint64_t nodeIdLeft);
     PageShuffleJob getNextPageShuffleJob();
-    uint64_t getDirectoryOfPage(uint64_t pageId);
+    uint64_t getCachedDirectoryOfPage(uint64_t pageId);
     void setDirectoryOfPage(uint64_t pageId, uint64_t directory);
     bool isPageInOldNodeAndResetBit(uint64_t pageId); // todo implement this
     bool isPageInThisDirectory(uint64_t pageId);

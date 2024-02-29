@@ -126,7 +126,7 @@ struct MessageHandler {
        storage::PartitionedQueue<storage::Page*, PARTITIONS, BATCH_SIZE, utils::Stack>::BatchHandle& page_handle)
    {
        //todo balagan - check before latch is just to improve preformance - maybe will be removed
-       bool pageIsStillInDirectory = pageIdManager.isPageInThisDirectory(request.pid);
+       bool pageIsStillInDirectory = (pageIdManager.getNodeIdOfPage(request.pid) == nodeId);
        if (pageIsStillInDirectory == false){
            auto& response = *MessageFabric::createMessage<rdma::PossessionResponse>(ctx.response, RESULT::DirectoryChanged);
            writeMsg(clientId, response,page_handle);
