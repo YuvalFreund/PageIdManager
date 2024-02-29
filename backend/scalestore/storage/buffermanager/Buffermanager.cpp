@@ -148,8 +148,8 @@ BufferFrame& Buffermanager::newRemotePage(NodeID remoteNode) {
 // takes a latched bufferframe
 void Buffermanager::reclaimPage(BufferFrame& frame) {
    ensure(frame.latch.isLatched());
-   uint64_t pidOwner = pageIdManager.getNodeIdOfPage(frame.pid, true);
-   if(pidOwner == nodeId){
+   bool localPage = pageIdManager.isNodeDirectoryOfPageId(frame.pid);
+   if(localPage){
       removeFrame(frame, [&](BufferFrame& frame){
                         pageIdManager.removePage(frame.pid);
                          pageFreeList.push(frame.page, threads::ThreadContext::my().page_handle);
@@ -167,9 +167,8 @@ void Buffermanager::writeAllPages() {
       std::vector<uint64_t> retry_idx;
       for (size_t b_i = bf_b; b_i < bf_e; ++b_i) {
          auto& frame = bfs[b_i];
-          uint64_t pidOwner = pageIdManager.getNodeIdOfPage(frame.pid, true);
-
-          if (pidOwner == nodeId && frame.state == BF_STATE::HOT){
+          bool localPage = pageIdManager.isNodeDirectoryOfPageId(frame.pid);
+          if (localPage && frame.state == BF_STATE::HOT){
             if (!frame.latch.tryLatchExclusive()) {
                std::cerr << "Background thread working and latched page " << std::endl;
                retry_idx.push_back(b_i);

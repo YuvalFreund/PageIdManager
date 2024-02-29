@@ -126,8 +126,9 @@ struct MessageHandler {
        storage::PartitionedQueue<storage::Page*, PARTITIONS, BATCH_SIZE, utils::Stack>::BatchHandle& page_handle)
    {
        //todo balagan - check before latch is just to improve preformance - maybe will be removed
-       bool pageIsStillInDirectory = pageIdManager.getNodeIdOfPage(request.pid, true) == nodeId;
-       if (pageIsStillInDirectory == false){
+
+       bool localPage = pageIdManager.isNodeDirectoryOfPageId(request.pid);
+       if (localPage == false){
            std::cout<<"h"<<std::endl;
            auto& response = *MessageFabric::createMessage<rdma::PossessionResponse>(ctx.response, RESULT::DirectoryChanged);
            writeMsg(clientId, response,page_handle);
@@ -144,8 +145,8 @@ struct MessageHandler {
          return;
       }
 
-       pageIsStillInDirectory = pageIdManager.getNodeIdOfPage(request.pid, true) == nodeId;
-      if (pageIsStillInDirectory == false){
+       localPage = pageIdManager.isNodeDirectoryOfPageId(request.pid);
+      if (localPage == false){
           auto& response = *MessageFabric::createMessage<rdma::PossessionResponse>(ctx.response, RESULT::DirectoryChanged);
           writeMsg(clientId, response,page_handle);
           guard.frame->latch.unlatchExclusive();

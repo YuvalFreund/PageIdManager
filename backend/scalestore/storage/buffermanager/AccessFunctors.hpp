@@ -21,9 +21,9 @@ struct Exclusive {
          return;
       }
       // -------------------------------------------------------------------------------------
-      uint64_t pidOwner = pageIdManager.getNodeIdOfPage(g.frame->pid, true);
+      bool localPage = pageIdManager.isNodeDirectoryOfPageId(g.frame->pid);
       if (g.frame->possession != POSSESSION::EXCLUSIVE || !(g.frame->isPossessor(nodeId))) {
-         g.state = (pidOwner == nodeId) ? STATE::LOCAL_POSSESSION_CHANGE : STATE::REMOTE_POSSESSION_CHANGE;
+         g.state = localPage ? STATE::LOCAL_POSSESSION_CHANGE : STATE::REMOTE_POSSESSION_CHANGE;
       } else
          g.state = STATE::INITIALIZED;
       // -------------------------------------------------------------------------------------
@@ -64,9 +64,9 @@ struct Shared {
       }
       // -------------------------------------------------------------------------------------
       // can be shared or exclusive as long as we are in possession
-       uint64_t pidOwner = pageIdManager.getNodeIdOfPage(g.frame->pid, true);
+       bool localPage = pageIdManager.isNodeDirectoryOfPageId(g.frame->pid);
        if (!(g.frame->isPossessor(nodeId))) {
-         g.state = (pidOwner == nodeId) ? STATE::LOCAL_POSSESSION_CHANGE : STATE::REMOTE_POSSESSION_CHANGE;
+         g.state = localPage ? STATE::LOCAL_POSSESSION_CHANGE : STATE::REMOTE_POSSESSION_CHANGE;
 
       } else
          g.state = STATE::INITIALIZED;
@@ -125,9 +125,9 @@ struct Optimistic {
       }
       // -------------------------------------------------------------------------------------
       // can be shared or exclusive as long as we are in possession
-       uint64_t pidOwner = pageIdManager.getNodeIdOfPage(g.frame->pid, true);
+       bool localPage = pageIdManager.isNodeDirectoryOfPageId(g.frame->pid);
        if (!(g.frame->isPossessor(nodeId))) {
-         g.state = (pidOwner == nodeId) ? STATE::LOCAL_POSSESSION_CHANGE : STATE::REMOTE_POSSESSION_CHANGE;
+         g.state = localPage ? STATE::LOCAL_POSSESSION_CHANGE : STATE::REMOTE_POSSESSION_CHANGE;
       } else
          g.state = STATE::INITIALIZED;
       // -------------------------------------------------------------------------------------

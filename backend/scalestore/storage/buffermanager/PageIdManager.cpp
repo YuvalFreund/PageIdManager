@@ -92,7 +92,18 @@ void PageIdManager::removePage(uint64_t pageId){
     redeemSsdSlot(slotToFree);
 }
 
-
+bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
+    bool retVal;
+    if(isBeforeShuffle){
+        retVal = (searchRingForNode(pageId, true) == nodeId);
+    }else{
+        uint64_t cachedDir = getCachedDirectoryOfPage(pageId);
+        if (cachedDir == nodeId){
+            retVal = true;
+        }
+    }
+    return retVal;
+}
 
 uint64_t PageIdManager::getNodeIdOfPage(uint64_t pageId, bool searchOldRing){
     uint64_t retVal;

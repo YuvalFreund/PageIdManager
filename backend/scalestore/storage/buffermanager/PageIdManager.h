@@ -180,6 +180,7 @@ struct PageIdManager {
     void setDirectoryOfPage(uint64_t pageId, uint64_t directory);
     bool isPageInOldNodeAndResetBit(uint64_t pageId); // todo implement this
     bool isPageInThisDirectory(uint64_t pageId);
+    bool isNodeDirectoryOfPageId(uint64_t pageId);
     // shuffling message
     void gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr );
 
