@@ -144,7 +144,7 @@ struct MessageHandler {
          return;
       }
 
-      pageIsStillInDirectory = pageIdManager.isPageInThisDirectory(request.pid);
+       pageIsStillInDirectory = pageIdManager.getNodeIdOfPage(request.pid, true) == nodeId;
       if (pageIsStillInDirectory == false){
           auto& response = *MessageFabric::createMessage<rdma::PossessionResponse>(ctx.response, RESULT::DirectoryChanged);
           writeMsg(clientId, response,page_handle);
