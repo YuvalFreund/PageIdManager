@@ -403,7 +403,13 @@ void MessageHandler::startThread() {
                   case MESSAGE_TYPE::CUSFR: {
                       auto& createShuffledFrameRequest = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
                       PID shuffledPid = PID(createShuffledFrameRequest.shuffledPid);
-                      auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(shuffledPid, Invalidation(), ctx.bmId);
+                      auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(shuffledPid, Invalidation(), ctx.bmId);
+                      if(guard.state== STATE::RETRY){
+                          auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
+                          response.accepted = false;
+                          writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
+                          break;
+                      }
                       pageIdManager.addPageWithExistingPageId(createShuffledFrameRequest.shuffledPid,createShuffledFrameRequest.pageLeftAtOldNode);
                       guard.frame->possessors = createShuffledFrameRequest.possessors;
                       guard.frame->possession = createShuffledFrameRequest.possession;
@@ -413,6 +419,7 @@ void MessageHandler::startThread() {
                       guard.frame->pid = shuffledPid;
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
+                      response.accepted = true;
                       writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
                       break;
                   }
@@ -468,24 +475,33 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     if(nextJobToShuffle.last){
         return true;
     }
+try_shuffle:
+    bool succeededToShuffle;
     auto pageId = nextJobToShuffle.pageId;
     auto newNodeId = nextJobToShuffle.newNodeId;
     auto& context_ = workerPtr->cctxs[newNodeId];
     auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Invalidation(), nodeId); // node id doesn't matter
+
     if(guard.state == storage::STATE::NOT_FOUND || guard.frame->possession == POSSESSION::NOBODY){
         Possessors emptyPossessors = {0};
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, emptyPossessors,POSSESSION::NOBODY, true);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
-
+        succeededToShuffle = createdFrameResponse.accepted;
     }else{
         ensure(guard.state != storage::STATE::UNINITIALIZED)
         ensure(guard.state != storage::STATE::NOT_FOUND);
         ensure(guard.state != storage::STATE::RETRY);
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, guard.frame->possessors,guard.frame->possession, false);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
+        succeededToShuffle = createdFrameResponse.accepted;
     }
-    pageIdManager.setDirectoryOfPage(pageId,nextJobToShuffle.newNodeId);
-    guard.frame->latch.unlatchExclusive();
+    // check if manage to shuffle or retry
+    if(succeededToShuffle){
+        pageIdManager.setDirectoryOfPage(pageId,nextJobToShuffle.newNodeId);
+        guard.frame->latch.unlatchExclusive();
+    }else{
+        goto try_shuffle;
+    }
     return false;
 }
 

@@ -204,6 +204,7 @@ struct CreateOrUpdateShuffledFrameRequest : public Message {
 
 struct CreateOrUpdateShuffledFrameResponse : public Message {
     uint8_t receiveFlag = 1;
+    bool accepted;
     CreateOrUpdateShuffledFrameResponse() : Message(MESSAGE_TYPE::CUSFRR){}
 };
 

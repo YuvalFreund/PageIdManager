@@ -97,9 +97,13 @@ void PageIdManager::removePage(uint64_t pageId){
 uint64_t PageIdManager::getNodeIdOfPage(uint64_t pageId, bool searchOldRing){
     uint64_t retVal;
     if(searchOldRing){
-        retVal = searchRingForNode(pageId, true);
         if(isBeforeShuffle == false){ // worth checking that we still have the page - faster than messaging
-            retVal = isPageInThisDirectory(pageId);
+            bool pageMoved = isPageInThisDirectory(pageId);
+            if(pageMoved){
+                retVal = searchRingForNode(pageId, false);
+            }
+        }else{
+            retVal = searchRingForNode(pageId, true);
         }
     }else{
         retVal = searchRingForNode(pageId, false);
