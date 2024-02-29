@@ -421,7 +421,6 @@ restart:
       // Upgrade case we have the page, but need to upgrade possession on the owner / remote
       // -------------------------------------------------------------------------------------
       case STATE::REMOTE_POSSESSION_CHANGE: {
-remote_possession_change:
          threads::Worker::my().counters.incr(profiling::WorkerCounters::w_rpc_tried);
          ensure(FLAGS_nodes > 1);
          ensure(guard.frame != nullptr);
