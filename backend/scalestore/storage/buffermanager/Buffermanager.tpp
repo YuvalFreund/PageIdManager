@@ -217,7 +217,6 @@ restart:
       // Remote Fix - no page and need to request it from remote
       // -------------------------------------------------------------------------------------
       case STATE::REMOTE: {
-remote:
          // ------------------------------------------------------------------------------------->
          ensure(guard.frame);
          ensure(guard.frame->state == BF_STATE::IO_RDMA);
@@ -291,9 +290,9 @@ remote:
             // todo yuval BALAGAN - activate this after checking all the other code
          } else if (response.resultType == RESULT::DirectoryChanged){
              std::cout<<"o"<<std::endl;
-
              usingOldRing = false;
-             goto remote;
+             functor.undo(guard);
+             goto restart;
          } else if (response.resultType == RESULT::PageAtOldNode){ // node already is possessor! now just get the page that stayed behind at old node
              std::cout<<"t"<<std::endl;
              uint64_t oldNode = response.conflictingNodeId;
@@ -332,9 +331,9 @@ remote:
       // Upgrade we are owner and need to change possession or page evicted
       // ------------------------------------------------------------------------------------
       case STATE::LOCAL_POSSESSION_CHANGE: {
-         uint64_t pidOwner = pageIdManager.getNodeIdOfPage(pid, true);
+          bool localPage = pageIdManager.isNodeDirectoryOfPageId(g.frame->pid);
 
-         ensure(pidOwner == nodeId);
+         ensure(localPage);
          ensure(guard.frame->latch.isLatched());
          ensure(guard.frame->possession != POSSESSION::NOBODY);
          // -------------------------------------------------------------------------------------
@@ -441,8 +440,10 @@ remote_possession_change:
 
           if(response.resultType == RESULT::DirectoryChanged){
              usingOldRing = false;
+             ensure(guard.frame->latch.isLatched());
+             guard.frame->latch.unlatchExclusive();
              guard.frame->pVersion = pVersionOld;
-             goto remote_possession_change;
+             goto restart;
          }
          if (response.resultType == RESULT::UpdateFailed) {
             ensure(guard.frame->latch.isLatched());
