@@ -97,7 +97,7 @@ void PageIdManager::removePage(uint64_t pageId){
 
 
 bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
-    bool retVal;
+    bool retVal = false;
     if(isBeforeShuffle){
         uint64_t foundNodeId = searchRingForNode(pageId, true);
         retVal = (foundNodeId == nodeId);
