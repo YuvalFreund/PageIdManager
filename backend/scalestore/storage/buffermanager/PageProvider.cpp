@@ -599,6 +599,9 @@ void PageProvider::startThread() {
                             // -------------------------------------------------------------------------------------
                             {
                                auto targetNode = pageIdManager.getNodeIdOfPage(frame.pid, true);
+                               if(targetNode == bm.nodeId){
+                                   targetNode = pageIdManager.getNodeIdOfPage(frame.pid, false);
+                               }
                                if (partition.cctxs[targetNode].outgoing.current->full()) {
                                   ensure(frame.latch.isLatched());
                                   frame.latch.unlatchExclusive();
