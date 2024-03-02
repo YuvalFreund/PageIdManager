@@ -497,7 +497,6 @@ try_shuffle:
     if(succeededToShuffle){
         pageIdManager.setDirectoryOfPage(pageId,nextJobToShuffle.newNodeId);
         guard.frame->latch.unlatchExclusive();
-        std::cout<<"p"<<std::endl;
     }else{
         std::cout<<"k"<<std::endl;
         pageIdManager.pushJobToStack(pageId);
