@@ -62,7 +62,7 @@ restart:
    // -------------------------------------------------------------------------------------
     g.frame->latch.latchExclusive(); // POSSIBLE ERROR?
     ensure(g.frame->pid == EMPTY_PID);
-    bool localPage = pageIdManager.isNodeDirectoryOfPageId(pid);
+    bool localPage = pageIdManager.isNodeDirectoryOfPageId(pid.id);
     g.frame->state =
             localPage ? BF_STATE::IO_SSD : BF_STATE::IO_RDMA;  // important to modify state before releasing the hashtable latch
    g.frame->page = page;
