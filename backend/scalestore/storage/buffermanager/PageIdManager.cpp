@@ -98,15 +98,22 @@ void PageIdManager::removePage(uint64_t pageId){
 
 uint64_t PageIdManager::getTargetNodeForEviction(uint64_t pageId){
     uint64_t retVal;
-    uint64_t checkCachedLocation = getCachedDirectoryOfPage(pageId);
-    if(checkCachedLocation != INVALID_NODE_ID){
-        retVal = checkCachedLocation;
+    if(isBeforeShuffle){
+        retVal = searchRingForNode(pageId, true);
     }else{
-        int randomPickOldOrNew = rand() % 2; // todo yuval - maybe replace with some more sophisticated system
-        if(randomPickOldOrNew == 0){
-            retVal = searchRingForNode(pageId, true);
+        uint64_t checkCachedLocation = getCachedDirectoryOfPage(pageId);
+        if(checkCachedLocation != INVALID_NODE_ID){
+            retVal = checkCachedLocation; // this node is either old or new
         }else{
-            retVal = searchRingForNode(pageId, false);
+            int randomPickOldOrNew = rand() % 2;
+            if(randomPickOldOrNew == 0){
+                retVal = searchRingForNode(pageId, true);
+            }else{
+                retVal = searchRingForNode(pageId, false);
+            }
+        }
+        if(retVal == nodeId){
+            retVal = searchRingForNode(pageId, true);
         }
     }
     return retVal;
@@ -145,6 +152,7 @@ uint64_t PageIdManager::getSsdSlotOfPageId(uint64_t pageId){
 
 void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
     nodeIdsInCluster.erase(nodeIdLeft);
+    nodeLeaving = nodeIdLeft;
     initConsistentHashingInfo(false);
     if(nodeIdLeft != nodeId){
         isBeforeShuffle = false;
