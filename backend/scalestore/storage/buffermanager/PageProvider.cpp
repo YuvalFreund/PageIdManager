@@ -588,9 +588,8 @@ void PageProvider::startThread() {
                             ensure(frame.state != BF_STATE::FREE);
                             ensure(frame.state != BF_STATE::EVICTED);
                             // -------------------------------------------------------------------------------------
-                             uint64_t pidOwner = pageIdManager.getNodeIdOfPage(frame.pid, true);
-
-                             if (pidOwner == bm.nodeId) {
+                            bool localPage = pageIdManager.isNodeDirectoryOfPageId(frame.pid);
+                             if (localPage) {
                                auto rc = evict_owner_page(frame, epoch);
                                if (!rc) break;  // encountered dirty page and we cannot write it to the buffer
                                continue;
