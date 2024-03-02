@@ -95,6 +95,7 @@ struct PageIdManager {
             auto iter = map.find(pageId);
             if(iter != map.end()){
                 retVal = iter->second;
+                retVal &= CACHED_DIRECTORY_MASK;
             }else{
                 retVal = INVALID_NODE_ID;
             }
