@@ -95,11 +95,11 @@ struct PageIdManager {
             auto iter = map.find(pageId);
             if(iter != map.end()){
                 retVal = iter->second;
+                retVal >>= 48;
             }else{
                 retVal = INVALID_NODE_ID;
             }
             partitionLock.unlock();
-            retVal >>= 48;
             return retVal;
         }
 
