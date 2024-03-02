@@ -193,6 +193,7 @@ restart:
    switch (guard.state) {
       case STATE::SSD:
       {
+         std::cout<<"j"<<std::endl;
          ensure(guard.frame != nullptr);
          ensure(guard.frame->latch.isLatched());
          readPageSync(guard.frame->pid, reinterpret_cast<uint8_t*>(guard.frame->page));

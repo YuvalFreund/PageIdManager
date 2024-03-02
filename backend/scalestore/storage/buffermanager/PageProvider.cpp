@@ -599,7 +599,7 @@ void PageProvider::startThread() {
                             // Remote Page
                             // -------------------------------------------------------------------------------------
                             {
-                               auto targetNode = pageIdManager.getNodeIdOfPage(frame.pid, true);
+                               auto targetNode = pageIdManager.getTargetNodeForEviction(frame.pid);
                                if(targetNode == bm.nodeId){
                                    targetNode = pageIdManager.getNodeIdOfPage(frame.pid, false);
                                }
