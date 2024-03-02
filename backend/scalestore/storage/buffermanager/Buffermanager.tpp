@@ -195,7 +195,7 @@ restart:
       {
          std::cout<<"j"<<std::endl;
          if(guard.frame->state == BF_STATE::SHUFFLED_IN){
-             std::
+             std::cout<<"Q"<<std::endl;
          }
          ensure(guard.frame != nullptr);
          ensure(guard.frame->latch.isLatched());
