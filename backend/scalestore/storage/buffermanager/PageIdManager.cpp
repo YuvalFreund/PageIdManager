@@ -89,7 +89,6 @@ void PageIdManager::addPageWithExistingPageId(uint64_t existingPageId, bool page
     pageIdToSsdSlotMap[partition].insertToMap(existingPageId,ssdSlotForNewPage);
 }
 
-
 void PageIdManager::removePage(uint64_t pageId){
     uint64_t partition = pageId & PAGE_ID_MASK;
     uint64_t slotToFree = pageIdToSsdSlotMap[partition].getSsdSlotOfPage(pageId); //todo yuval - deal with page not found
@@ -118,7 +117,6 @@ uint64_t PageIdManager::getTargetNodeForEviction(uint64_t pageId){
     }
     return retVal;
 }
-
 
 bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
     bool retVal = false;
@@ -149,7 +147,6 @@ uint64_t PageIdManager::getSsdSlotOfPageId(uint64_t pageId){
     return retVal;
 }
 
-
 void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
     nodeIdsInCluster.erase(nodeIdLeft);
     nodeLeaving = nodeIdLeft;
@@ -160,7 +157,6 @@ void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
         stackForShuffleJob = pageIdToSsdSlotMap[workingShuffleMapIdx].getStackForShuffling();
     }
 }
-
 
 bool PageIdManager::isPageInOldNodeAndResetBit([[maybe_unused]]uint64_t pageId){
 
@@ -174,14 +170,10 @@ uint64_t PageIdManager::getCachedDirectoryOfPage(uint64_t pageId){
     return retVal;
 }
 
-
-
 void PageIdManager::setDirectoryOfPage(uint64_t pageId, uint64_t directory){
     uint64_t partition = pageId & PAGE_ID_MASK;
     pageIdToSsdSlotMap[partition].setDirectoryForPage(pageId,directory);
 }
-
-
 
 PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
     PageShuffleJob retVal(55885,0);
@@ -203,7 +195,6 @@ PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
     pageIdShuffleMtx.unlock();
     return retVal;
 }
-
 
 void  PageIdManager::gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr ) {
     prepareForShuffle(nodeId);
@@ -268,7 +259,6 @@ uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
     }
     return retVal;
 }
-
 
 uint64_t PageIdManager::getNewPageId(bool oldRing){
     uint64_t retVal;

@@ -127,7 +127,7 @@ struct MessageHandler {
    {
        bool localPage = pageIdManager.isNodeDirectoryOfPageId(request.pid);
        if (localPage == false){
-           std::cout<<"h"<<std::endl;
+           std::cout<<"t"<<std::endl;
            auto& response = *MessageFabric::createMessage<rdma::PossessionResponse>(ctx.response, RESULT::DirectoryChanged);
            writeMsg(clientId, response,page_handle);
            return;
@@ -145,6 +145,8 @@ struct MessageHandler {
 
       localPage = pageIdManager.isNodeDirectoryOfPageId(request.pid);
       if (localPage == false){
+          std::cout<<"l"<<std::endl;
+
           auto& response = *MessageFabric::createMessage<rdma::PossessionResponse>(ctx.response, RESULT::DirectoryChanged);
           writeMsg(clientId, response,page_handle);
           guard.frame->latch.unlatchExclusive();
@@ -421,6 +423,15 @@ struct MessageHandler {
       wqe++;
    }
 
+   bool isOldDirectorySolePossessor(POSSESSION possession, Possessors possessors, uint64_t nodeId){
+       bool retVal;
+       if(possession == POSSESSION::SHARED){
+           retVal = possessors.shared.test(nodeId);
+       }else if (possession == POSSESSION::SHARED){
+
+       }
+       return retVal;
+   }
 
    template <typename MSG>
    void writeMsg(NodeID clientId, MSG& msg, storage::PartitionedQueue<storage::Page*, PARTITIONS, BATCH_SIZE, utils::Stack>::BatchHandle& page_handle)
