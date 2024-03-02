@@ -96,6 +96,22 @@ void PageIdManager::removePage(uint64_t pageId){
     redeemSsdSlot(slotToFree);
 }
 
+uint64_t PageIdManager::getTargetNodeForEviction(uint64_t pageId){
+    uint64_t retVal;
+    uint64_t checkCachedLocation = getCachedDirectoryOfPage(pageId);
+    if(checkCachedLocation != INVALID_NODE_ID){
+        retVal = checkCachedLocation;
+    }else{
+        int randomPickOldOrNew = rand() % 2; // todo yuval - maybe replace with some more sophisticated system
+        if(randomPickOldOrNew == 0){
+            retVal = searchRingForNode(pageId, true);
+        }else{
+            retVal = searchRingForNode(pageId, false);
+        }
+    }
+    return retVal;
+}
+
 
 bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
     bool retVal = false;

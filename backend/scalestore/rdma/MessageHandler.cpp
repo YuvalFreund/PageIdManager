@@ -482,6 +482,7 @@ try_shuffle:
     auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId); // node id doesn't matt
     if(guard.state == storage::STATE::NOT_FOUND || guard.frame->possession == POSSESSION::NOBODY){
         Possessors emptyPossessors = {0};
+        // todo yuval - page at old node fix
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, emptyPossessors,POSSESSION::NOBODY, true);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;

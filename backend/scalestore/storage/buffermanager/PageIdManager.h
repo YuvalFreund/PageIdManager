@@ -159,6 +159,9 @@ struct PageIdManager {
     //shuffling
     std::stack<uint64_t> stackForShuffleJob;
 
+    // for page provider
+    uint64_t nodeLeaving;
+
     // init functions
     void initPageIdManager();
     void initSsdPartitions();
@@ -180,8 +183,10 @@ struct PageIdManager {
     void pushJobToStack(uint64_t pageId);
     uint64_t getCachedDirectoryOfPage(uint64_t pageId);
     void setDirectoryOfPage(uint64_t pageId, uint64_t directory);
-    bool isPageInOldNodeAndResetBit(uint64_t pageId); // todo implement this
+    bool isPageInOldNodeAndResetBit(uint64_t pageId);
     bool isNodeDirectoryOfPageId(uint64_t pageId);
+    uint64_t getTargetNodeForEviction(uint64_t pageId);
+
     // shuffling message
     void gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr );
 
