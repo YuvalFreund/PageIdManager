@@ -470,8 +470,9 @@ void MessageHandler::startThread() {
 
 
 bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr){
+try_shuffle:
+    bool succeededToShuffle;
     PageIdManager::PageShuffleJob nextJobToShuffle = pageIdManager.getNextPageShuffleJob();
-    std::cout<<"page id to shuffle: "<<nextJobToShuffle.pageId<<std::endl;
     if(nextJobToShuffle.last){
         return true;
     }
@@ -479,8 +480,6 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     auto newNodeId = nextJobToShuffle.newNodeId;
     auto& context_ = workerPtr->cctxs[newNodeId];
     auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Invalidation(), nodeId); // node id doesn't matt
-try_shuffle:
-    bool succeededToShuffle;
     if(guard.state == storage::STATE::NOT_FOUND || guard.frame->possession == POSSESSION::NOBODY){
         Possessors emptyPossessors = {0};
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, emptyPossessors,POSSESSION::NOBODY, true);
@@ -494,14 +493,15 @@ try_shuffle:
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;
     }
-    // check if manage to shuffle or retry
+    // check if manage to shuffle or retry to avoided the distributed dead lock
     if(succeededToShuffle){
         pageIdManager.setDirectoryOfPage(pageId,nextJobToShuffle.newNodeId);
         guard.frame->latch.unlatchExclusive();
         std::cout<<"p"<<std::endl;
-
     }else{
         std::cout<<"k"<<std::endl;
+        pageIdManager.pushJobToStack(pageId);
+        guard.frame->latch.unlatchExclusive();
         goto try_shuffle;
     }
     return false;

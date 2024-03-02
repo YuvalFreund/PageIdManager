@@ -230,6 +230,7 @@ restart:
          uintptr_t pageOffset = (uintptr_t)guard.frame->page;
          // -------------------------------------------------------------------------------------
          uint64_t ownerId = pageIdManager.getNodeIdOfPage(pid, usingOldRing);
+         ensure(ownerId != nodeId);
          auto& contextT = threads::Worker::my().cctxs[ownerId];
          auto& request = *MessageFabric::createMessage<PossessionRequest>(
              contextT.outgoing, ((functor.type == LATCH_STATE::EXCLUSIVE) ? MESSAGE_TYPE::PRX : MESSAGE_TYPE::PRS), pid, pageOffset);

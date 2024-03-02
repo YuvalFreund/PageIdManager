@@ -205,6 +205,12 @@ uint64_t PageIdManager::getFreeSsdSlot(){
     return retVal;
 }
 
+void PageIdManager::pushJobToStack(uint64_t pageId){
+    pageIdShuffleMtx.lock();
+    stackForShuffleJob.push(pageId);
+    pageIdShuffleMtx.unlock();
+}
+
 void PageIdManager::redeemSsdSlot(uint64_t freedSsdSlot){
     auto chosenPartition = ssdSlotPartitions.find(rand() % numPartitions);
     chosenPartition->second.insertFreedSsdSlot(freedSsdSlot);
