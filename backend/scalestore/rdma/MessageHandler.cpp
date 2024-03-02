@@ -414,7 +414,7 @@ void MessageHandler::startThread() {
                       guard.frame->possessors = createShuffledFrameRequest.possessors;
                       guard.frame->possession = createShuffledFrameRequest.possession;
                       if(guard.state == STATE::SSD){ // That means this frame did not exist here before or was evicted. it will be marked as evicted
-                          //guard.frame->state = BF_STATE::SHUFFLED_IN;
+                          guard.frame->state = BF_STATE::SHUFFLED_IN;
                       }
                       guard.frame->pid = shuffledPid;
                       guard.frame->latch.unlatchExclusive();

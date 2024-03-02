@@ -83,6 +83,7 @@ void PageIdManager::addPageWithExistingPageId(uint64_t existingPageId, bool page
     ssdSlotForNewPage |= nodeIdAtMSB;
     if(pageAtOld){
         ssdSlotForNewPage |= PAGE_AT_OLD_NODE_MASK;
+        std::cout<<"m"<<std::endl;
     }
     uint64_t partition = existingPageId & PAGE_ID_MASK;
     pageIdToSsdSlotMap[partition].insertToMap(existingPageId,ssdSlotForNewPage);
