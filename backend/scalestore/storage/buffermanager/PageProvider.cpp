@@ -175,15 +175,14 @@ void PageProvider::startThread() {
          // used wshen we do not evict to SSD but only to remote nodes 
          auto remote_condition = [&](BufferFrame& frame) {
             // local pages shared somewhere else
-             uint64_t pidOwner = pageIdManager.getNodeIdOfPage(frame.pid, true);
-
-             if ((pidOwner == bm.nodeId) && (frame.state == BF_STATE::HOT) && (frame.possession == POSSESSION::SHARED) &&
+            bool localPage = pageIdManager.isNodeDirectoryOfPageId(frame.pid);
+             if ((localPage) && (frame.state == BF_STATE::HOT) && (frame.possession == POSSESSION::SHARED) &&
                 !frame.latch.isLatched()) {
                if ((frame.isPossessor(bm.nodeId)) && (frame.possessors.shared.count() > 1)) { return true; }
                if ((!frame.isPossessor(bm.nodeId)) && (frame.possessors.shared.count() >= 1)) { return true; }
             }
             // remote pages
-            if ((pidOwner != bm.nodeId) && (frame.state == BF_STATE::HOT) && !frame.latch.isLatched()) return true;
+            if ((!localPage) && (frame.state == BF_STATE::HOT) && !frame.latch.isLatched()) return true;
             return false;
          };
 
@@ -329,13 +328,13 @@ void PageProvider::startThread() {
                       auto version = frame.latch.version.load();
                       frame.latch.unlatchShared();
                       counters.incr(profiling::WorkerCounters::ssd_pages_written);
-                      uint64_t pidOwner = pageIdManager.getNodeIdOfPage(frame.pid, true);
+                      bool localPage = pageIdManager.isNodeDirectoryOfPageId(frame.pid);
                       if (epoch_added != frame.epoch.load()) { return; }
                       if ((frame.pid == EMPTY_PID) || (frame.state == BF_STATE::FREE) || (frame.state == BF_STATE::EVICTED)) { return; }
                       if (!frame.latch.optimisticUpgradeToExclusive(version)) { return;}
                       ensure(frame.state != BF_STATE::FREE);
                       ensure(frame.state != BF_STATE::EVICTED);
-                      ensure(pidOwner == bm.nodeId);
+                      ensure(localPage);
                       // -------------------------------------------------------------------------------------
                       auto rc = evict_owner_page(frame, epoch_added);
                       ensure(rc);
