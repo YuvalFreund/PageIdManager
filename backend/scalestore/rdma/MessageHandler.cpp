@@ -404,15 +404,19 @@ void MessageHandler::startThread() {
                       auto& createShuffledFrameRequest = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
                       PID shuffledPid = PID(createShuffledFrameRequest.shuffledPid);
                       auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(shuffledPid, Exclusive(), ctx.bmId,true);
-                      if(guard.state == STATE::RETRY){ // this it to deal with a case of deadlock
+                      if(guard.state == STATE::RETRY){ // this it to deal with a case of the distrubted deadlock
                           auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
                           response.accepted = false;
                           writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
                           break;
                       }
                       pageIdManager.addPageWithExistingPageId(createShuffledFrameRequest.shuffledPid,false); // todo yuval deal with this
-                      guard.frame->possessors = createShuffledFrameRequest.possessors;
                       guard.frame->possession = createShuffledFrameRequest.possession;
+                      if(createShuffledFrameRequest.possession == POSSESSION::SHARED){
+                          guard.frame->possessors.shared.bitmap = createShuffledFrameRequest.possessors;
+                      }else{
+                          guard.frame->possessors.exclusive = createShuffledFrameRequest.possessors;
+                      }
                       guard.frame->pid = shuffledPid;
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
@@ -478,17 +482,16 @@ try_shuffle:
     auto& context_ = workerPtr->cctxs[newNodeId];
     auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId); // node id doesn't matt
     if(guard.state == storage::STATE::NOT_FOUND || guard.frame->possession == POSSESSION::NOBODY){
-        Possessors emptyPossessors = {0};
         // todo yuval - page at old node fix
-        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, emptyPossessors,POSSESSION::NOBODY);
+        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, 0,POSSESSION::NOBODY);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;
     }else{
         ensure(guard.state != storage::STATE::UNINITIALIZED)
         ensure(guard.state != storage::STATE::NOT_FOUND);
         ensure(guard.state != storage::STATE::RETRY);
-
-        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, guard.frame->possessors,guard.frame->possession);
+        uint64_t possessorsAsUint64 = (guard.frame->possession == POSSESSION::SHARED)  ? guard.frame->possessors.shared.bitmap : guard.frame->possessors.exclusive;
+        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, possessorsAsUint64,guard.frame->possession);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;
     }

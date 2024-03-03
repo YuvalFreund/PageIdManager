@@ -193,12 +193,12 @@ struct DelegationResponse : public Message  {
    DelegationResponse() : Message(MESSAGE_TYPE::DRR){}
 };
 
-struct  CreateOrUpdateShuffledFrameRequest : public Message {
+struct __attribute__((packed)) CreateOrUpdateShuffledFrameRequest : public Message {
     uint64_t shuffledPid;
-    storage::Possessors possessors;
+    uint64_t possessors; // this replace POSSESSORS AS IT is not squeeshable
     storage::POSSESSION possession;
     // todo yuval -  deal with pversion
-    CreateOrUpdateShuffledFrameRequest(uint64_t shuffledPid, scalestore::storage::Possessors possessors,storage::POSSESSION possession) : Message(MESSAGE_TYPE::CUSFR), shuffledPid(shuffledPid),
+    CreateOrUpdateShuffledFrameRequest(uint64_t shuffledPid, uint64_t possessors,storage::POSSESSION possession) : Message(MESSAGE_TYPE::CUSFR), shuffledPid(shuffledPid),
     possessors(possessors),possession(possession){}
 };
 
