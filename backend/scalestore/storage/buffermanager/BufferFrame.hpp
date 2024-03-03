@@ -32,8 +32,7 @@ enum class BF_STATE : uint8_t {
    EVICTED = 2,          // evicted but still installed in HT because of remote ownership
    IO_RDMA = 3,           
    IO_SSD = 4,
-   SHUFFLED_IN = 5,
-   INVALIDATION_EXPECTED = 8,   
+   INVALIDATION_EXPECTED = 8,
 };
 
 // -------------------------------------------------------------------------------------

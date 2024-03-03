@@ -295,5 +295,5 @@ inline uint64_t PageIdManager::FasterHash(uint64_t input) {
 }
 
 uint64_t PageIdManager::tripleHash(uint64_t input){
-    return FasterHash(FasterHash(FasterHash(input)));
-}
+    //return FasterHash(FasterHash(FasterHash(input)));
+    return FasterHash(input); // todo yuval - run ths to see if any issues occur
