@@ -496,11 +496,15 @@ try_shuffle:
     // check if manage to shuffle or retry to avoided the distributed dead lock
     if(succeededToShuffle){
         pageIdManager.setDirectoryOfPage(pageId,nextJobToShuffle.newNodeId);
-        guard.frame->latch.unlatchExclusive();
+        if( guard.frame->isPossessor(bm.nodeId) == false){
+            bm.removeFrame(pageId,[&](BufferFrame& frame)) {
+                bm.pageFreeList.push(frame.page, threads::ThreadContext::my().page_handle);
+            }
+            guard.frame->latch.unlatchExclusive();
+        }
     }else{
         std::cout<<"k"<<std::endl;
         pageIdManager.pushJobToStack(pageId);
-        guard.
         guard.frame->latch.unlatchExclusive();
         goto try_shuffle;
     }
