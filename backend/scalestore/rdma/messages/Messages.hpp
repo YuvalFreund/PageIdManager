@@ -197,9 +197,9 @@ struct __attribute__((packed)) CreateOrUpdateShuffledFrameRequest : public Messa
     uint64_t shuffledPid;
     uint64_t possessors; // this replace POSSESSORS AS IT is not squeeshable
     storage::POSSESSION possession;
-    // todo yuval -  deal with pversion
-    CreateOrUpdateShuffledFrameRequest(uint64_t shuffledPid, uint64_t possessors,storage::POSSESSION possession) : Message(MESSAGE_TYPE::CUSFR), shuffledPid(shuffledPid),
-    possessors(possessors),possession(possession){}
+    bool dirty;
+    CreateOrUpdateShuffledFrameRequest(uint64_t shuffledPid, uint64_t possessors,storage::POSSESSION possession,bool dirty) : Message(MESSAGE_TYPE::CUSFR), shuffledPid(shuffledPid),
+    possessors(possessors),possession(possession), dirty(dirty){}
 };
 
 struct CreateOrUpdateShuffledFrameResponse : public Message {
