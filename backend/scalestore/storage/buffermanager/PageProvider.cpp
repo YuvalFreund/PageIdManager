@@ -376,10 +376,11 @@ void PageProvider::startThread() {
                // optimization we could early abort in find frame or insert if ee.pVersion is not the same
                for (uint64_t ee_i = 0; ee_i < request.elements; ee_i++) {
                   auto& ee = request.entries[ee_i];
-                  bool localPage = pageIdManager.isNodeDirectoryOfPageId(ee.pid);
-                  if(!localPage) continue; //- this happens because this page was moved to the new directory
+                  //- this happens because this page was moved to the new directory
                   auto guard = bm.findFrame<CONTENTION_METHOD::NON_BLOCKING>(ee.pid, Exclusive(), request.bmId);
                   if (guard.state == STATE::RETRY || guard.state == STATE::UNINITIALIZED) continue;
+                  bool localPage = pageIdManager.isNodeDirectoryOfPageId(ee.pid);
+                  if(!localPage) continue;
                   ensure(guard.state != STATE::NOT_FOUND);
                   // -------------------------------------------------------------------------------------
                   ensure(guard.latchState == LATCH_STATE::EXCLUSIVE);
