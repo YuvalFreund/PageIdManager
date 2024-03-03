@@ -134,7 +134,7 @@ struct MessageHandler {
        }
 
       uint8_t* mailboxes = partition.mailboxes;
-      auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(request.pid, Protocol<DESIRED_MODE>(), ctx.bmId);
+      auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(request.pid, Protocol<DESIRED_MODE>(), ctx.bmId, false);
       // -------------------------------------------------------------------------------------
       if (guard.state == STATE::RETRY) {
          ensure(guard.latchState != LATCH_STATE::EXCLUSIVE);

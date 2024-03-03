@@ -197,9 +197,9 @@ struct CreateOrUpdateShuffledFrameRequest : public Message {
     uint64_t shuffledPid;
     storage::Possessors possessors;
     storage::POSSESSION possession;
-    bool pageLeftAtOldNode;
-    CreateOrUpdateShuffledFrameRequest(uint64_t shuffledPid, scalestore::storage::Possessors possessors,storage::POSSESSION possession,bool pageLeftAtOldNode) : Message(MESSAGE_TYPE::CUSFR), shuffledPid(shuffledPid),
-    possessors(possessors),possession(possession), pageLeftAtOldNode(pageLeftAtOldNode){}
+    uint64_t pVersion;
+    CreateOrUpdateShuffledFrameRequest(uint64_t shuffledPid, scalestore::storage::Possessors possessors,storage::POSSESSION possession, uint64_t pVersion) : Message(MESSAGE_TYPE::CUSFR), shuffledPid(shuffledPid),
+    possessors(possessors),possession(possession),pVersion(pVersion) {}
 };
 
 struct CreateOrUpdateShuffledFrameResponse : public Message {
