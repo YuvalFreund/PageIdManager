@@ -230,7 +230,7 @@ class Buffermanager
    Guard findFrame(PID pid, ACCESS functor, NodeID nodeId_);
    // find frame or insert function 
    template <CONTENTION_METHOD method, typename ACCESS>
-   Guard findFrameOrInsert(PID pid, ACCESS functor, NodeID nodeId_,bool fromShuffle);
+   Guard findFrameOrInsert(PID pid, ACCESS functor, NodeID nodeId_,[[maybe_unused]]bool fromShuffle);
    // -------------------------------------------------------------------------------------
 
 };
