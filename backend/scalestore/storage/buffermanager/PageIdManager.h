@@ -88,7 +88,6 @@ struct PageIdManager {
             partitionLock.unlock();
         }
 
-
         uint64_t getDirectoryOfPage(uint64_t pageId){
             uint64_t retVal;
             partitionLock.lock();
@@ -119,6 +118,15 @@ struct PageIdManager {
             for(auto pair : map){
                 retVal.push(pair.first);
             }
+            partitionLock.unlock();
+            return retVal;
+        }
+
+        bool isPageInOldNode(uint64_t pageId){
+            bool retVal;
+            partitionLock.lock();
+            retVal = (map[pageId] & PAGE_AT_OLD_NODE_MASK) > 0;
+            map[pageId] = map[pageId] &= PAGE_AT_OLD_NODE_MASK_NEGATIVE;
             partitionLock.unlock();
             return retVal;
         }
