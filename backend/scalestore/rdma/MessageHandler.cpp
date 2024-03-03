@@ -496,10 +496,12 @@ try_shuffle:
     // check if manage to shuffle or retry to avoided the distributed dead lock
     if(succeededToShuffle){
         pageIdManager.setDirectoryOfPage(pageId,nextJobToShuffle.newNodeId);
-        if( guard.frame->isPossessor(bm.nodeId) == false){
-            bm.removeFrame(pageId,[&](BufferFrame& frame)) {
+        if( guard.frame->isPossessor(bm.nodeId) == false) {
+            bm.removeFrame(pageId, [&](BufferFrame &frame))
+            {
                 bm.pageFreeList.push(frame.page, threads::ThreadContext::my().page_handle);
             }
+        }else{
             guard.frame->latch.unlatchExclusive();
         }
     }else{
