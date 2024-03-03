@@ -193,13 +193,13 @@ struct DelegationResponse : public Message  {
    DelegationResponse() : Message(MESSAGE_TYPE::DRR){}
 };
 
-struct  __attribute__((packed)) CreateOrUpdateShuffledFrameRequest : public Message {
+struct  CreateOrUpdateShuffledFrameRequest : public Message {
     uint64_t shuffledPid;
     storage::Possessors possessors;
     storage::POSSESSION possession;
-    uint64_t pVersion;
-    CreateOrUpdateShuffledFrameRequest(uint64_t shuffledPid, scalestore::storage::Possessors possessors,storage::POSSESSION possession, uint64_t pVersion) : Message(MESSAGE_TYPE::CUSFR), shuffledPid(shuffledPid),
-    possessors(possessors),possession(possession),pVersion(pVersion) {}
+    // todo yuval -  deal with pversion
+    CreateOrUpdateShuffledFrameRequest(uint64_t shuffledPid, scalestore::storage::Possessors possessors,storage::POSSESSION possession) : Message(MESSAGE_TYPE::CUSFR), shuffledPid(shuffledPid),
+    possessors(possessors),possession(possession){}
 };
 
 struct CreateOrUpdateShuffledFrameResponse : public Message {
