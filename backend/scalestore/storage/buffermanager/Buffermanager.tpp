@@ -1,5 +1,5 @@
 template <CONTENTION_METHOD method, typename ACCESS>
-Guard Buffermanager::findFrameOrInsert(PID pid, ACCESS functor, NodeID nodeId_, bool fromShuffle)  // move functor
+Guard Buffermanager::findFrameOrInsert(PID pid, ACCESS functor, NodeID nodeId_, [[maybe_unused]]bool fromShuffle)  // move functor
 {
    Guard g;
    auto& b = pTable[pid];
