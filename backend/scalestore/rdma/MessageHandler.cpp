@@ -497,10 +497,9 @@ try_shuffle:
     if(succeededToShuffle){
         pageIdManager.setDirectoryOfPage(pageId,nextJobToShuffle.newNodeId);
         if( guard.frame->isPossessor(bm.nodeId) == false) {
-            bm.removeFrame(guard.framep, [&](BufferFrame &frame))
-            {
-                bm.pageFreeList.push(frame.page,  workerPtr->page_handle);
-            }
+            bm.removeFrame(guard.frame, [&](BufferFrame &frame){
+                bm.pageFreeList.push(frame.page,  workerPtr->threadContext->page_handle);
+            });
         }else{
             guard.frame->latch.unlatchExclusive();
         }
