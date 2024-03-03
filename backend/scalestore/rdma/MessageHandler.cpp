@@ -413,7 +413,6 @@ void MessageHandler::startThread() {
                       pageIdManager.addPageWithExistingPageId(createShuffledFrameRequest.shuffledPid,false); // todo yuval deal with this
                       guard.frame->possessors = createShuffledFrameRequest.possessors;
                       guard.frame->possession = createShuffledFrameRequest.possession;
-                      guard.frame->pVersion = createShuffledFrameRequest.pVersion;
                       guard.frame->pid = shuffledPid;
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
