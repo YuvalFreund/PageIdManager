@@ -122,7 +122,7 @@ struct PageIdManager {
             return retVal;
         }
 
-        bool isPageInOldNode(uint64_t pageId){
+        bool isPageInOldNodeAndReset(uint64_t pageId){
             bool retVal;
             partitionLock.lock();
             retVal = (map[pageId] & PAGE_AT_OLD_NODE_MASK) > 0;

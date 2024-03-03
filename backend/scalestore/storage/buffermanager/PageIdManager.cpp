@@ -155,8 +155,10 @@ void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
 }
 
 bool PageIdManager::isPageInOldNodeAndResetBit([[maybe_unused]]uint64_t pageId){
-
-    return false;
+    bool retVal;
+    uint64_t partition = pageId & PAGE_ID_MASK;
+    retVal = pageIdToSsdSlotMap[partition].isPageInOldNodeAndReset(pageId);
+    return retVal;
 }
 
 uint64_t PageIdManager::getCachedDirectoryOfPage(uint64_t pageId){
