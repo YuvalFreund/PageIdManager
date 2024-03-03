@@ -438,10 +438,9 @@ restart:
          auto& request = *MessageFabric::createMessage<PossessionUpdateRequest>(contextT.outgoing, pid, pVersionOld);
          // -------------------------------------------------------------------------------------
           auto& response = threads::Worker::my().writeMsgSync<PossessionUpdateResponse>(pidOwner, request);
-          // todo yuval BALAGAN - activate this after checking all the other code
 
           if(response.resultType == RESULT::DirectoryChanged){
-              std::cout<<"D"<<std::endl;
+             std::cout<<"D"<<std::endl;
              usingOldRing = false;
              ensure(guard.frame->latch.isLatched());
              guard.frame->latch.unlatchExclusive();
