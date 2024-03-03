@@ -380,7 +380,11 @@ void PageProvider::startThread() {
                   auto guard = bm.findFrame<CONTENTION_METHOD::NON_BLOCKING>(ee.pid, Exclusive(), request.bmId);
                   if (guard.state == STATE::RETRY || guard.state == STATE::UNINITIALIZED) continue;
                   bool localPage = pageIdManager.isNodeDirectoryOfPageId(ee.pid);
-                  if(!localPage) continue;
+                  if(!localPage){
+                      ensure(guard.frame->latch.isLatched());
+                      guard.frame->latch.unlatchExclusive();
+                      continue;
+                  }
                   ensure(guard.state != STATE::NOT_FOUND);
                   // -------------------------------------------------------------------------------------
                   ensure(guard.latchState == LATCH_STATE::EXCLUSIVE);
