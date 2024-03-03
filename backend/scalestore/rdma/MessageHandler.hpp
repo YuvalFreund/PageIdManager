@@ -125,6 +125,7 @@ struct MessageHandler {
        storage::AsyncReadBuffer& async_read_buffer,
        storage::PartitionedQueue<storage::Page*, PARTITIONS, BATCH_SIZE, utils::Stack>::BatchHandle& page_handle)
    {
+       // todo yuval - is this really offer any performance beneft?ת
        bool localPage = pageIdManager.isNodeDirectoryOfPageId(request.pid);
        if (localPage == false){
            std::cout<<"t"<<std::endl;

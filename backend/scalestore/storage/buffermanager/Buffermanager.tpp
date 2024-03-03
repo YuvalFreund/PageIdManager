@@ -72,11 +72,7 @@ restart:
    // -------------------------------------------------------------------------------------
    ht_latch.unlatchExclusive();
    // -------------------------------------------------------------------------------------
-   if(fromShuffle){
-       g.state = STATE::SHUFFLED_IN;
-   }else{
-       g.state = localPage ? STATE::SSD : STATE::REMOTE;
-   }
+   g.state = localPage ? STATE::SSD : STATE::REMOTE;
    g.vAcquired = g.frame->latch.version;
    g.latchState = LATCH_STATE::EXCLUSIVE;
    return g;
@@ -380,7 +376,7 @@ restart:
                invalidateSharedConflicts(shared, guard.frame->pVersion);
                // -------------------------------------------------------------------------------------
             } else { // this means - this page is held by another node is shared possession and we also want it shared, we are the directory
-               ensure(guard.frame->state == BF_STATE::EVICTED || guard.frame->state == BF_STATE::SHUFFLED_IN );
+               ensure(guard.frame->state == BF_STATE::EVICTED);
                auto& shared = guard.frame->possessors.shared;
                ensure(shared.any());
                RESULT result;
