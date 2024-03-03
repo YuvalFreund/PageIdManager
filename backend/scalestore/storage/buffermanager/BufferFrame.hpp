@@ -51,7 +51,6 @@ struct BufferFrame {
    bool isHtBucket = false; // inlined bf into HT
    POSSESSION possession = POSSESSION::NOBODY;
    HybridLatch latch;
-   bool shuffledIn = false;
 
    // -------------------------------------------------------------------------------------
    void fill(PID pid, Page* page, POSSESSION possession)

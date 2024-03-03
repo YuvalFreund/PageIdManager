@@ -67,9 +67,6 @@ void PageIdManager::initPageIdToSsdSlotMaps(){
 }
 
 uint64_t PageIdManager::addPage(){
-    if(isBeforeShuffle==false){
-        std::cout<<"g"<<std::endl;
-    }
     uint64_t retVal = getNewPageId(isBeforeShuffle);
     uint64_t ssdSlotForNewPage = getFreeSsdSlot();
     ssdSlotForNewPage |= nodeIdAtMSB;
