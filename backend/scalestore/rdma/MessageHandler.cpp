@@ -500,6 +500,7 @@ try_shuffle:
     }else{
         std::cout<<"k"<<std::endl;
         pageIdManager.pushJobToStack(pageId);
+        guard.
         guard.frame->latch.unlatchExclusive();
         goto try_shuffle;
     }
