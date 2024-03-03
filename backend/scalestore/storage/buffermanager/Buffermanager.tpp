@@ -441,6 +441,7 @@ restart:
           // todo yuval BALAGAN - activate this after checking all the other code
 
           if(response.resultType == RESULT::DirectoryChanged){
+              std::cout<<"D"<<std::endl;
              usingOldRing = false;
              ensure(guard.frame->latch.isLatched());
              guard.frame->latch.unlatchExclusive();
