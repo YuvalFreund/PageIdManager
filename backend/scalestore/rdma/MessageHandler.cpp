@@ -418,7 +418,7 @@ void MessageHandler::startThread() {
                       }
                       bool pageAtOld = isOldNodeSolePossessor(guard.frame->possession,guard.frame->possessors,ctx.bmId);
                       pageIdManager.addPageWithExistingPageId(createShuffledFrameRequest.shuffledPid,pageAtOld);
-                      guard.frame->dirty = createShuffledFrameRequest.dirty | guard.frame->dirty; //either already dirty here or was dirty in old directory
+                      guard.frame->dirty = true;//todo yuval - change createShuffledFrameRequest.dirty | guard.frame->dirty; //either already dirty here or was dirty in old directory
                       guard.frame->pid = shuffledPid;
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
@@ -484,7 +484,6 @@ try_shuffle:
     auto& context_ = workerPtr->cctxs[newNodeId];
     auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId); // node id doesn't matt
     if(guard.state == storage::STATE::NOT_FOUND || guard.frame->possession == POSSESSION::NOBODY){
-        // todo yuval - page at old node fix
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, 0,POSSESSION::NOBODY,false);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;

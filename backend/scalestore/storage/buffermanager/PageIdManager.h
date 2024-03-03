@@ -108,7 +108,7 @@ struct PageIdManager {
             uint64_t retVal;
             partitionLock.lock();
             retVal = map[pageId];
-            retVal &= PAGE_AT_OLD_NODE_MASK_NEGATIVE;
+            retVal &= SSD_SLOT_MASK;
             partitionLock.unlock();
             return retVal;
         }
