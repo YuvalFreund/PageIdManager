@@ -483,6 +483,21 @@ struct MessageHandler {
       wqe++;
    }
 
+   bool isOldNodeSolePossessor(POSSESSION possession, Possessors possessors, uint64_t oldNode){
+       bool retVal = false;
+       if(possession == POSSESSION::SHARED){
+           if(possessors.shared.isBitTheOnlyOneOn(oldNode)){
+               retVal = true;
+           }
+       }else if(possession == POSSESSION::EXCLUSIVE){
+            if(possessors.exclusive == oldNode){
+                retVal = true;
+            }
+       }else{ // case for Nobody
+           retVal = true;
+       }
+       return retVal;
+   }
 
     bool shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr);
    // -------------------------------------------------------------------------------------

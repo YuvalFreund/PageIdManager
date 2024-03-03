@@ -410,13 +410,14 @@ void MessageHandler::startThread() {
                           writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
                           break;
                       }
-                      pageIdManager.addPageWithExistingPageId(createShuffledFrameRequest.shuffledPid,false); // todo yuval deal with this
                       guard.frame->possession = createShuffledFrameRequest.possession;
                       if(createShuffledFrameRequest.possession == POSSESSION::SHARED){
                           guard.frame->possessors.shared.bitmap = createShuffledFrameRequest.possessors;
                       }else{
                           guard.frame->possessors.exclusive = createShuffledFrameRequest.possessors;
                       }
+                      bool pageAtOld = isOldNodeSolePossessor(guard.frame->possession,guard.frame->possessors,ctx.bmId);
+                      pageIdManager.addPageWithExistingPageId(createShuffledFrameRequest.shuffledPid,pageAtOld);
                       guard.frame->dirty = createShuffledFrameRequest.dirty;
                       guard.frame->pid = shuffledPid;
                       guard.frame->latch.unlatchExclusive();

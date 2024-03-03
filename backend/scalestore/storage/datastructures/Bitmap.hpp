@@ -184,6 +184,13 @@ class StaticBitmap<64>
       auto bit = bitPostition & 63;
       bitmap &= ~(1UL << bit);
    }
+
+   bool isBitTheOnlyOneOn(uint64_t position){
+       bool retVal;
+       reset(position);
+       retVal = none();
+       return retVal;
+   }
    // -------------------------------------------------------------------------------------
    void reset()
    {
