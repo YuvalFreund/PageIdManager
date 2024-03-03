@@ -497,7 +497,7 @@ try_shuffle:
     if(succeededToShuffle){
         pageIdManager.setDirectoryOfPage(pageId,nextJobToShuffle.newNodeId);
         if( guard.frame->isPossessor(bm.nodeId) == false) {
-            bm.removeFrame(guard.frame, [&](BufferFrame &frame){
+            bm.removeFrame(*guard.frame, [&](BufferFrame &frame){
                 bm.pageFreeList.push(frame.page,  workerPtr->threadContext->page_handle);
             });
         }else{
