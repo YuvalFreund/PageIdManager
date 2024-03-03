@@ -481,7 +481,7 @@ try_shuffle:
     if(guard.state == storage::STATE::NOT_FOUND || guard.frame->possession == POSSESSION::NOBODY){
         Possessors emptyPossessors = {0};
         // todo yuval - page at old node fix
-        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, emptyPossessors,POSSESSION::NOBODY, guard.frame->pVersion);
+        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, emptyPossessors,POSSESSION::NOBODY);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;
     }else{
@@ -489,7 +489,7 @@ try_shuffle:
         ensure(guard.state != storage::STATE::NOT_FOUND);
         ensure(guard.state != storage::STATE::RETRY);
 
-        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, guard.frame->possessors,guard.frame->possession,  guard.frame->pVersion);
+        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, guard.frame->possessors,guard.frame->possession);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;
     }
@@ -497,7 +497,7 @@ try_shuffle:
     if(succeededToShuffle){
         pageIdManager.setDirectoryOfPage(pageId,nextJobToShuffle.newNodeId);
         if( guard.frame->isPossessor(bm.nodeId) == false) {
-            bm.removeFrame(guard.frame, [&](BufferFrame &frame))
+            bm.removeFrame(guard.framep, [&](BufferFrame &frame))
             {
                 bm.pageFreeList.push(frame.page,  workerPtr->page_handle);
             }
