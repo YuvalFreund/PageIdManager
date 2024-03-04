@@ -417,7 +417,7 @@ void MessageHandler::startThread() {
                           guard.frame->possessors.exclusive = request.possessors;
                       }
                       pageIdManager.addPageWithExistingPageId(request.shuffledPid, request.pageEvictedAtOldNode);
-                      guard.frame->dirty = request.dirty || guard.frame->dirty; //either already dirty here or was dirty in old directory
+                      guard.frame->dirty = true;//request.dirty || guard.frame->dirty; //either already dirty here or was dirty in old directory
                       guard.frame->pid = shuffledPid;
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
