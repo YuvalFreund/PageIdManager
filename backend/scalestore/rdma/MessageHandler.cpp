@@ -491,6 +491,7 @@ try_shuffle:
         ensure(guard.state != storage::STATE::UNINITIALIZED)
         ensure(guard.state != storage::STATE::NOT_FOUND);
         ensure(guard.state != storage::STATE::RETRY);
+        ensure(guard.frame->possession != POSSESSION::NOBODY);
         uint64_t possessorsAsUint64 = (guard.frame->possession == POSSESSION::SHARED)  ? guard.frame->possessors.shared.bitmap : guard.frame->possessors.exclusive;
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, possessorsAsUint64,guard.frame->possession, guard.frame->dirty,false);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
