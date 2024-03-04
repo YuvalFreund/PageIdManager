@@ -499,6 +499,7 @@ try_shuffle:
     if(succeededToShuffle){
         pageIdManager.setDirectoryOfPage(pageId,nextJobToShuffle.newNodeId);
         if(guard.frame->isPossessor(bm.nodeId) == false) {
+            std::cout<<"k"<<std::endl;
             bm.removeFrame(*guard.frame, [&](BufferFrame &frame){
                 bm.pageFreeList.push(frame.page,  workerPtr->threadContext->page_handle);
             });
