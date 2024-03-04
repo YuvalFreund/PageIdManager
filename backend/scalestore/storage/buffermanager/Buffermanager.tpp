@@ -304,7 +304,7 @@ restart:
 
                  readPageSync(guard.frame->pid, reinterpret_cast<uint8_t*>(guard.frame->page));
              }else{
-                 std::cout<<"k"<<std::endl;
+                 std::cout<<"b"<<std::endl;
                  auto& context_ = threads::Worker::my().cctxs[oldNode];
                  auto& iptrRequest = *MessageFabric::createMessage<ImmediatePageTransferRequest>(context_.outgoing, pid, pageOffset);
                  [[maybe_unused]]auto& iptrResponse = threads::Worker::my().writeMsgSync<ImmediatePageTransferResponse>(oldNode,iptrRequest);

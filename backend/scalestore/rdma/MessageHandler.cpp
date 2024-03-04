@@ -508,7 +508,7 @@ try_shuffle:
             guard.frame->latch.unlatchExclusive();
         }
     }else{
-        std::cout<<"k"<<std::endl;
+        std::cout<<"w"<<std::endl;
         pageIdManager.pushJobToStack(pageId);
         guard.frame->latch.unlatchExclusive();
         goto try_shuffle;
