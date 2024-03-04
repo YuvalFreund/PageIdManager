@@ -403,6 +403,7 @@ void MessageHandler::startThread() {
                   case MESSAGE_TYPE::CUSFR: {
                       auto& request = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
                       PID shuffledPid = PID(request.shuffledPid);
+                      pageIdManager.addPageWithExistingPageId(request.shuffledPid, request.pageEvictedAtOldNode);
                       auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(shuffledPid, Exclusive(), ctx.bmId,true);
                       if(guard.state == STATE::RETRY){ // this it to deal with a case of the distrubted deadlock
                           auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
@@ -410,7 +411,6 @@ void MessageHandler::startThread() {
                           writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
                           break;
                       }
-                      pageIdManager.addPageWithExistingPageId(request.shuffledPid, request.pageEvictedAtOldNode);
                       guard.frame->possession = request.possession;
                       if(request.possession == POSSESSION::SHARED){
                           guard.frame->possessors.shared.bitmap = request.possessors;
