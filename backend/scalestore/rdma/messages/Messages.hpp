@@ -199,8 +199,9 @@ struct __attribute__((packed)) CreateOrUpdateShuffledFrameRequest : public Messa
     storage::POSSESSION possession;
     bool dirty;
     bool pageEvictedAtOldNode;
-    CreateOrUpdateShuffledFrameRequest(uint64_t shuffledPid, uint64_t possessors,storage::POSSESSION possession,bool dirty, bool pageEvictedAtOldNode) : Message(MESSAGE_TYPE::CUSFR), shuffledPid(shuffledPid),
-    possessors(possessors),possession(possession), dirty(dirty), pageEvictedAtOldNode(pageEvictedAtOldNode){}
+    uint64_t pVersion;
+    CreateOrUpdateShuffledFrameRequest(uint64_t shuffledPid, uint64_t possessors,storage::POSSESSION possession,bool dirty, bool pageEvictedAtOldNode, uint64_t pVersion) : Message(MESSAGE_TYPE::CUSFR), shuffledPid(shuffledPid),
+    possessors(possessors),possession(possession), dirty(dirty), pageEvictedAtOldNode(pageEvictedAtOldNode), pVersion(pVersion) {}
 };
 
 struct CreateOrUpdateShuffledFrameResponse : public Message {

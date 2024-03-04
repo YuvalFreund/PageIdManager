@@ -402,6 +402,7 @@ void MessageHandler::startThread() {
 
                   case MESSAGE_TYPE::CUSFR: {
                       auto& request = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
+                      pageIdManager.addPageWithExistingPageId(request.shuffledPid, request.pageEvictedAtOldNode);
                       PID shuffledPid = PID(request.shuffledPid);
                       auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(shuffledPid, Exclusive(), ctx.bmId,true);
                       if(guard.state == STATE::RETRY){ // this it to deal with a case of the distrubted deadlock
@@ -416,7 +417,6 @@ void MessageHandler::startThread() {
                       }else{
                           guard.frame->possessors.exclusive = request.possessors;
                       }
-                      pageIdManager.addPageWithExistingPageId(request.shuffledPid, request.pageEvictedAtOldNode);
                       guard.frame->dirty = true;//request.dirty || guard.frame->dirty; //either already dirty here or was dirty in old directory
                       guard.frame->shuffledIn = true;
                       guard.frame->pid = shuffledPid;
@@ -485,7 +485,7 @@ try_shuffle:
     auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId); // node id doesn't matt
     if(guard.state == storage::STATE::NOT_FOUND || guard.state == STATE::SSD || guard.frame->state == BF_STATE::EVICTED || guard.frame->state == BF_STATE::FREE){
         std::cout<<"R"<<std::endl;
-        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, 0,POSSESSION::NOBODY,false,true);
+        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, 0,POSSESSION::NOBODY,false,true,guard.frame->pVersion);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;
     }else{
@@ -494,7 +494,7 @@ try_shuffle:
         ensure(guard.state != storage::STATE::RETRY);
         ensure(guard.frame->possession != POSSESSION::NOBODY);
         uint64_t possessorsAsUint64 = (guard.frame->possession == POSSESSION::SHARED)  ? guard.frame->possessors.shared.bitmap : guard.frame->possessors.exclusive;
-        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, possessorsAsUint64,guard.frame->possession, guard.frame->dirty,false);
+        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, possessorsAsUint64,guard.frame->possession, guard.frame->dirty,false,guard.frame->pVersion);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;
     }

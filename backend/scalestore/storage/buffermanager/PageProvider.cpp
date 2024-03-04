@@ -544,7 +544,6 @@ void PageProvider::startThread() {
                            begin_sampling, end_sampling,
                            [&](BufferFrame& frame) {
                               if(samples == required_samples) return false;
-                              // todo yuval - maybe add here as well - page at old
                               if ((frame.state == BF_STATE::FREE) | (frame.state == BF_STATE::EVICTED)) { return true; }
                               sample_epochs[samples++] = frame.epoch;
                               return true;
