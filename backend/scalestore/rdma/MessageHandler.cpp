@@ -401,8 +401,8 @@ void MessageHandler::startThread() {
                   }
 
                   case MESSAGE_TYPE::CUSFR: {
-                      auto& createShuffledFrameRequest = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
-                      PID shuffledPid = PID(createShuffledFrameRequest.shuffledPid);
+                      auto& request = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
+                      PID shuffledPid = PID(request.shuffledPid);
                       auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(shuffledPid, Exclusive(), ctx.bmId,true);
                       if(guard.state == STATE::RETRY){ // this it to deal with a case of the distrubted deadlock
                           auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
@@ -410,15 +410,14 @@ void MessageHandler::startThread() {
                           writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
                           break;
                       }
-                      guard.frame->possession = createShuffledFrameRequest.possession;
-                      if(createShuffledFrameRequest.possession == POSSESSION::SHARED){
-                          guard.frame->possessors.shared.bitmap = createShuffledFrameRequest.possessors;
+                      guard.frame->possession = request.possession;
+                      if(request.possession == POSSESSION::SHARED){
+                          guard.frame->possessors.shared.bitmap = request.possessors;
                       }else{
-                          guard.frame->possessors.exclusive = createShuffledFrameRequest.possessors;
+                          guard.frame->possessors.exclusive = request.possessors;
                       }
-                      bool pageAtOld = isOldNodeSolePossessor(guard.frame->possession,guard.frame->possessors,ctx.bmId);
-                      pageIdManager.addPageWithExistingPageId(createShuffledFrameRequest.shuffledPid,pageAtOld);
-                      guard.frame->dirty = createShuffledFrameRequest.dirty | guard.frame->dirty; //either already dirty here or was dirty in old directory
+                      pageIdManager.addPageWithExistingPageId(request.shuffledPid, request.pageEvictedAtOldNode);
+                      guard.frame->dirty = request.dirty | guard.frame->dirty; //either already dirty here or was dirty in old directory
                       guard.frame->pid = shuffledPid;
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
@@ -499,7 +498,7 @@ try_shuffle:
     // check if manage to shuffle or retry to avoided the distributed dead lock
     if(succeededToShuffle){
         pageIdManager.setDirectoryOfPage(pageId,nextJobToShuffle.newNodeId);
-        if( guard.frame->isPossessor(bm.nodeId) == false) {
+        if(guard.frame->isPossessor(bm.nodeId) == false) {
             bm.removeFrame(*guard.frame, [&](BufferFrame &frame){
                 bm.pageFreeList.push(frame.page,  workerPtr->threadContext->page_handle);
             });
