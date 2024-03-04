@@ -46,7 +46,7 @@ struct BufferFrame {
    Possessors possessors = {0};  // active uinion is managed by POSSESSION
    std::atomic<BF_STATE> state = BF_STATE::FREE; // important as it protects the ht buckets
    std::atomic<bool> mhWaiting = false;
-   std::atomic<bool> cooling = false;
+   std::atomic<bool> shuffledIn = false;
    bool dirty = false;
    bool isHtBucket = false; // inlined bf into HT
    POSSESSION possession = POSSESSION::NOBODY;
