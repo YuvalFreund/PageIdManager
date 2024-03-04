@@ -195,11 +195,12 @@ struct DelegationResponse : public Message  {
 
 struct __attribute__((packed)) CreateOrUpdateShuffledFrameRequest : public Message {
     uint64_t shuffledPid;
-    uint64_t possessors; // this replace POSSESSORS AS IT is not squeeshable
+    uint64_t possessors; // this replaces POSSESSORS AS IT is not
     storage::POSSESSION possession;
     bool dirty;
-    CreateOrUpdateShuffledFrameRequest(uint64_t shuffledPid, uint64_t possessors,storage::POSSESSION possession,bool dirty) : Message(MESSAGE_TYPE::CUSFR), shuffledPid(shuffledPid),
-    possessors(possessors),possession(possession), dirty(dirty){}
+    bool pageEvictedAtOldNode;
+    CreateOrUpdateShuffledFrameRequest(uint64_t shuffledPid, uint64_t possessors,storage::POSSESSION possession,bool dirty, bool pageEvictedAtOldNode) : Message(MESSAGE_TYPE::CUSFR), shuffledPid(shuffledPid),
+    possessors(possessors),possession(possession), dirty(dirty), pageEvictedAtOldNode(pageEvictedAtOldNode){}
 };
 
 struct CreateOrUpdateShuffledFrameResponse : public Message {

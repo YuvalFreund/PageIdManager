@@ -483,8 +483,8 @@ try_shuffle:
     auto newNodeId = nextJobToShuffle.newNodeId;
     auto& context_ = workerPtr->cctxs[newNodeId];
     auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId); // node id doesn't matt
-    if(guard.state == storage::STATE::NOT_FOUND || guard.frame->possession == POSSESSION::NOBODY){
-        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, 0,POSSESSION::NOBODY,false);
+    if(guard.state == storage::STATE::NOT_FOUND || guard.frame->state == BF_STATE::EVICTED || guard.frame->possession == POSSESSION::NOBODY){
+        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, 0,POSSESSION::NOBODY,false,true);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;
     }else{
@@ -492,7 +492,7 @@ try_shuffle:
         ensure(guard.state != storage::STATE::NOT_FOUND);
         ensure(guard.state != storage::STATE::RETRY);
         uint64_t possessorsAsUint64 = (guard.frame->possession == POSSESSION::SHARED)  ? guard.frame->possessors.shared.bitmap : guard.frame->possessors.exclusive;
-        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, possessorsAsUint64,guard.frame->possession, guard.frame->dirty);
+        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, possessorsAsUint64,guard.frame->possession, guard.frame->dirty,false);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;
     }
