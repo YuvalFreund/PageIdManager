@@ -157,6 +157,7 @@ struct MessageHandler {
 
       bool pageStillAtOldDirectory = pageIdManager.isPageInOldNodeAndResetBit(request.pid);
       if(pageStillAtOldDirectory){
+          std::cout<<"w"<<std::endl;
           uint64_t oldNodeId = pageIdManager.searchRingForNode(request.pid, true);// here we search directly at the ring!
           auto& response = *MessageFabric::createMessage<rdma::PossessionResponse>(ctx.response, RESULT::PageAtOldNode);
           response.resultType = RESULT::PageAtOldNode;

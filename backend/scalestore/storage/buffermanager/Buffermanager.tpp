@@ -301,6 +301,7 @@ restart:
              uint64_t oldNode = response.conflictingNodeId;
              if(oldNode == nodeId){
                  std::cout<<"q"<<std::endl;
+
                  readPageSync(guard.frame->pid, reinterpret_cast<uint8_t*>(guard.frame->page));
              }else{
                  std::cout<<"k"<<std::endl;
