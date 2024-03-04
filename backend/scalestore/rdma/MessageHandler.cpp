@@ -482,7 +482,7 @@ try_shuffle:
     auto newNodeId = nextJobToShuffle.newNodeId;
     auto& context_ = workerPtr->cctxs[newNodeId];
     auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId); // node id doesn't matt
-    if(guard.state == storage::STATE::NOT_FOUND || guard.frame->state == BF_STATE::EVICTED || guard.frame->state == BF_STATE::FREE){
+    if(guard.state == storage::STATE::NOT_FOUND || guard.state == STATE::SSD || guard.frame->state == BF_STATE::EVICTED || guard.frame->state == BF_STATE::FREE){
         std::cout<<"R"<<std::endl;
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, 0,POSSESSION::NOBODY,false,true);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
