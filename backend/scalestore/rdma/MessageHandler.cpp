@@ -402,7 +402,6 @@ void MessageHandler::startThread() {
 
                   case MESSAGE_TYPE::CUSFR: {
                       auto& request = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
-                      pageIdManager.addPageWithExistingPageId(request.shuffledPid, request.pageEvictedAtOldNode);
                       PID shuffledPid = PID(request.shuffledPid);
                       auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(shuffledPid, Exclusive(), ctx.bmId,true);
                       if(guard.state == STATE::RETRY){ // this it to deal with a case of the distrubted deadlock
@@ -411,6 +410,7 @@ void MessageHandler::startThread() {
                           writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
                           break;
                       }
+                      pageIdManager.addPageWithExistingPageId(request.shuffledPid, request.pageEvictedAtOldNode);
                       guard.frame->possession = request.possession;
                       if(request.possession == POSSESSION::SHARED){
                           guard.frame->possessors.shared.bitmap = request.possessors;
@@ -418,9 +418,10 @@ void MessageHandler::startThread() {
                           guard.frame->possessors.exclusive = request.possessors;
                       }
                       guard.frame->dirty = true;//request.dirty || guard.frame->dirty; //either already dirty here or was dirty in old directory
-                      guard.frame->shuffledIn = true;
+                      guard.frame->shuffledIn = false;
                       guard.frame->pid = shuffledPid;
-                      guard.frame->pVersion = request.pVersion;
+
+                      guard.frame->pVersion = request.pVersion + 1 ;
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
                       response.accepted = true;
