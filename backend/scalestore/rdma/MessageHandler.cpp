@@ -417,8 +417,8 @@ void MessageHandler::startThread() {
                       }else{
                           guard.frame->possessors.exclusive = request.possessors;
                       }
-                      guard.frame->dirty = true;//request.dirty || guard.frame->dirty; //either already dirty here or was dirty in old directory
-                      guard.frame->shuffledIn = false;
+                      guard.frame->dirty = request.dirty || guard.frame->dirty; //either already dirty here or was dirty in old directory
+                      guard.frame->shuffledIn = true;
                       guard.frame->pid = shuffledPid;
 
                       guard.frame->pVersion = request.pVersion;
