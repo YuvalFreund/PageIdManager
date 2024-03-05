@@ -122,6 +122,15 @@ struct PageIdManager {
             return retVal;
         }
 
+        uint64_t getSsdSlotOfPageAndRemove(uint64_t pageId){
+            uint64_t retVal;
+            partitionLock.lock();
+            retVal = map[pageId];
+            map.erase(pageId);
+            partitionLock.unlock();
+            return retVal;
+        }
+
         bool isPageInOldNodeAndReset(uint64_t pageId){
             bool retVal;
             partitionLock.lock();

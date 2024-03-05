@@ -87,7 +87,7 @@ void PageIdManager::addPageWithExistingPageId(uint64_t existingPageId, bool page
 
 void PageIdManager::removePage(uint64_t pageId){
     uint64_t partition = pageId & PAGE_ID_MASK;
-    uint64_t slotToFree = pageIdToSsdSlotMap[partition].getSsdSlotOfPage(pageId); //todo yuval - deal with page not found
+    uint64_t slotToFree = pageIdToSsdSlotMap[partition].getSsdSlotOfPageAndRemove(pageId);
     redeemSsdSlot(slotToFree);
 }
 
