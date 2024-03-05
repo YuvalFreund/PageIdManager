@@ -417,11 +417,11 @@ void MessageHandler::startThread() {
                       }else{
                           guard.frame->possessors.exclusive = request.possessors;
                       }
-                      guard.frame->dirty = request.dirty || guard.frame->dirty; //either already dirty here or was dirty in old directory
+                      guard.frame->dirty = true; //either already dirty here or was dirty in old directory
                       guard.frame->shuffledIn = true; // this is just for debug
                       guard.frame->pid = shuffledPid;
-                      uint64_t localpVerson =  guard.frame->pVersion.load();
-                      guard.frame->pVersion = request.pVersion > localpVerson ? request.pVersion :  localpVerson;
+                      uint64_t localpVersion =  guard.frame->pVersion.load();
+                      guard.frame->pVersion = request.pVersion > localpVersion ? request.pVersion :  localpVersion;
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
                       response.accepted = true;
@@ -432,7 +432,7 @@ void MessageHandler::startThread() {
                   case MESSAGE_TYPE::IPTR: {
                       auto& immediateTransferRequest = *reinterpret_cast<ImmediatePageTransferRequest*>(ctx.request);
                       PID shuffledPid = PID(immediateTransferRequest.requestedPid);
-                      auto guard = bm.findFrame<CONTENTION_METHOD::BLOCKING>(shuffledPid, Invalidation(), ctx.bmId); // todo yuval - think of functor here
+                      auto guard = bm.findFrame<CONTENTION_METHOD::BLOCKING>(shuffledPid, Exclusive(), ctx.bmId);
                       ensure(guard.state == STATE::NOT_FOUND);
                       if(async_read_buffer.full()){
                           throw std::runtime_error("read buffer is full ");
