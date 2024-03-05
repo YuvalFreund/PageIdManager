@@ -418,11 +418,11 @@ void MessageHandler::startThread() {
                           guard.frame->possessors.exclusive = request.possessors;
                       }
                       guard.frame->dirty = true; //either already dirty here or was dirty in old directory
-                      //guard.frame->shuffledIn = true; // this is just for debug
                       guard.frame->pid = shuffledPid;
                       uint64_t localpVersion =  guard.frame->pVersion.load();
                       guard.frame->pVersion = request.pVersion > localpVersion ? request.pVersion :  localpVersion;
                       guard.frame->latch.unlatchExclusive();
+                      guard.frame->state = guard.frame->isPossessor(bm.nodeId) ? guard.frame->state : BF_STATE::EVICTED;
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
                       response.accepted = true;
                       writeMsg(clientId, response, threads::ThreadContext::my().page_handle);

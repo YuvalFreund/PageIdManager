@@ -585,7 +585,7 @@ void PageProvider::startThread() {
                             auto version = frame.latch.optimisticLatchOrRestart();
                             if (!version.has_value()) continue;
 
-                            if (epoch != frame.epoch.load()) { continue; } // todo yuval - maybe add here aswell - page at old
+                            if (epoch != frame.epoch.load()) { continue; }
                             if ((frame.pid == EMPTY_PID) || (frame.state == BF_STATE::FREE) || (frame.state == BF_STATE::EVICTED)) {
                                continue;
                             }
