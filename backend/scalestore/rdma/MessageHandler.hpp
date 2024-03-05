@@ -330,7 +330,7 @@ struct MessageHandler {
                guard.frame->latch.unlatchExclusive();
                return;
             }
-            // if we are the possesor we do not need to take action as we oveerwrite it after the if
+            // if we are the possessor we do not need to take action as we oveerwrite it after the if
          }
          ensure(guard.frame->state == BF_STATE::HOT);
          guard.frame->state = BF_STATE::EVICTED;  // we own the page but someone is going to modify it

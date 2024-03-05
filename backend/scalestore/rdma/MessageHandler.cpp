@@ -421,8 +421,10 @@ void MessageHandler::startThread() {
                       guard.frame->pid = shuffledPid;
                       uint64_t localpVersion =  guard.frame->pVersion.load();
                       guard.frame->pVersion = request.pVersion > localpVersion ? request.pVersion :  localpVersion;
-                      BF_STATE oldState = guard.frame->state.load();
-                      guard.frame->state = guard.frame->isPossessor(bm.nodeId) ? oldState: BF_STATE::EVICTED;
+                      if(guard.frame->isPossessor(bm.nodeId)){
+                          guard.frame->state = BF_STATE::EVICTED;
+                          guard.frame->page = nullptr;
+                      }
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
                       response.accepted = true;
