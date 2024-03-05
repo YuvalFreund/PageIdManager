@@ -417,13 +417,15 @@ void MessageHandler::startThread() {
                       }else{
                           guard.frame->possessors.exclusive = request.possessors;
                       }
-                      guard.frame->dirty = true; //either already dirty here or was dirty in old directory
                       guard.frame->pid = shuffledPid;
                       uint64_t localpVersion =  guard.frame->pVersion.load();
                       guard.frame->pVersion = request.pVersion > localpVersion ? request.pVersion :  localpVersion;
                       if(guard.frame->isPossessor(bm.nodeId) ==false){
                           guard.frame->state = BF_STATE::EVICTED;
                           guard.frame->page = nullptr;
+                          if(guard.frame->possession == POSSESSION::EXCLUSIVE){
+                              guard.frame->dirty = true; //either already dirty here or was dirty in old directory
+                          }
                       }
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
@@ -489,7 +491,7 @@ try_shuffle:
     auto& context_ = workerPtr->cctxs[newNodeId];
     auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId); // node id doesn't matt
     if(guard.state == STATE::NOT_FOUND || guard.frame->state == BF_STATE::FREE || guard.frame->possession == POSSESSION::NOBODY){
-        //std::cout<<"R"<<std::endl;
+        std::cout<<"R"<<std::endl;
         //uint64_t pVersion = (guard.state == STATE::NOT_FOUND) ? 0 : guard.frame->pVersion.load();
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, 0,POSSESSION::NOBODY,false,true,0);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
