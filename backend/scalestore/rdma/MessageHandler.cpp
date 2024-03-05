@@ -490,7 +490,8 @@ try_shuffle:
     auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId); // node id doesn't matt
     if(guard.state == STATE::NOT_FOUND || guard.frame->state == BF_STATE::FREE || guard.frame->possession == POSSESSION::NOBODY){
         std::cout<<"R"<<std::endl;
-        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, 0,POSSESSION::NOBODY,false,true,guard.frame->pVersion);
+        uint64_t pVersion = (guard.state == STATE::NOT_FOUND) ? 0 : guard.frame->pVersion.load();
+        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, 0,POSSESSION::NOBODY,false,true,pVersion);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;
     }else{
