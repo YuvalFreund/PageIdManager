@@ -418,10 +418,10 @@ void MessageHandler::startThread() {
                           guard.frame->possessors.exclusive = request.possessors;
                       }
                       guard.frame->dirty = request.dirty || guard.frame->dirty; //either already dirty here or was dirty in old directory
-                      guard.frame->shuffledIn = true;
+                      guard.frame->shuffledIn = true; // this is just for debug
                       guard.frame->pid = shuffledPid;
 
-                      guard.frame->pVersion = request.pVersion;
+                      guard.frame->pVersion = max(request.pVersion,guard.frame->pVersion) ;
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
                       response.accepted = true;
@@ -485,7 +485,7 @@ try_shuffle:
     auto newNodeId = nextJobToShuffle.newNodeId;
     auto& context_ = workerPtr->cctxs[newNodeId];
     auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId); // node id doesn't matt
-    if(guard.state == storage::STATE::NOT_FOUND || guard.state == STATE::SSD || guard.frame->state == BF_STATE::EVICTED || guard.frame->state == BF_STATE::FREE){
+    if(guard.state == STATE::NOT_FOUND || guard.frame->state == BF_STATE::FREE || guard.frame->possession == POSSESSION::NOBODY){
         std::cout<<"R"<<std::endl;
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, 0,POSSESSION::NOBODY,false,true,guard.frame->pVersion);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
