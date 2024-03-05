@@ -511,13 +511,11 @@ try_shuffle:
     if(succeededToShuffle){
         pageIdManager.setDirectoryOfPage(pageId,nextJobToShuffle.newNodeId);
         if(guard.state != STATE::NOT_FOUND && guard.frame->isPossessor(pageIdManager.nodeId) == false) {
-            std::cout<<"k"<<std::endl;
             bm.removeFrame(*guard.frame, [&](BufferFrame &frame){
                 bm.pageFreeList.push(frame.page,  workerPtr->threadContext->page_handle);
             });
             guard.frame->latch.unlatchExclusive();
         }else {
-            std::cout << "w" << std::endl;
             pageIdManager.pushJobToStack(pageId);
             guard.frame->latch.unlatchExclusive();
             goto try_shuffle;
