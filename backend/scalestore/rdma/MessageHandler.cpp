@@ -421,7 +421,7 @@ void MessageHandler::startThread() {
                       guard.frame->shuffledIn = false;
                       guard.frame->pid = shuffledPid;
 
-                      guard.frame->pVersion = request.pVersion + 1 ;
+                      guard.frame->pVersion = request.pVersion;
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
                       response.accepted = true;
