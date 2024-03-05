@@ -510,7 +510,7 @@ try_shuffle:
     // check if manage to shuffle or retry to avoided the distributed dead lock
     if(succeededToShuffle){
         pageIdManager.setDirectoryOfPage(pageId,nextJobToShuffle.newNodeId);
-        if(guard.state != STATE::NOT_FOUND guard.frame->isPossessor(pageIdManager.nodeId) == false) {
+        if(guard.state != STATE::NOT_FOUND && guard.frame->isPossessor(pageIdManager.nodeId) == false) {
             std::cout<<"k"<<std::endl;
             bm.removeFrame(*guard.frame, [&](BufferFrame &frame){
                 bm.pageFreeList.push(frame.page,  workerPtr->threadContext->page_handle);
