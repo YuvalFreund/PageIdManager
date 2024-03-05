@@ -406,6 +406,7 @@ void MessageHandler::startThread() {
                       pageIdManager.addPageWithExistingPageId(request.shuffledPid, request.pageEvictedAtOldNode);
                       auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(shuffledPid, Exclusive(), ctx.bmId,true);
                       if(guard.state == STATE::RETRY){ // this it to deal with a case of the distrubted deadlock
+                          pageIdManager.removePage(request.shuffledPid);
                           auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
                           response.accepted = false;
                           writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
