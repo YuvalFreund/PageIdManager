@@ -420,8 +420,8 @@ void MessageHandler::startThread() {
                       guard.frame->dirty = request.dirty || guard.frame->dirty; //either already dirty here or was dirty in old directory
                       guard.frame->shuffledIn = true; // this is just for debug
                       guard.frame->pid = shuffledPid;
-
-                      guard.frame->pVersion = request.pVersion > guard.frame->pVersion ? request.pVersion :  guard.frame->pVersion;
+                      uint64_t localpVerson =  guard.frame->pVersion.load();
+                      guard.frame->pVersion = request.pVersion > localpVerson ? request.pVersion :  localpVerson;
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
                       response.accepted = true;
