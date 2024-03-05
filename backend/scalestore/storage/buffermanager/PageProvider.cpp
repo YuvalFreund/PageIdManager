@@ -324,6 +324,9 @@ void PageProvider::startThread() {
                   [&](BufferFrame& frame, uint64_t epoch_added) {
                       // remove dirty flag
                       ensure(frame.dirty);
+                      if(frame.dirty &&  frame.shuffledIn){
+                          std::cout<<"#"<<std::endl;
+                      }
                       frame.dirty = false;
                       auto version = frame.latch.version.load();
                       frame.latch.unlatchShared();
