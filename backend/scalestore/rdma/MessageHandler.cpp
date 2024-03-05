@@ -421,7 +421,7 @@ void MessageHandler::startThread() {
                       guard.frame->pid = shuffledPid;
                       uint64_t localpVersion =  guard.frame->pVersion.load();
                       guard.frame->pVersion = request.pVersion > localpVersion ? request.pVersion :  localpVersion;
-                      if(guard.frame->isPossessor(bm.nodeId)){
+                      if(guard.frame->isPossessor(bm.nodeId) ==false){
                           guard.frame->state = BF_STATE::EVICTED;
                           guard.frame->page = nullptr;
                       }
