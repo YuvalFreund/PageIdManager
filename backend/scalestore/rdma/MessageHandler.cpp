@@ -404,13 +404,13 @@ void MessageHandler::startThread() {
                       auto& request = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
                       PID shuffledPid = PID(request.shuffledPid);
                       auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(shuffledPid, Exclusive(), ctx.bmId,true);
+                      pageIdManager.addPageWithExistingPageId(request.shuffledPid, request.pageEvictedAtOldNode);
                       if(guard.state == STATE::RETRY){ // this it to deal with a case of the distrubted deadlock
                           auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
                           response.accepted = false;
                           writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
                           break;
                       }
-                      pageIdManager.addPageWithExistingPageId(request.shuffledPid, request.pageEvictedAtOldNode);
                       guard.frame->possession = request.possession;
                       if(request.possession == POSSESSION::SHARED){
                           guard.frame->possessors.shared.bitmap = request.possessors;
@@ -490,7 +490,9 @@ try_shuffle:
     auto newNodeId = nextJobToShuffle.newNodeId;
     auto& context_ = workerPtr->cctxs[newNodeId];
     auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId); // node id doesn't matt
-    if(guard.state == STATE::NOT_FOUND || guard.frame->state == BF_STATE::FREE || guard.frame->possession == POSSESSION::NOBODY){
+    if(guard.state == STATE::NOT_FOUND){
+        bm.fix(PID(pageId),Exclusive());
+    } else if(guard.frame->state == BF_STATE::FREE || guard.frame->possession == POSSESSION::NOBODY){
         std::cout<<"R"<<std::endl;
         //uint64_t pVersion = (guard.state == STATE::NOT_FOUND) ? 0 : guard.frame->pVersion.load();
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, 0,POSSESSION::NOBODY,false,true,0);
