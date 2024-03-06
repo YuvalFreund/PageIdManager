@@ -492,6 +492,7 @@ try_shuffle:
     auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId); // node id doesn't matt
 
     if(guard.state == STATE::NOT_FOUND){
+        std::cout<<"j"<<std::endl;
         guard = bm.fix(PID(pageId),Exclusive());
         guard.frame->epoch = 0; //ensures fast eviction
     } else if(guard.frame->state == BF_STATE::FREE ||guard.frame->state == BF_STATE::EVICTED || guard.frame->possession == POSSESSION::NOBODY){
