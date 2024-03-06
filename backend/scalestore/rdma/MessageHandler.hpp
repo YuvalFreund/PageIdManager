@@ -480,8 +480,6 @@ struct MessageHandler {
 
    bool shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr);
    void readEvictedPageBeforeShuffle(Guard& guard){
-
-       ensure(guard.frame != nullptr);
        ensure(guard.frame->latch.isLatched());
        if(guard.frame->page == nullptr){
            Page* page = bm.pageFreeList.pop(threads::ThreadContext::my().page_handle);

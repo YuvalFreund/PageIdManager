@@ -495,7 +495,6 @@ try_shuffle:
         guard = bm.fix(PID(pageId),Exclusive());
         guard.frame->epoch = 0; //ensures fast eviction
     } else if(guard.frame->state == BF_STATE::FREE ||guard.frame->state == BF_STATE::EVICTED || guard.frame->possession == POSSESSION::NOBODY){
-        guard.frame->latch.unlatchExclusive();
         std::cout<<"R"<<std::endl;
         readEvictedPageBeforeShuffle(guard);
         //uint64_t pVersion = (guard.state == STATE::NOT_FOUND) ? 0 : guard.frame->pVersion.load();
