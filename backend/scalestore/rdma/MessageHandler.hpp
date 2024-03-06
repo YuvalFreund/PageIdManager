@@ -427,15 +427,7 @@ struct MessageHandler {
       wqe++;
    }
 
-   bool isOldDirectorySolePossessor(POSSESSION possession, Possessors possessors, uint64_t nodeId){
-       bool retVal;
-       if(possession == POSSESSION::SHARED){
-           retVal = possessors.shared.test(nodeId);
-       }else if (possession == POSSESSION::SHARED){
 
-       }
-       return retVal;
-   }
 
    template <typename MSG>
    void writeMsg(NodeID clientId, MSG& msg, storage::PartitionedQueue<storage::Page*, PARTITIONS, BATCH_SIZE, utils::Stack>::BatchHandle& page_handle)
@@ -486,7 +478,24 @@ struct MessageHandler {
    }
 
 
-    bool shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr);
+   bool shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr);
+   void readEvictedPageBeforeShuffle(Guard& guard){
+
+       ensure(guard.frame != nullptr);
+       ensure(guard.frame->latch.isLatched());
+       if(guard.frame->page == nullptr){
+           Page* page = bm.pageFreeList.pop(threads::ThreadContext::my().page_handle);
+           guard.frame->page = page;
+       }
+       bm.readPageSync(guard.frame->pid, reinterpret_cast<uint8_t*>(guard.frame->page));
+       // -------------------------------------------------------------------------------------
+       // update state
+       guard.frame->possession = POSSESSION::EXCLUSIVE;
+       guard.frame->setPossessor(nodeId);
+       guard.frame->epoch = 0; //ensures fast eviction
+       guard.frame->state = BF_STATE::HOT;  // important as it allows to remote copy without latch
+       guard.state = STATE::INITIALIZED;
+   }
    // -------------------------------------------------------------------------------------
    // Protocol functor which is injected to Buffermanager find frame;
    template <POSSESSION DESIRED_MODE>
