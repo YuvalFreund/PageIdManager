@@ -503,12 +503,10 @@ try_shuffle:
             });
         }
         guard.frame->latch.unlatchExclusive();
-
     }else{
+        std::cout<<"j"<<std::endl;
         pageIdManager.pushJobToStack(pageId);
-        if (guard.state != STATE::NOT_FOUND){
-            guard.frame->latch.unlatchExclusive();
-        }
+        guard.frame->latch.unlatchExclusive();
         goto try_shuffle;
     }
     return false;
