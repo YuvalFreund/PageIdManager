@@ -200,7 +200,7 @@ struct MessageHandler {
          if (guard.frame->possession == POSSESSION::EXCLUSIVE) {
             guard.frame->pVersion++;
             // -------------- -----------------------------------------------------------------------
-            if (guard.frame->possessors.exclusive == nodeId) {
+            if (guard.frame->possessors.exclusive == nodeId) { //ask shared, we have EX
                // -------------------------------------------------------------------------------------
                // local -> downgrade
                ensure(guard.frame->state == BF_STATE::HOT);
@@ -208,7 +208,7 @@ struct MessageHandler {
                guard.frame->possession = POSSESSION::SHARED;
                guard.frame->setPossessor(nodeId);  // downgrade
                response.resultType = RESULT::WithPage;
-            } else {
+            } else {//ask shared, other has EX
                ensure(guard.frame->state == BF_STATE::EVICTED);
                ensure(!guard.frame->isPossessor(nodeId));
                // -------------------------------------------------------------------------------------
@@ -226,12 +226,12 @@ struct MessageHandler {
                return;
             }
             ensure(guard.frame->state == BF_STATE::HOT);
-         } else {
+         } else {//ask EX, page is shared
             // -------------------------------------------------------------------------------------
             // No Conflict but page might be evicted which issues and Copy Request to another node which we
             // need to track
             // -------------------------------------------------------------------------------------
-            if (guard.frame->state == BF_STATE::EVICTED) {
+            if (guard.frame->state == BF_STATE::EVICTED) {//ask EX, other has shared
                ensure(!guard.frame->isPossessor(nodeId));
                // -------------------------------------------------------------------------------------
                response.resultType = RESULT::NoPageEvicted;
@@ -314,7 +314,7 @@ struct MessageHandler {
                guard.frame->latch.unlatchExclusive();
                return;
             }
-            // if we are the possessor we do not need to take action as we oveerwrite it after the if
+            // if we are the possessor we do not need to take action as we overwrite it after the if
          }
          ensure(guard.frame->state == BF_STATE::HOT);
          guard.frame->state = BF_STATE::EVICTED;  // we own the page but someone is going to modify it
@@ -475,8 +475,7 @@ struct MessageHandler {
        guard.frame->possession = POSSESSION::EXCLUSIVE;
        guard.frame->setPossessor(nodeId);
        guard.frame->epoch = 0; //ensures fast eviction
-       guard.frame->state = BF_STATE::HOT;  // important as it allows to remote copy without latch
-       guard.state = STATE::INITIALIZED;
+       guard.frame->state = BF_STATE::HOT;
    }
    // -------------------------------------------------------------------------------------
    // Protocol functor which is injected to Buffermanager find frame;

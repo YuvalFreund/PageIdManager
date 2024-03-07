@@ -324,7 +324,6 @@ void PageProvider::startThread() {
                   [&](BufferFrame& frame, uint64_t epoch_added) {
                       // remove dirty flag
                       ensure(frame.dirty);
-                      frame.evictedAfterShuffle=true;
                       frame.dirty = false;
                       auto version = frame.latch.version.load();
                       frame.latch.unlatchShared();
