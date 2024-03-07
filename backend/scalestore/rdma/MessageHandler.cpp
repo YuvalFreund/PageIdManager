@@ -502,8 +502,9 @@ try_shuffle:
             bm.removeFrame(*guard.frame, [&](BufferFrame &frame) {
                 bm.pageFreeList.push(frame.page, workerPtr->threadContext->page_handle);
             });
+        }else{
+            guard.frame->latch.unlatchExclusive();
         }
-        guard.frame->latch.unlatchExclusive();
     }else{
         std::cout<<"j"<<std::endl;
         pageIdManager.pushJobToStack(pageId);

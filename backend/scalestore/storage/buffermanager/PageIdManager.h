@@ -127,7 +127,6 @@ struct PageIdManager {
             partitionLock.lock();
             retVal = map[pageId];
             retVal &= SSD_SLOT_MASK;
-
             map.erase(pageId);
             partitionLock.unlock();
             return retVal;
