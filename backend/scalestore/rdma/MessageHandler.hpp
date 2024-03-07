@@ -156,22 +156,6 @@ struct MessageHandler {
           return;
       }
 
-      bool pageStillAtOldDirectory = pageIdManager.isPageInOldNodeAndResetBit(request.pid);
-      if(pageStillAtOldDirectory){
-          std::cout<<"w"<<std::endl;
-          uint64_t oldNodeId = pageIdManager.searchRingForNode(request.pid, true);// here we search directly at the ring!
-          auto& response = *MessageFabric::createMessage<rdma::PossessionResponse>(ctx.response, RESULT::PageAtOldNode);
-          response.resultType = RESULT::PageAtOldNode;
-          response.type = (DESIRED_MODE == POSSESSION::SHARED ? MESSAGE_TYPE::PRRS : MESSAGE_TYPE::PRRX);
-          response.conflictingNodeId = oldNodeId;
-          writeMsg(clientId, response,page_handle);
-          guard.frame->possession = DESIRED_MODE;
-          guard.frame->setPossessor(ctx.bmId);
-          guard.frame->latch.unlatchExclusive();
-          return;
-      }
-
-
       if(guard.state == STATE::SSD){
          // -------------------------------------------------------------------------------------
          ensure(guard.frame->latch.isLatched());

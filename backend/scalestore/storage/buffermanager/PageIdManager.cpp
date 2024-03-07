@@ -75,12 +75,9 @@ uint64_t PageIdManager::addPage(){
     return retVal;
 }
 
-void PageIdManager::addPageWithExistingPageId(uint64_t existingPageId, bool pageAtOld){
+void PageIdManager::addPageWithExistingPageId(uint64_t existingPageId){
     uint64_t ssdSlotForNewPage = getFreeSsdSlot();
     ssdSlotForNewPage |= nodeIdAtMSB;
-    if(pageAtOld){
-        ssdSlotForNewPage |= PAGE_AT_OLD_NODE_MASK;
-    }
     uint64_t partition = existingPageId & PAGE_ID_MASK;
     pageIdToSsdSlotMap[partition].insertToMap(existingPageId,ssdSlotForNewPage);
 }

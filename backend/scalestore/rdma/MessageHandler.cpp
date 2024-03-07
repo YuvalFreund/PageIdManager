@@ -404,7 +404,7 @@ void MessageHandler::startThread() {
                       auto& request = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
                       PID shuffledPid = PID(request.shuffledPid);
                       auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(shuffledPid, Exclusive(), ctx.bmId,true);
-                      pageIdManager.addPageWithExistingPageId(request.shuffledPid, request.pageEvictedAtOldNode);
+                      pageIdManager.addPageWithExistingPageId(request.shuffledPid);
                       if(guard.state == STATE::RETRY){ // this it to deal with a case of the distrubted deadlock
                           auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
                           response.accepted = false;
@@ -420,7 +420,7 @@ void MessageHandler::startThread() {
                       guard.frame->pid = shuffledPid;
                       uint64_t localpVersion =  guard.frame->pVersion.load();
                       guard.frame->pVersion = request.pVersion > localpVersion ? request.pVersion :  localpVersion;
-                      if(guard.frame->isPossessor(bm.nodeId) ==false){
+                      if(guard.frame->isPossessor(bm.nodeId) == false){
                           guard.frame->state = BF_STATE::EVICTED;
                           guard.frame->page = nullptr;
                           if(guard.frame->possession == POSSESSION::EXCLUSIVE){
@@ -434,18 +434,6 @@ void MessageHandler::startThread() {
                       break;
                   }
 
-                  case MESSAGE_TYPE::IPTR: {
-                      auto& immediateTransferRequest = *reinterpret_cast<ImmediatePageTransferRequest*>(ctx.request);
-                      PID shuffledPid = PID(immediateTransferRequest.requestedPid);
-                      auto guard = bm.findFrame<CONTENTION_METHOD::BLOCKING>(shuffledPid, Exclusive(), ctx.bmId);
-                      ensure(guard.state == STATE::NOT_FOUND);
-                      if(async_read_buffer.full()){
-                          throw std::runtime_error("read buffer is full ");
-                      }
-                      uint64_t ssdSlot = pageIdManager.getSsdSlotOfPageId(shuffledPid.id);
-                      async_read_buffer.add(*guard.frame, shuffledPid, m_i, true,ssdSlot);
-                      break;
-                  }
                   default:
                      throw std::runtime_error("Unexpected Message in MB " + std::to_string(mailboxIdx) + " type " +
                                               std::to_string((size_t)ctx.request->type));
@@ -489,17 +477,11 @@ try_shuffle:
     auto pageId = nextJobToShuffle.pageId;
     auto newNodeId = nextJobToShuffle.newNodeId;
     auto& context_ = workerPtr->cctxs[newNodeId];
-    auto guard = bm.findFrame<storage::CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId); // node id doesn't matt
-
-    if(guard.state == STATE::NOT_FOUND){
-        std::cout<<"j"<<std::endl;
-        guard = bm.fix(PID(pageId),Exclusive());
-        guard.frame->epoch = 0; //ensures fast eviction
-    } else if(guard.frame->state == BF_STATE::FREE ||guard.frame->state == BF_STATE::EVICTED || guard.frame->possession == POSSESSION::NOBODY){
+    auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(PID(pageId), Exclusive(), nodeId,true);
+    if(guard.frame->state == BF_STATE::FREE ||guard.frame->state == BF_STATE::EVICTED || guard.frame->possession == POSSESSION::NOBODY){
         std::cout<<"R"<<std::endl;
         readEvictedPageBeforeShuffle(guard);
-        //uint64_t pVersion = (guard.state == STATE::NOT_FOUND) ? 0 : guard.frame->pVersion.load();
-        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, 0,POSSESSION::NOBODY,false,true,0);
+        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, 0,POSSESSION::NOBODY,false,0);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;
     }else{
