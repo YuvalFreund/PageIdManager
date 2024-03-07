@@ -42,7 +42,7 @@ void PageIdManager::initSsdPartitions(){
     int partitionSize = ssdMaximumPagesAmount / FLAGS_pageIdManagerPartitions; // todo yuval - this needs to be parameterized for evaluation later.
     uint64_t runningSSdSlotBegin = 0;
     for(uint64_t i = 0; i < numPartitions; i++){
-        ssdSlotPartitions.try_emplace(i,runningSSdSlotBegin,partitionSize);
+        freeSsdSlotPartitions.try_emplace(i,runningSSdSlotBegin,partitionSize);
         runningSSdSlotBegin += partitionSize;
     }
 }
