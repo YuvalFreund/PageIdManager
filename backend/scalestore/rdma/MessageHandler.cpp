@@ -477,7 +477,7 @@ try_shuffle:
     auto pageId = nextJobToShuffle.pageId;
     auto newNodeId = nextJobToShuffle.newNodeId;
     auto& context_ = workerPtr->cctxs[newNodeId];
-    auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(PID(pageId), Exclusive(), nodeId,true);
+    auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId,true);
     if(guard.frame->state == BF_STATE::FREE ||guard.frame->state == BF_STATE::EVICTED || guard.frame->possession == POSSESSION::NOBODY){
         std::cout<<"R"<<std::endl;
         readEvictedPageBeforeShuffle(guard);
