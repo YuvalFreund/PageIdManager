@@ -20,12 +20,12 @@ struct PageIdManager {
 
     // helper structs
 
-    struct SsdSlotPartition{
+    struct FreeSsdSlotPartition{
         uint64_t begin;
         std::stack<uint64_t> freeSlots;
         uint64_t partitionSize;
         std::mutex partitionLock;
-        SsdSlotPartition(uint64_t begin,uint64_t partitionSize) : begin(begin),partitionSize(partitionSize) {
+        FreeSsdSlotPartition(uint64_t begin, uint64_t partitionSize) : begin(begin), partitionSize(partitionSize) {
             for(uint64_t i = 0; i<partitionSize; i++){
                 this->freeSlots.push(begin + i);
             }
@@ -70,7 +70,7 @@ struct PageIdManager {
         }
     };
     struct SsdSlotMapPartition{
-        std::map<uint64_t, uint64_t> map;
+        std::unordered_map<uint64_t, uint64_t> map;
         std::mutex partitionLock;
 
         void insertToMap(uint64_t pageId, uint64_t ssdSlot){
@@ -152,9 +152,9 @@ struct PageIdManager {
     }
 
     // data structures for mapping
-    std::map<uint64_t, SsdSlotPartition> ssdSlotPartitions;
-    std::map<uint64_t, PageIdIv> pageIdIvPartitions;
-    std::map<uint64_t, SsdSlotMapPartition> pageIdToSsdSlotMap;
+    std::unordered_map<uint64_t, FreeSsdSlotPartition> freeSsdSlotPartitions;
+    std::unordered_map<uint64_t, PageIdIv> pageIdIvPartitions;
+    std::unordered_map<uint64_t, SsdSlotMapPartition> pageIdToSsdSlotMap;
 
     // constants
     uint64_t numPartitions;
@@ -202,7 +202,6 @@ struct PageIdManager {
     void pushJobToStack(uint64_t pageId);
     uint64_t getCachedDirectoryOfPage(uint64_t pageId);
     void setDirectoryOfPage(uint64_t pageId, uint64_t directory);
-    bool isPageInOldNodeAndResetBit(uint64_t pageId);
     bool isNodeDirectoryOfPageId(uint64_t pageId);
     uint64_t getTargetNodeForEviction(uint64_t pageId);
 

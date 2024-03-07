@@ -151,12 +151,6 @@ void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
     }
 }
 
-bool PageIdManager::isPageInOldNodeAndResetBit([[maybe_unused]]uint64_t pageId){
-    bool retVal;
-    uint64_t partition = pageId & PAGE_ID_MASK;
-    retVal = pageIdToSsdSlotMap[partition].isPageInOldNodeAndReset(pageId);
-    return retVal;
-}
 
 uint64_t PageIdManager::getCachedDirectoryOfPage(uint64_t pageId){
     uint64_t retVal;
@@ -206,7 +200,7 @@ void  PageIdManager::gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr
 uint64_t PageIdManager::getFreeSsdSlot(){
     uint64_t  retVal;
     while(true){
-        auto chosenPartition = ssdSlotPartitions.find(rand() % numPartitions);
+        auto chosenPartition = freeSsdSlotPartitions.find(rand() % numPartitions);
         retVal = chosenPartition->second.getFreeSlotForPage();
         if(retVal != INVALID_SSD_SLOT){
             break;
@@ -222,7 +216,7 @@ void PageIdManager::pushJobToStack(uint64_t pageId){
 }
 
 void PageIdManager::redeemSsdSlot(uint64_t freedSsdSlot){
-    auto chosenPartition = ssdSlotPartitions.find(rand() % numPartitions);
+    auto chosenPartition = freeSsdSlotPartitions.find(rand() % numPartitions);
     chosenPartition->second.insertFreedSsdSlot(freedSsdSlot);
 }
 
