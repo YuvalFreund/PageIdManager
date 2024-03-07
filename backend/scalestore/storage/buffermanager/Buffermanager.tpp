@@ -69,9 +69,6 @@ restart:
    g.frame->pid = pid;
    g.frame->epoch = globalEpoch.load();
    g.frame->setPossession(POSSESSION::NOBODY);
-   if(fromShuffle){
-       //ensure( g.frame->state == BF_STATE::IO_SSD);
-   }
    // -------------------------------------------------------------------------------------
    ht_latch.unlatchExclusive();
    // -------------------------------------------------------------------------------------
