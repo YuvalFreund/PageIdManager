@@ -428,6 +428,7 @@ void MessageHandler::startThread() {
                               guard.frame->dirty = true; //either already dirty here or was dirty in old directory
                           }
                       }
+                      guard.frame->evicted = true;
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
                       response.accepted = true;
