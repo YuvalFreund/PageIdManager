@@ -296,19 +296,7 @@ restart:
              usingOldRing = false;
              functor.undo(guard);
              goto restart;
-         } else if (response.resultType == RESULT::PageAtOldNode){ // node already is possessor! now just get the page that stayed behind at old node
-             std::cout<<"t"<<std::endl;
-             uint64_t oldNode = response.conflictingNodeId;
-             if(oldNode == nodeId){
-                 std::cout<<"q"<<std::endl;
 
-                 readPageSync(guard.frame->pid, reinterpret_cast<uint8_t*>(guard.frame->page));
-             }else{
-                 std::cout<<"bQ"<<std::endl;
-                 auto& context_ = threads::Worker::my().cctxs[oldNode];
-                 auto& iptrRequest = *MessageFabric::createMessage<ImmediatePageTransferRequest>(context_.outgoing, pid, pageOffset);
-                 [[maybe_unused]]auto& iptrResponse = threads::Worker::my().writeMsgSync<ImmediatePageTransferResponse>(oldNode,iptrRequest);
-             }
          }
          // -------------------------------------------------------------------------------------
          // ensure(guard.frame->page->magicDebuggingNumber == pid);
