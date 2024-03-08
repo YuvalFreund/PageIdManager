@@ -425,10 +425,10 @@ void MessageHandler::startThread() {
                           guard.frame->state = BF_STATE::EVICTED;
                           guard.frame->page = nullptr;
                           if(guard.frame->possession == POSSESSION::EXCLUSIVE){
-                              guard.frame->dirty = true; //either already dirty here or was dirty in old directory
+                              guard.frame->dirty = guard.frame->dirty || request.dirty; //either already dirty here or was dirty in old directory
                           }
                       }
-                      guard.frame->evicted = true;
+                      guard.frame->shuffled = true;
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
                       response.accepted = true;
