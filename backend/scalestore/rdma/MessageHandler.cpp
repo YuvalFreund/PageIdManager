@@ -505,6 +505,7 @@ try_shuffle:
                 bm.pageFreeList.push(frame.page, workerPtr->threadContext->page_handle);
             });
         }else{
+            guard.frame->shuffled = true;
             guard.frame->latch.unlatchExclusive();
         }
     }else{
