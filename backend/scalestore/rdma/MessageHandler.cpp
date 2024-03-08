@@ -482,7 +482,8 @@ try_shuffle:
     if((guard.frame->state == BF_STATE::FREE || guard.frame->state == BF_STATE::EVICTED || guard.frame->state == BF_STATE::IO_SSD) && guard.frame->possession == POSSESSION::NOBODY){
         std::cout<<"R"<<std::endl;
         readEvictedPageBeforeShuffle(guard);
-        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, nodeId,POSSESSION::EXCLUSIVE,true,0);
+        uint64_t possessorsAsUint64 = (guard.frame->possession == POSSESSION::SHARED)  ? guard.frame->possessors.shared.bitmap : guard.frame->possessors.exclusive;
+        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, possessorsAsUint64,POSSESSION::EXCLUSIVE,true,0);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;
     }else{
