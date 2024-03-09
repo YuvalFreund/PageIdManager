@@ -421,14 +421,26 @@ void MessageHandler::startThread() {
                       guard.frame->pid = shuffledPid;
                       uint64_t localpVersion =  guard.frame->pVersion.load();
                       guard.frame->pVersion = request.pVersion > localpVersion ? request.pVersion :  localpVersion;
-                      if(guard.frame->isPossessor(bm.nodeId) == false){
-                          guard.frame->state = BF_STATE::EVICTED;
-                          guard.frame->page = nullptr;
-                          guard.frame->dirty = true; //either already dirty here or was dirty in old directory
-                          if(guard.frame->possession == POSSESSION::SHARED){
-                              std::cout<<"d"<<std::endl;
+                      if(guard.frame->possession == POSSESSION::SHARED) {
+                          if(guard.frame->isPossessor(bm.nodeId) == false) {
+                              guard.frame->state = BF_STATE::EVICTED;
+                              guard.frame->dirty = false;
                               pageIdManager.setPageIsAtOldNode(request.shuffledPid);
+                              guard.frame->page = nullptr;
+                              std::cout<<"d"<<std::endl;
+                          } else {
+                              ensure(guard.frame->state == BF_STATE::HOT);
                           }
+                      }else if (guard.frame->possession == POSSESSION::EXCLUSIVE){
+                          if(guard.frame->isPossessor(bm.nodeId) == false) {
+                              guard.frame->dirty = true;
+                              guard.frame->state = BF_STATE::EVICTED;
+                              guard.frame->page = nullptr;
+                          } else {
+                              ensure(guard.frame->state == BF_STATE::HOT);
+                          }
+                      }else {
+                          throw std::runtime_error("Invalid possession for shuffled frame");
                       }
                       guard.frame->shuffled = true;
                       guard.frame->latch.unlatchExclusive();
