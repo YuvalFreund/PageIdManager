@@ -185,6 +185,20 @@ PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
     return retVal;
 }
 
+bool PageIdManager::isPageAtOldNodeAndReset(uint64_t pageId){
+    bool retVal;
+    uint64_t partition = pageId & PAGE_ID_MASK;
+    retVal = pageIdToSsdSlotMap[partition].isPageInOldNodeAndReset(pageId);
+    return retVal;
+}
+
+void PageIdManager::setPageIsAtOldNode(uint64_t pageId){
+    uint64_t partition = pageId & PAGE_ID_MASK;
+    pageIdToSsdSlotMap[partition].setPageIsAtOldNode(pageId);
+}
+
+
+
 void  PageIdManager::gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr ) {
     prepareForShuffle(nodeId);
     for (auto nodeToUpdate: nodeIdsInCluster) {

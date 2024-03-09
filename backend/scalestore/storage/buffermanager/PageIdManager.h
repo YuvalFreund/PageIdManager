@@ -140,6 +140,12 @@ struct PageIdManager {
             partitionLock.unlock();
             return retVal;
         }
+
+      void setPageIsAtOldNode(uint64_t pageId){
+          partitionLock.lock();
+          map[pageId] = map[pageId] |= 0100000000000000;
+          partitionLock.unlock();
+      }
     };
     //constructor
     PageIdManager(uint64_t nodeId, const std::vector<uint64_t>& nodeIdsInput) : nodeId(nodeId){
@@ -204,6 +210,8 @@ struct PageIdManager {
     void setDirectoryOfPage(uint64_t pageId, uint64_t directory);
     bool isNodeDirectoryOfPageId(uint64_t pageId);
     uint64_t getTargetNodeForEviction(uint64_t pageId);
+    bool isPageAtOldNodeAndReset(uint64_t pageId);
+    void setPageIsAtOldNode(uint64_t pageId);
 
     // shuffling message
     void gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr );
