@@ -474,7 +474,7 @@ struct MessageHandler {
        // update state
        guard.frame->possession = POSSESSION::EXCLUSIVE;
        guard.frame->setPossessor(nodeId);
-       guard.frame->epoch = 0; //ensures fast eviction
+       //guard.frame->epoch = 0; //ensures fast eviction
        guard.frame->state = BF_STATE::HOT;
    }
    // -------------------------------------------------------------------------------------
