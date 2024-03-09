@@ -442,7 +442,7 @@ void MessageHandler::startThread() {
                       }else {
                           throw std::runtime_error("Invalid possession for shuffled frame");
                       }
-                      guard.frame->shuffled = true;
+                      guard.frame->shuffled = true; // just fot gdb debug
                       guard.frame->latch.unlatchExclusive();
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
                       response.accepted = true;
@@ -515,9 +515,9 @@ try_shuffle:
     if(succeededToShuffle) {
         pageIdManager.setDirectoryOfPage(pageId, nextJobToShuffle.newNodeId);
         if(guard.frame->isPossessor(pageIdManager.nodeId) == false){
-            bm.removeFrame(*guard.frame, [&](BufferFrame &frame) {
-                bm.pageFreeList.push(frame.page, workerPtr->threadContext->page_handle);
-            });
+            //bm.removeFrame(*guard.frame, [&](BufferFrame &frame) {
+           //     bm.pageFreeList.push(frame.page, workerPtr->threadContext->page_handle);
+           // });
         }else{
             guard.frame->shuffled = true;
             guard.frame->latch.unlatchExclusive();

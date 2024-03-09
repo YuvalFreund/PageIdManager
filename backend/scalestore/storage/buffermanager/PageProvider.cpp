@@ -380,6 +380,7 @@ void PageProvider::startThread() {
                   if (guard.state == STATE::RETRY || guard.state == STATE::UNINITIALIZED) continue;
                   bool localPage = pageIdManager.isNodeDirectoryOfPageId(ee.pid); //- this happens because this page was moved to the new directory
                    if(!localPage){
+                       std::cout<<"G"<<std::endl;
                       ensure(guard.frame->latch.isLatched());
                       guard.frame->latch.unlatchExclusive();
                       continue;
