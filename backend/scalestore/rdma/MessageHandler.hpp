@@ -226,7 +226,7 @@ struct MessageHandler {
                return;
             }
             ensure(guard.frame->state == BF_STATE::HOT);
-         } else {//ask EX, page is shared
+         } else {//ask shared, page is shared
             // -------------------------------------------------------------------------------------
             // No Conflict but page might be evicted which issues and Copy Request to another node which we
             // need to track
@@ -249,7 +249,7 @@ struct MessageHandler {
                   partition.inflightCRs[m_i].pVersion = guard.frame->pVersion;
                }
 
-               // set new possessor update metadate asynchronously after we notified requester
+               // set new possessor update metadata asynchronously after we notified requester
                // -------------------------------------------------------------------------------------
                guard.frame->setPossessor(ctx.bmId);
                // -------------------------------------------------------------------------------------
