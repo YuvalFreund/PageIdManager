@@ -426,6 +426,7 @@ void MessageHandler::startThread() {
                           guard.frame->page = nullptr;
                           guard.frame->dirty = guard.frame->dirty || request.dirty; //either already dirty here or was dirty in old directory
                           if(guard.frame->possession == POSSESSION::SHARED){
+                              std::cout<<"d"<<std::endl;
                               pageIdManager.setPageIsAtOldNode(request.shuffledPid);
                           }
                       }
