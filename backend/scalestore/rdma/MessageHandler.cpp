@@ -494,7 +494,7 @@ try_shuffle:
     auto newNodeId = nextJobToShuffle.newNodeId;
     auto& context_ = workerPtr->cctxs[newNodeId];
     auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId,true);
-    if((guard.frame->state == BF_STATE::FREE || guard.frame->state == BF_STATE::EVICTED || guard.frame->state == BF_STATE::IO_SSD) && guard.frame->possession == POSSESSION::NOBODY){
+    if((guard.frame->state == BF_STATE::FREE || guard.frame->state == BF_STATE::EVICTED || guard.state == STATE::SSD) && guard.frame->possession == POSSESSION::NOBODY){
         std::cout<<"R"<<std::endl;
         readEvictedPageBeforeShuffle(guard);
         uint64_t possessorsAsUint64 = (guard.frame->possession == POSSESSION::SHARED)  ? guard.frame->possessors.shared.bitmap : guard.frame->possessors.exclusive;
