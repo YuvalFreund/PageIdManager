@@ -429,6 +429,7 @@ void MessageHandler::startThread() {
                               guard.frame->page = nullptr;
                               std::cout<<"d"<<std::endl;
                           } else { // shared, node possessor
+                              guard.frame->dirty = request.dirty;
                               ensure(guard.frame->state == BF_STATE::HOT);
                           }
                       }else if (guard.frame->possession == POSSESSION::EXCLUSIVE){
@@ -437,6 +438,7 @@ void MessageHandler::startThread() {
                               guard.frame->state = BF_STATE::EVICTED;
                               guard.frame->page = nullptr;
                           } else {// exclusive, node possessor
+                              guard.frame->dirty = request.dirty;
                               ensure(guard.frame->state == BF_STATE::HOT);
                           }
                       }else {
