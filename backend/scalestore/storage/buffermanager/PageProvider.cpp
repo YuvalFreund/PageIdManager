@@ -330,13 +330,10 @@ void PageProvider::startThread() {
                       counters.incr(profiling::WorkerCounters::ssd_pages_written);
                       if (epoch_added != frame.epoch.load()) { return; }
                       if ((frame.pid == EMPTY_PID) || (frame.state == BF_STATE::FREE) || (frame.state == BF_STATE::EVICTED)) { return; }
+                      bool localPage = pageIdManager.isNodeDirectoryOfPageId(frame.pid);
                       if (!frame.latch.optimisticUpgradeToExclusive(version)) { return;}
                       ensure(frame.state != BF_STATE::FREE);
                       ensure(frame.state != BF_STATE::EVICTED);
-                      bool localPage = pageIdManager.isNodeDirectoryOfPageId(frame.pid);
-                      if(localPage == false){
-                          std::cout<<"*"<<std::endl;
-                      }
                       ensure(localPage);
                       // -------------------------------------------------------------------------------------
                       auto rc = evict_owner_page(frame, epoch_added);

@@ -427,7 +427,6 @@ void MessageHandler::startThread() {
                               guard.frame->dirty = false;
                               pageIdManager.setPageIsAtOldNode(request.shuffledPid);
                               guard.frame->page = nullptr;
-                              std::cout<<"d"<<std::endl;
                           } else { // shared, node possessor
                               guard.frame->dirty = request.dirty;
                               ensure(guard.frame->state == BF_STATE::HOT);
