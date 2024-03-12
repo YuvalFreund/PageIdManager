@@ -334,6 +334,9 @@ void PageProvider::startThread() {
                       ensure(frame.state != BF_STATE::FREE);
                       ensure(frame.state != BF_STATE::EVICTED);
                       bool localPage = pageIdManager.isNodeDirectoryOfPageId(frame.pid);
+                      if(localPage == false){
+                          std::cout<<"*"<<std::endl;
+                      }
                       ensure(localPage);
                       // -------------------------------------------------------------------------------------
                       auto rc = evict_owner_page(frame, epoch_added);
