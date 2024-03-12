@@ -422,21 +422,21 @@ void MessageHandler::startThread() {
                       uint64_t localpVersion =  guard.frame->pVersion.load();
                       guard.frame->pVersion = request.pVersion > localpVersion ? request.pVersion :  localpVersion;
                       if(guard.frame->possession == POSSESSION::SHARED) {
-                          if(guard.frame->isPossessor(bm.nodeId) == false) {
+                          if(guard.frame->isPossessor(bm.nodeId) == false) { // shared, node not possessor
                               guard.frame->state = BF_STATE::EVICTED;
                               guard.frame->dirty = false;
                               pageIdManager.setPageIsAtOldNode(request.shuffledPid);
                               guard.frame->page = nullptr;
                               std::cout<<"d"<<std::endl;
-                          } else {
+                          } else { // shared, node possessor
                               ensure(guard.frame->state == BF_STATE::HOT);
                           }
                       }else if (guard.frame->possession == POSSESSION::EXCLUSIVE){
-                          if(guard.frame->isPossessor(bm.nodeId) == false) {
+                          if(guard.frame->isPossessor(bm.nodeId) == false) {// exclusive, node not possessor
                               guard.frame->dirty = true;
                               guard.frame->state = BF_STATE::EVICTED;
                               guard.frame->page = nullptr;
-                          } else {
+                          } else {// exclusive, node possessor
                               ensure(guard.frame->state == BF_STATE::HOT);
                           }
                       }else {
@@ -494,10 +494,10 @@ try_shuffle:
     auto newNodeId = nextJobToShuffle.newNodeId;
     auto& context_ = workerPtr->cctxs[newNodeId];
     auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId,true);
-    if((guard.frame->state == BF_STATE::FREE || guard.frame->state == BF_STATE::EVICTED || guard.state == STATE::SSD) && guard.frame->possession == POSSESSION::NOBODY){
+    if((guard.frame->state == BF_STATE::FREE || guard.state == STATE::SSD) && guard.frame->possession == POSSESSION::NOBODY){
         std::cout<<"R"<<std::endl;
         readEvictedPageBeforeShuffle(guard);
-        uint64_t possessorsAsUint64 = (guard.frame->possession == POSSESSION::SHARED)  ? guard.frame->possessors.shared.bitmap : guard.frame->possessors.exclusive;
+        uint64_t possessorsAsUint64 = nodeId;
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, possessorsAsUint64,POSSESSION::EXCLUSIVE,true,0);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;
