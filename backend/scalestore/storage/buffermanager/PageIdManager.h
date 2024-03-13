@@ -106,7 +106,9 @@ struct PageIdManager {
         uint64_t getSsdSlotOfPage(uint64_t pageId){
             uint64_t retVal;
             partitionLock.lock();
-            retVal = map[pageId];
+            auto iter = map.find(pageId);
+            ensure(iter != map.end());
+            retVal = iter->second;
             retVal &= SSD_SLOT_MASK;
             partitionLock.unlock();
             return retVal;

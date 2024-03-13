@@ -493,6 +493,7 @@ try_shuffle:
     }
     auto pageId = nextJobToShuffle.pageId;
     auto newNodeId = nextJobToShuffle.newNodeId;
+    ensure(newNodeId != nodeId);
     auto& context_ = workerPtr->cctxs[newNodeId];
     auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId,true);
     if((guard.frame->state == BF_STATE::FREE || guard.state == STATE::SSD) && guard.frame->possession == POSSESSION::NOBODY){
