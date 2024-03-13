@@ -274,7 +274,7 @@ int main(int argc, char* argv[])
                        }
 
                        if(scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio && (t_i == 0 ) ) { // worker will go and shuffle
-                           finishedShuffling = mh.shuffleFrameAndIsLastShuffle(workerPtr);
+                           //finishedShuffling = mh.shuffleFrameAndIsLastShuffle(workerPtr);
                        } else {
                            K key = zipf_random->rand(zipf_offset);
                            ensure(key < YCSB_tuple_count);
