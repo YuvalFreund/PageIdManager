@@ -146,7 +146,7 @@ struct PageIdManager {
 
       void setPageIsAtOldNode(uint64_t pageId){
           partitionLock.lock();
-          map[pageId] = map[pageId] |= 0100000000000000;
+          map[pageId] = map[pageId] |= PAGE_AT_OLD_NODE_SET;
           partitionLock.unlock();
       }
     };
