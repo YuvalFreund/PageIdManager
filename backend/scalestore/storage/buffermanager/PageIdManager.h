@@ -58,14 +58,14 @@ struct PageIdManager {
         PageShuffleJob(uint64_t pageId, uint64_t newNodeId) : pageId(pageId), newNodeId(newNodeId) {}
 
     };
-    struct PageIdIv{
+    struct FreePageIdPartition{
         // todo yuval -later switch to optimisitc locking
         std::mutex pageIdPartitionMtx;
-        std::uint64_t iv;
-        explicit PageIdIv(uint64_t iv) : iv(iv){}
+        std::uint64_t guess;
+        explicit FreePageIdPartition(uint64_t guess) : guess(guess){}
 
-        void storeIv( uint64_t newIv){
-            iv = newIv;
+        void storeGuess( uint64_t newGuess){
+            guess = newGuess;
             pageIdPartitionMtx.unlock();
         }
     };
@@ -162,7 +162,7 @@ struct PageIdManager {
 
     // data structures for mapping
     std::unordered_map<uint64_t, FreeSsdSlotPartition> freeSsdSlotPartitions;
-    std::unordered_map<uint64_t, PageIdIv> pageIdIvPartitions;
+    std::unordered_map<uint64_t, FreePageIdPartition> pageIdIvPartitions;
     std::unordered_map<uint64_t, SsdSlotMapPartition> pageIdToSsdSlotMap;
 
     // constants

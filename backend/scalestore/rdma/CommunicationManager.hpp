@@ -680,6 +680,7 @@ private:
 
     ret = rdma_bind_addr(incomingCmId, (struct sockaddr *)&sin);
     if (ret) {
+      std::cout<<"ret is: "<<ret<<std::endl;
       throw std::runtime_error("Could not bind to rdma device");
     }
     DEBUG_LOG("rdma_bind_addr successful");

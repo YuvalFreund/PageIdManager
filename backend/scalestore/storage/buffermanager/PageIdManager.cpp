@@ -270,12 +270,12 @@ uint64_t PageIdManager::getNewPageId(bool oldRing){
         auto chosenPartition = pageIdIvPartitions.find(rand() % numPartitions);
         lockCheck = chosenPartition->second.pageIdPartitionMtx.try_lock();
         if(lockCheck){
-            uint64_t temp = chosenPartition->second.iv;
+            uint64_t temp = chosenPartition->second.guess;
             temp++;
             while(getNodeIdOfPage(temp  ,oldRing) != nodeId){
                 temp++;
             }
-            chosenPartition->second.storeIv(temp);
+            chosenPartition->second.storeGuess(temp);
             retVal = temp;
             break;
         }

@@ -242,7 +242,7 @@ void PageProvider::startThread() {
                    uint64_t ssdSlot = pageIdManager.getSsdSlotOfPageId(frame.pid);
                    if (!frame.latch.tryDowngradeExclusiveToShared()) return true;
                    ensure(!frame.latch.isLatched());
-                   ensure(frame.page!= nullptr);
+                   ensure(frame.page != nullptr);
                   async_write_buffer.add(frame, ssdSlot, epoch);
                   return true;
                }
