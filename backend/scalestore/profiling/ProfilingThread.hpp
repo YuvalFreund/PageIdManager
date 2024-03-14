@@ -271,7 +271,9 @@ struct ProfilingThread {
          // -------------------------------------------------------------------------------------
          // reset
          // -------------------------------------------------------------------------------------
+         uint64_t keepFrameShuffled = workerCounterAgg[profiling::WorkerCounters::shuffled_frames];
          std::fill(workerCounterAgg.begin(), workerCounterAgg.end(), 0);
+         workerCounterAgg[profiling::WorkerCounters::shuffled_frames] = keepFrameShuffled;
          std::fill(bmCounterAgg.begin(), bmCounterAgg.end(), 0);
          cpuCountersAgg.clear();
          std::this_thread::sleep_until(next);
