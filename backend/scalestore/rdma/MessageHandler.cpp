@@ -497,7 +497,7 @@ try_shuffle:
     auto& context_ = workerPtr->cctxs[newNodeId];
     auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(PID(pageId), Exclusive(), nodeId,true);
     if(guard.state == STATE::RETRY){
-        std::cout<<"q"<<std::endl;
+        //std::cout<<"q"<<std::endl;
 
         ensure(guard.latchState == storage::LATCH_STATE::UNLATCHED)
         pageIdManager.pushJobToStack(pageId);
@@ -532,7 +532,7 @@ try_shuffle:
         }
         workerPtr->counters.incr(profiling::WorkerCounters::shuffled_frames);
     }else{
-        std::cout<<"j"<<std::endl;
+        //std::cout<<"j"<<std::endl;
         pageIdManager.pushJobToStack(pageId);
         guard.frame->latch.unlatchExclusive();
         goto try_shuffle;
