@@ -247,7 +247,7 @@ int main(int argc, char* argv[])
             uint64_t leavingNodeId = 0;
             YCSB_workloadInfo experimentInfo{TYPE, YCSB_tuple_count, READ_RATIO, ZIPF, (FLAGS_YCSB_local_zipf?"local_zipf":"global_zipf")};
             scalestore.startProfiler(experimentInfo);
-            //rdma::MessageHandler& mh = scalestore.getMessageHandler();
+            rdma::MessageHandler& mh = scalestore.getMessageHandler();
              for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i) {
                 scalestore.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]() {
                    threads::Worker* workerPtr = scalestore.getWorkerPool().getWorkerByTid(t_i);
@@ -274,7 +274,7 @@ int main(int argc, char* argv[])
                        }
 
                        if(scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio && (t_i == 0 ) ) { // worker will go and shuffle
-                           //finishedShuffling = mh.shuffleFrameAndIsLastShuffle(workerPtr);
+                           finishedShuffling = mh.shuffleFrameAndIsLastShuffle(workerPtr);
                        } else {
                            K key = zipf_random->rand(zipf_offset);
                            ensure(key < YCSB_tuple_count);

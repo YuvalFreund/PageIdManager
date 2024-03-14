@@ -82,6 +82,11 @@ struct ProfilingThread {
                row.push_back(convert_humanreadable(workerCounterAgg[c_i]));
                continue;
             }
+             if(c_i == WorkerCounters::shuffled_frames){
+                 header.push_back({WorkerCounters::workerCounterTranslation[c_i]});
+                 row.push_back(convert_humanreadable(workerCounterAgg[c_i]));
+                 continue;
+             }
             // -------------------------------------------------------------------------------------
             if (c_i == WorkerCounters::latency && workerCounterAgg[WorkerCounters::tx_p] > 0) {
                header.push_back({WorkerCounters::workerCounterTranslation[c_i]});

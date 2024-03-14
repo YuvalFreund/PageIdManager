@@ -520,6 +520,7 @@ try_shuffle:
             bm.removeFrame(*guard.frame, [&](BufferFrame &frame) {
                 bm.pageFreeList.push(frame.page, workerPtr->threadContext->page_handle);
             });
+            workerPtr->counters.incr(profiling::WorkerCounters::shuffled_frames);
         }else{
             guard.frame->shuffled = true;
             guard.frame->latch.unlatchExclusive();
