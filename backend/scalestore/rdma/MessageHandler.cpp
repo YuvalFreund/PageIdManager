@@ -498,7 +498,7 @@ try_shuffle:
     auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(PID(pageId), Exclusive(), nodeId,true);
     if(guard.state == STATE::RETRY){
         pageIdManager.pushJobToStack(pageId);
-        guard.frame->latch.unlatchExclusive();
+        ensure(guard.latchState == storage::LATCH_STATE::UNLATCHED)
         goto try_shuffle;
     }
     if((guard.frame->state == BF_STATE::FREE || guard.state == STATE::SSD) && guard.frame->possession == POSSESSION::NOBODY){
