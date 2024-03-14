@@ -503,6 +503,8 @@ try_shuffle:
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, possessorsAsUint64,POSSESSION::EXCLUSIVE,true,0);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;
+        std::cout<<"P"<<std::endl;
+
     }else{
         ensure(guard.state != storage::STATE::UNINITIALIZED)
         ensure(guard.state != storage::STATE::NOT_FOUND);
