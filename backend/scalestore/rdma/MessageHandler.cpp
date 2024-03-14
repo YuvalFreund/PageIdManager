@@ -495,7 +495,12 @@ try_shuffle:
     auto newNodeId = nextJobToShuffle.newNodeId;
     ensure(newNodeId != nodeId);
     auto& context_ = workerPtr->cctxs[newNodeId];
-    auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId,true);
+    auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(PID(pageId), Exclusive(), nodeId,true);
+    if(guard.state == STATE::RETRY){
+        pageIdManager.pushJobToStack(pageId);
+        guard.frame->latch.unlatchExclusive();
+        goto try_shuffle;
+    }
     if((guard.frame->state == BF_STATE::FREE || guard.state == STATE::SSD) && guard.frame->possession == POSSESSION::NOBODY){
         std::cout<<"R"<<std::endl;
         readEvictedPageBeforeShuffle(guard);
