@@ -501,13 +501,12 @@ try_shuffle:
         pageIdManager.pushJobToStack(pageId);
         goto try_shuffle;
     }
-    if((guard.frame->state == BF_STATE::FREE || guard.state == STATE::SSD) && guard.frame->possession == POSSESSION::NOBODY){
+    if((guard.state == STATE::UNINITIALIZED || guard.frame->state == BF_STATE::FREE || guard.state == STATE::SSD) && guard.frame->possession == POSSESSION::NOBODY){
         readEvictedPageBeforeShuffle(guard);
         uint64_t possessorsAsUint64 = nodeId;
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, possessorsAsUint64,POSSESSION::EXCLUSIVE,true,0);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;
-
     }else{
         ensure(guard.state != storage::STATE::UNINITIALIZED)
         ensure(guard.state != storage::STATE::NOT_FOUND);
