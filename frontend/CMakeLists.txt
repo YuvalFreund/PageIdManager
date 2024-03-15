@@ -48,13 +48,17 @@ add_executable(bm_random benchmarks/random.cpp)
 add_dependencies(bm_random scalestore)
 target_link_libraries(bm_random scalestore numa)
 
-add_executable(consistencyCheck consistency/BTreeCheck.cpp)
+add_executable(consistencyCheck consistency/BTreeCheck.cpp consistency/CustomPageDebugTest.cpp)
 add_dependencies(consistencyCheck scalestore)
 target_link_libraries(consistencyCheck scalestore numa)
 
 add_executable(contention consistency/Contention.cpp)
 add_dependencies(contention scalestore)
 target_link_libraries(contention scalestore numa)
+
+add_executable(yuval consistency/PageIdManagerTest.cpp)
+add_dependencies(yuval scalestore)
+target_link_libraries(yuval scalestore numa)
 
 
 add_executable(btreeTest tests/BTreeTest.cpp)
