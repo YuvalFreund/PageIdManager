@@ -268,6 +268,7 @@ int main(int argc, char* argv[])
                            }
                        }
                        if(finishedShuffling && scalestore.getNodeID() == leavingNodeId){
+                           std::cout<<"done shuffling!"<<std::endl;
                            break;
                            // todo yuval - this means that a node that a leaving n finished shuffling
                            // todo yuval - stops processing any transactions
