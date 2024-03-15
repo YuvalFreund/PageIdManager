@@ -501,7 +501,8 @@ try_shuffle:
         pageIdManager.pushJobToStack(pageId);
         goto try_shuffle;
     }
-    if((guard.state == STATE::UNINITIALIZED || guard.frame->state == BF_STATE::FREE || guard.state == STATE::SSD) && guard.frame->possession == POSSESSION::NOBODY){
+    if((guard.state == STATE::UNINITIALIZED || guard.state == STATE::SSD) && guard.frame->possession == POSSESSION::NOBODY){
+        std::cout<<"R"<<std::endl;
         readEvictedPageBeforeShuffle(guard);
         uint64_t possessorsAsUint64 = nodeId;
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, possessorsAsUint64,POSSESSION::EXCLUSIVE,true,0);
