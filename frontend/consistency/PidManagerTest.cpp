@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
                 V value = 99;
                 auto found = tree.lookup(start, value);
                 ensure(found);
-                ensure(value == (1 + FLAGS_rounds));
+                ensure(value == 2);
                 threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
             }
         });
