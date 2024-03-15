@@ -18,7 +18,21 @@
 #include "scalestore/utils/Time.hpp"
 // -------------------------------------------------------------------------------------
 #include <gflags/gflags.h>
+
 // -------------------------------------------------------------------------------------
+DEFINE_uint32(YCSB_read_ratio, 100, "");
+DEFINE_bool(YCSB_all_workloads, false , "Execute all workloads i.e. 50 95 100 ReadRatio on same tree");
+DEFINE_double(YCSB_trigger_leave_percentage, 1.0, "");
+DEFINE_uint64(YCSB_tuple_count, 1, " Tuple count in");
+DEFINE_double(YCSB_zipf_factor, 0.0, "Default value according to spec");
+DEFINE_double(YCSB_run_for_seconds, 10.0, "");
+DEFINE_bool(YCSB_partitioned, false, "");
+DEFINE_bool(YCSB_warm_up, false, "");
+DEFINE_bool(YCSB_record_latency, false, "");
+DEFINE_bool(YCSB_all_zipf, false, "");
+DEFINE_bool(YCSB_local_zipf, false, "");
+DEFINE_bool(YCSB_flush_pages, false, "");
+DEFINE_uint32(YCSB_shuffle_ratio, 20, "");
 // -------------------------------------------------------------------------------------
 static constexpr uint64_t BTREE_ID = 0;
 static constexpr uint64_t BARRIER_ID = 1;
@@ -95,7 +109,10 @@ int main(int argc, char* argv[]) {
     auto& catalog = scalestore.getCatalog();
 
     uint64_t numberTuples = FLAGS_YCSB_tuple_count / FLAGS_nodes;
-
+    uint64_t shuffleRatio = 0;
+    if(FLAGS_YCSB_shuffle_ratio){
+        shuffleRatio = FLAGS_YCSB_shuffle_ratio;
+    }
 
     // -------------------------------------------------------------------------------------
     // LAMBDAS to reduce boilerplate code
@@ -177,6 +194,7 @@ int main(int argc, char* argv[]) {
     {
         Consistency_workloadInfo builtInfo{"Trigger and increment B-Tree", numberTuples};
         scalestore.startProfiler(builtInfo);
+        std::atomic<bool> finishedShuffling =false;
         // -------------------------------------------------------------------------------------
         execute_on_tree([&](uint64_t t_i, storage::BTree<K, V>& tree) {
             rdma::MessageHandler& mh = scalestore.getMessageHandler();
@@ -188,6 +206,9 @@ int main(int argc, char* argv[]) {
                 pageIdManager.gossipNodeIsLeaving(workerPtr);
                 std::cout<<"done trigger" <<std::endl;
                 pageIdManager.isBeforeShuffle = false;
+            }
+            if(scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio ){//&& (t_i == 0 ||t_i==1 ) ) { // worker will go and shuffle
+                finishedShuffling = mh.shuffleFrameAndIsLastShuffle(workerPtr);
             }
             uint64_t start = (scalestore.getNodeID() * FLAGS_worker) + t_i;
             const uint64_t inc = FLAGS_worker * FLAGS_nodes;
