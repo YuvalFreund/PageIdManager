@@ -426,7 +426,7 @@ void MessageHandler::startThread() {
                               guard.frame->state = BF_STATE::EVICTED;
                               guard.frame->dirty = false;
                               pageIdManager.setPageIsAtOldNode(request.shuffledPid);
-                              //guard.frame->page = nullptr;
+                              guard.frame->page = nullptr;
                           } else { // shared, node possessor
                               guard.frame->dirty = request.dirty;
                               ensure(guard.frame->state == BF_STATE::HOT);
@@ -435,7 +435,7 @@ void MessageHandler::startThread() {
                           if(guard.frame->isPossessor(bm.nodeId) == false) {// exclusive, node not possessor
                               guard.frame->dirty = true;
                               guard.frame->state = BF_STATE::EVICTED;
-                              //guard.frame->page = nullptr;
+                              guard.frame->page = nullptr;
                           } else {// exclusive, node possessor
                               guard.frame->dirty = request.dirty;
                               ensure(guard.frame->state == BF_STATE::HOT);
@@ -501,7 +501,7 @@ try_shuffle:
         pageIdManager.pushJobToStack(pageId);
         goto try_shuffle;
     }
-    if(guard.state == STATE::SSD && guard.frame->possession == POSSESSION::NOBODY){
+    if(guard.state == STATE::SSD){//} && guard.frame->possession == POSSESSION::NOBODY){
         std::cout<<"R"<<std::endl;
         readEvictedPageBeforeShuffle(guard);
         uint64_t possessorsAsUint64 = nodeId;
