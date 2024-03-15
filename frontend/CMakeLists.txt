@@ -60,10 +60,6 @@ add_executable(pidManagerTest consistency/PidManagerTest.cpp)
 add_dependencies(pidManagerTest scalestore)
 target_link_libraries(pidManagerTest scalestore numa)
 
-add_executable(customPageDebug consistency/CustomPageDebugTest.cpp)
-add_dependencies(customPageDebug scalestore)
-target_link_libraries(customPageDebug scalestore numa)
-
 add_executable(btreeTest tests/BTreeTest.cpp)
 add_dependencies(btreeTest scalestore)
 target_link_libraries(btreeTest scalestore numa)
