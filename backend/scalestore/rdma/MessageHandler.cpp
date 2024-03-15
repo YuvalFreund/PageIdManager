@@ -404,7 +404,7 @@ void MessageHandler::startThread() {
                       auto& request = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
                       PID shuffledPid = PID(request.shuffledPid);
                       pageIdManager.addPageWithExistingPageId(request.shuffledPid);
-                      auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(shuffledPid, Exclusive(), ctx.bmId,true);
+                      auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(shuffledPid, Exclusive(), ctx.bmId,true);
                       if(guard.state == STATE::RETRY){ // this it to deal with a case of the distrubted deadlock
                           pageIdManager.removePage(shuffledPid);
                           auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
