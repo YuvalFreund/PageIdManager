@@ -426,6 +426,7 @@ void MessageHandler::startThread() {
                           if(guard.frame->isPossessor(bm.nodeId) == false) {
                               guard.frame->state = BF_STATE::EVICTED;
                               guard.frame->dirty = true;
+                              guard.frame->page = nullptr;
                               //pageIdManager.setPageIsAtOldNode(request.shuffledPid);
                               // shared, node possessor
                           } else {
