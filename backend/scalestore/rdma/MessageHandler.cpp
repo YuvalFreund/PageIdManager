@@ -503,6 +503,7 @@ try_shuffle:
     ensure(guard.state != STATE::RETRY);
     if(guard.state == STATE::SSD && guard.frame->possession == POSSESSION::NOBODY){
         //std::cout<<"R"<<std::endl;
+        uint64_t possessorsAsUint64 = pageIdManager.nodeId;
         readEvictedPageBeforeShuffle(guard);
         succeededToShuffle = false;
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, possessorsAsUint64,POSSESSION::EXCLUSIVE,true,0);
