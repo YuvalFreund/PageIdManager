@@ -24,7 +24,13 @@ restart:
          // non-blocking does not restart
          if constexpr (method == CONTENTION_METHOD::NON_BLOCKING) {
             if (!ht_latch.checkOrRestart(b_version.value())) {
-               functor.undo(g);
+                if(fromShuffle){
+                    g.frame->latch.unlatchExclusive();
+                    g.state = STATE::RETRY;
+                    g.latchState = LATCH_STATE::UNLATCHED;
+                }else{
+                    functor.undo(g);
+                }
             }
             return g;
          }

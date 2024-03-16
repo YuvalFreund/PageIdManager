@@ -95,7 +95,7 @@ uint64_t PageIdManager::getTargetNodeForEviction(uint64_t pageId){
     }else{
         uint64_t checkCachedLocation = getCachedDirectoryOfPage(pageId);
         if(checkCachedLocation != INVALID_NODE_ID){
-            retVal = checkCachedLocation; // this node is either old or new
+            retVal = checkCachedLocation; // this node is either old or new directory
         }else{
             int randomPickOldOrNew = rand() % 2;
             if(randomPickOldOrNew == 0){
@@ -103,9 +103,6 @@ uint64_t PageIdManager::getTargetNodeForEviction(uint64_t pageId){
             }else{
                 retVal = searchRingForNode(pageId, false);
             }
-        }
-        if(retVal == nodeId){
-            retVal = searchRingForNode(pageId, true);
         }
     }
     return retVal;

@@ -404,7 +404,7 @@ void MessageHandler::startThread() {
                       auto& request = *reinterpret_cast<CreateOrUpdateShuffledFrameRequest*>(ctx.request);
                       PID shuffledPid = PID(request.shuffledPid);
                       pageIdManager.addPageWithExistingPageId(request.shuffledPid);
-                      auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(shuffledPid, Exclusive(), ctx.bmId,true);
+                      auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(shuffledPid, Exclusive(), ctx.bmId,true);
                       if(guard.state == STATE::RETRY){ // this it to deal with a case of the distrubted deadlock
                           pageIdManager.removePage(shuffledPid);
                           auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFrameResponse>(ctx.response);
@@ -422,22 +422,25 @@ void MessageHandler::startThread() {
                       uint64_t localpVersion =  guard.frame->pVersion.load();
                       guard.frame->pVersion = request.pVersion > localpVersion ? request.pVersion :  localpVersion;
                       if(guard.frame->possession == POSSESSION::SHARED) {
-                          if(guard.frame->isPossessor(bm.nodeId) == false) { // shared, node not possessor
+                          // shared, node not possessor
+                          if(guard.frame->isPossessor(bm.nodeId) == false) {
                               guard.frame->state = BF_STATE::EVICTED;
-                              guard.frame->dirty = request.dirty;
-                              pageIdManager.setPageIsAtOldNode(request.shuffledPid);
-                              guard.frame->page = nullptr;
-                          } else { // shared, node possessor
+                              guard.frame->dirty = true;
+                              //pageIdManager.setPageIsAtOldNode(request.shuffledPid);
+                              // shared, node possessor
+                          } else {
                               guard.frame->dirty = request.dirty;
                               ensure(guard.frame->state == BF_STATE::HOT);
                           }
                       }else if (guard.frame->possession == POSSESSION::EXCLUSIVE){
-                          if(guard.frame->isPossessor(bm.nodeId) == false) {// exclusive, node not possessor
+                          // exclusive, node not possessor
+                          if(guard.frame->isPossessor(bm.nodeId) == false) {
                               guard.frame->dirty = true;
                               guard.frame->state = BF_STATE::EVICTED;
                               guard.frame->page = nullptr;
-                          } else {// exclusive, node possessor
-                              guard.frame->dirty = request.dirty;
+                              // exclusive, node possessor
+                          } else {
+                              guard.frame->dirty = true;
                               ensure(guard.frame->state == BF_STATE::HOT);
                           }
                       }else {
@@ -495,20 +498,16 @@ try_shuffle:
     auto newNodeId = nextJobToShuffle.newNodeId;
     ensure(newNodeId != nodeId);
     auto& context_ = workerPtr->cctxs[newNodeId];
-    auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId,true);
-    if(guard.state == STATE::RETRY || guard.state == STATE::UNINITIALIZED){
-        ensure(guard.latchState == storage::LATCH_STATE::UNLATCHED)
-        pageIdManager.pushJobToStack(pageId);
-        goto try_shuffle;
-    }
+    auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId,false);
+    ensure(guard.state != STATE::UNINITIALIZED);
+    ensure(guard.state != STATE::RETRY);
     if(guard.state == STATE::SSD && guard.frame->possession == POSSESSION::NOBODY){
-        std::cout<<"R"<<std::endl;
+        //std::cout<<"R"<<std::endl;
         readEvictedPageBeforeShuffle(guard);
-
         succeededToShuffle = false;
-        //auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, possessorsAsUint64,POSSESSION::EXCLUSIVE,true,0);
-       // [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
-        //succeededToShuffle = createdFrameResponse.accepted;
+        auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, possessorsAsUint64,POSSESSION::EXCLUSIVE,true,0);
+        [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
+        succeededToShuffle = createdFrameResponse.accepted;
     }else{
         ensure(guard.state != storage::STATE::UNINITIALIZED)
         ensure(guard.state != storage::STATE::NOT_FOUND);

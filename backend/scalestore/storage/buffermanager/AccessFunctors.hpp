@@ -24,8 +24,9 @@ struct Exclusive {
       bool localPage = pageIdManager.isNodeDirectoryOfPageId(g.frame->pid);
       if (g.frame->possession != POSSESSION::EXCLUSIVE || !(g.frame->isPossessor(nodeId))) {
          g.state = localPage ? STATE::LOCAL_POSSESSION_CHANGE : STATE::REMOTE_POSSESSION_CHANGE;
-      } else
-         g.state = STATE::INITIALIZED;
+      } else{
+          g.state = STATE::INITIALIZED;
+      }
       // -------------------------------------------------------------------------------------
       // Exclusive
       // -------------------------------------------------------------------------------------
