@@ -427,7 +427,7 @@ void PageProvider::startThread() {
                   auto& ctx = partition.cctxs[m_i];
                   bool needRead = false;
                   if(FLAGS_evict_to_ssd){
-                     if (guard.frame->dirty || pageIdManager.isPageAtOldNodeAndReset(ee.pid)) {
+                     if (guard.frame->dirty){// || pageIdManager.isPageAtOldNodeAndReset(ee.pid)) {
                         needRead = true;
                         if (guard.frame->possession == POSSESSION::EXCLUSIVE) {
                            guard.frame->possessors.exclusive = bm.nodeId;
