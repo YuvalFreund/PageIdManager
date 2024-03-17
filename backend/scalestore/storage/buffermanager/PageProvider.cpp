@@ -605,7 +605,7 @@ void PageProvider::startThread() {
                             // -------------------------------------------------------------------------------------
                             {
                                auto targetNode = pageIdManager.getTargetNodeForEviction(frame.pid);
-
+                               ensure(targetNode != bm.nodeId);
                                if (partition.cctxs[targetNode].outgoing.current->full()) {
                                   ensure(frame.latch.isLatched());
                                   frame.latch.unlatchExclusive();
