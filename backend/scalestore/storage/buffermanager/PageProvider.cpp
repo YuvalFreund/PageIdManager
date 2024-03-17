@@ -565,7 +565,7 @@ void PageProvider::startThread() {
                   batch_traverse_hashtable(
                       begin, end,
                       [&](BufferFrame& frame) {
-                         if ((frame.state == BF_STATE::FREE) | (frame.state == BF_STATE::EVICTED)) { return true; }
+                         if ((frame.state == BF_STATE::FREE) || (frame.state == BF_STATE::EVICTED)) { return true; }
                          if (frame.pid != EMPTY_PID && !frame.latch.isLatched()) {
                             if(FLAGS_evict_to_ssd){
                                if (frame.epoch <= eviction_window) { candidate_batch[candidate_max++] = {frame.epoch, &frame}; }

@@ -109,6 +109,7 @@ BufferFrame& Buffermanager::newPage() {
    //-------------------------------------------------------------------------------------   
    PID pid = PID(pageIdManager.addPage());
    Page* page = pageFreeList.pop(threads::ThreadContext::my().page_handle);
+   page->magicDebuggingNumber = nodeId;
    BufferFrame& frame =insertFrame(pid, [&](BufferFrame& frame){
                   frame.latch.latchExclusive();
                   frame.page = page;
