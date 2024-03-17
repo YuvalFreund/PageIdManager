@@ -428,6 +428,7 @@ void MessageHandler::startThread() {
                               guard.frame->dirty = true;
                               guard.frame->page = nullptr;
                               //pageIdManager.setPageIsAtOldNode(request.shuffledPid);
+
                               // shared, node possessor
                           } else {
                               guard.frame->dirty = request.dirty;
