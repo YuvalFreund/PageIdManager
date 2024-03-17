@@ -25,6 +25,7 @@ restart:
          if constexpr (method == CONTENTION_METHOD::NON_BLOCKING) {
             if (!ht_latch.checkOrRestart(b_version.value())) {
                 if(fromShuffle){
+                    std::cout<<"G"<<std::endl;
                     g.frame->latch.unlatchExclusive();
                     g.state = STATE::RETRY;
                     g.latchState = LATCH_STATE::UNLATCHED;
