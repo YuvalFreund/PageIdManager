@@ -14,7 +14,7 @@ endif ()
 # ---------------------------------------------------------------------------
 # Library
 # ---------------------------------------------------------------------------
-add_library(scalestore STATIC ${SCALESTORE_CC})
+add_library(scalestore STATIC ${SCALESTORE_CC} scalestore/storage/buffermanager/DebugPage.h)
 
 OPTION(SANI "Compile scalestore with sanitizers" OFF)
 IF(SANI)

@@ -109,7 +109,7 @@ BufferFrame& Buffermanager::newPage() {
    //-------------------------------------------------------------------------------------   
    PID pid = PID(pageIdManager.addPage());
    Page* page = pageFreeList.pop(threads::ThreadContext::my().page_handle);
-   page->magicDebuggingNumber = nodeId;
+   page->magicDebuggingNumber = (nodeId == 0) ? CREATED_AT_NODE_0 : CREATED_AT_NODE_1; // todo yuval
    BufferFrame& frame =insertFrame(pid, [&](BufferFrame& frame){
                   frame.latch.latchExclusive();
                   frame.page = page;

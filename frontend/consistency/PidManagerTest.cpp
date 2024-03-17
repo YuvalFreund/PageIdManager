@@ -207,12 +207,13 @@ int main(int argc, char* argv[]) {
                 std::cout<<"done trigger" <<std::endl;
                 pageIdManager.isBeforeShuffle = false;
             }
-            if(scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio ){//&& (t_i == 0 ||t_i==1 ) ) { // worker will go and shuffle
-                finishedShuffling = mh.shuffleFrameAndIsLastShuffle(workerPtr);
-            }
+
             uint64_t start = (scalestore.getNodeID() * FLAGS_worker) + t_i;
             const uint64_t inc = FLAGS_worker * FLAGS_nodes;
             for (; start < numberTuples; start = start + inc) {
+                if(scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio ){//&& (t_i == 0 ||t_i==1 ) ) { // worker will go and shuffle
+                    finishedShuffling = mh.shuffleFrameAndIsLastShuffle(workerPtr);
+                }
                 auto updated = tree.lookupAndUpdate(start, [](V& value) { value++; });
                 ensure(updated);
                 threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
