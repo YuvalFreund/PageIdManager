@@ -106,7 +106,7 @@ uint64_t PageIdManager::getTargetNodeForEviction(uint64_t pageId){
         }
         if(retVal == nodeId){
             retVal = searchRingForNode(pageId, true);
-            std::cout<<"t"<<std::endl;
+            //std::cout<<"t"<<std::endl;
         }
     }
     return retVal;
