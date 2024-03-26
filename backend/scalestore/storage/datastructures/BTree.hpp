@@ -741,9 +741,8 @@ struct BTree {
       }
       if (g_parent.retry()) goto restart;
       if (og_node.retry()) { goto restartLeaf; }
-      //ensure(false);
-      std::cout<<"f";
-      return true;
+      ensure(false);
+      return false;
    }
 
    bool lookup_opt(Key k, Value& returnValue) {
@@ -806,8 +805,9 @@ struct BTree {
       }
       if (g_parent.retry()) goto restart;
       if (og_node.retry()) { goto restartLeaf; }
-      ensure(false);
-      return false;
+      //ensure(false);
+      std::cout<<"s";
+      return true;
    }
    // -------------------------------------------------------------------------------------
    // Scan code
