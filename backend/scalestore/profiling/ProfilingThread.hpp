@@ -277,10 +277,10 @@ struct ProfilingThread {
          // reset
          // -------------------------------------------------------------------------------------
          uint64_t keepFrameShuffled = workerCounterAgg[profiling::WorkerCounters::shuffled_frames];
-         uint64_t keepCreatedPages = workerCounterAgg[profiling::WorkerCounters::created_pages];
+         uint64_t keepCreatedPages = workerCounterAgg[profiling::WorkerCounters::failed_lookup];
          std::fill(workerCounterAgg.begin(), workerCounterAgg.end(), 0);
          workerCounterAgg[profiling::WorkerCounters::shuffled_frames] = keepFrameShuffled;
-         workerCounterAgg[profiling::WorkerCounters::created_pages] = keepCreatedPages;
+         workerCounterAgg[profiling::WorkerCounters::failed_lookup] = keepCreatedPages;
          std::fill(bmCounterAgg.begin(), bmCounterAgg.end(), 0);
          cpuCountersAgg.clear();
          std::this_thread::sleep_until(next);
