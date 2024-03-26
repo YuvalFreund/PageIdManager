@@ -806,7 +806,9 @@ struct BTree {
       if (g_parent.retry()) goto restart;
       if (og_node.retry()) { goto restartLeaf; }
       //ensure(false);
-      std::cout<<"s";
+       threads::Worker::my().counters.incr(profiling::WorkerCounters::failed_lookup);
+
+       std::cout<<"s";
       return true;
    }
    // -------------------------------------------------------------------------------------
