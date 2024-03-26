@@ -808,7 +808,7 @@ struct BTree {
       //ensure(false);
        threads::Worker::my().counters.incr(profiling::WorkerCounters::failed_lookup);
 
-       std::cout<<"s";
+       ..std::cout<<"s";
       return true;
    }
    // -------------------------------------------------------------------------------------
