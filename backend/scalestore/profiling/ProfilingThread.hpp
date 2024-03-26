@@ -87,6 +87,11 @@ struct ProfilingThread {
                  row.push_back(convert_humanreadable(workerCounterAgg[c_i]));
                  continue;
              }
+             if(c_i == WorkerCounters::created_pages){
+                 header.push_back({WorkerCounters::workerCounterTranslation[c_i]});
+                 row.push_back(convert_humanreadable(workerCounterAgg[c_i]));
+                 continue;
+             }
             // -------------------------------------------------------------------------------------
             if (c_i == WorkerCounters::latency && workerCounterAgg[WorkerCounters::tx_p] > 0) {
                header.push_back({WorkerCounters::workerCounterTranslation[c_i]});
@@ -272,8 +277,10 @@ struct ProfilingThread {
          // reset
          // -------------------------------------------------------------------------------------
          uint64_t keepFrameShuffled = workerCounterAgg[profiling::WorkerCounters::shuffled_frames];
+         uint64_t keepCreatedPages = workerCounterAgg[profiling::WorkerCounters::created_pages];
          std::fill(workerCounterAgg.begin(), workerCounterAgg.end(), 0);
          workerCounterAgg[profiling::WorkerCounters::shuffled_frames] = keepFrameShuffled;
+         workerCounterAgg[profiling::WorkerCounters::created_pages] = keepCreatedPages;
          std::fill(bmCounterAgg.begin(), bmCounterAgg.end(), 0);
          cpuCountersAgg.clear();
          std::this_thread::sleep_until(next);

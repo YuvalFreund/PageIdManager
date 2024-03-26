@@ -61,6 +61,7 @@ struct WorkerCounters {
       pp_latency_p5_incoming_responses,
       pp_latency_p6_send_responses,
       shuffled_frames,
+      created_pages,
       COUNT,
    };
    // -------------------------------------------------------------------------------------
@@ -86,7 +87,8 @@ struct WorkerCounters {
        "pp_latency_p4_send_requests",
        "pp_latency_p5_incoming_responses",
        "pp_latency_p6_send_responses",
-       "shuffled frames"
+       "shuffled frames",
+       "created pages"
    };
    static_assert(workerCounterTranslation.size() == COUNT);
    // -------------------------------------------------------------------------------------
