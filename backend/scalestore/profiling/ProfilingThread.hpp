@@ -87,7 +87,7 @@ struct ProfilingThread {
                  row.push_back(convert_humanreadable(workerCounterAgg[c_i]));
                  continue;
              }
-             if(c_i == WorkerCounters::created_pages){
+             if(c_i == WorkerCounters::failed_lookup){
                  header.push_back({WorkerCounters::workerCounterTranslation[c_i]});
                  row.push_back(convert_humanreadable(workerCounterAgg[c_i]));
                  continue;
