@@ -16,6 +16,7 @@
 #include "PageIdManagerDefs.h"
 #include "Defs.hpp"
 #include "scalestore/threads/Worker.hpp"
+#include "scalestore/utils/FNVHash.hpp"
 struct PageIdManager {
 
     // helper structs
