@@ -21,6 +21,7 @@ struct PageIdManager {
 
     // helper structs
 
+
     struct FreeSsdSlotPartition{
         uint64_t begin;
         std::stack<uint64_t> freeSlots;
