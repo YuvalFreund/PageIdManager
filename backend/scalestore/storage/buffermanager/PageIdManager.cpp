@@ -37,6 +37,7 @@ void PageIdManager::initConsistentHashingInfo(bool firstInit){
     }
 }
 
+
 void PageIdManager::initSsdPartitions(){
     int ssdMaximumPagesAmount = (FLAGS_ssd_gib * 1024 * 1024) / 4;
     int partitionSize = ssdMaximumPagesAmount / FLAGS_pageIdManagerPartitions; // todo yuval - this needs to be parameterized for evaluation later.
