@@ -119,12 +119,12 @@ struct ProfilingThread {
          // -------------------------------------------------------------------------------------
          auto tx_p = workerCounterAgg[WorkerCounters::tx_p];
          CounterRegistry::getInstance().aggregateCPUCounter(cpuCountersAgg);
-         header.insert(header.end(), {{"inst/tx"}, {"L1-M/tx"}, {"cycl/tx"}, {"LLC-M/tx"}, {"CPU"}});
-         row.insert(row.end(), { convert_humanreadable(cpuCountersAgg["instructions"]/tx_p),
-                                 convert_precision(cpuCountersAgg["L1-misses"] / tx_p),
-                                 convert_humanreadable(cpuCountersAgg["cycles"] / tx_p),
-                                 convert_precision(cpuCountersAgg["LLC-misses"] / tx_p),
-                                 convert_precision(cpuCountersAgg["CPU"])});
+         //header.insert(header.end(), {{"inst/tx"}, {"L1-M/tx"}, {"cycl/tx"}, {"LLC-M/tx"}, {"CPU"}});
+         //row.insert(row.end(), { convert_humanreadable(cpuCountersAgg["instructions"]/tx_p),
+        //                         convert_precision(cpuCountersAgg["L1-misses"] / tx_p),
+        //                         convert_humanreadable(cpuCountersAgg["cycles"] / tx_p),
+         //                        convert_precision(cpuCountersAgg["LLC-misses"] / tx_p),
+        //                         convert_precision(cpuCountersAgg["CPU"])});
 
          // -------------------------------------------------------------------------------------
          // workload info
