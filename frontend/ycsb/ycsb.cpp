@@ -258,7 +258,7 @@ int main(int argc, char* argv[])
                    uint64_t checkToStartShuffle = 0;
                    PageIdManager& pageIdManager = scalestore.getPageIdManager();
                    while (keep_running) {
-                       if(false && scalestore.getNodeID() == leavingNodeId && t_i == 0) {
+                       if(scalestore.getNodeID() == leavingNodeId && t_i == 0) {
                            checkToStartShuffle++;
                            if(checkToStartShuffle == nodeLeavingTrigger){
                                std::cout<<"begin trigger" <<std::endl;
@@ -267,14 +267,14 @@ int main(int argc, char* argv[])
                                pageIdManager.isBeforeShuffle = false;
                            }
                        }
-                       if(false && finishedShuffling && scalestore.getNodeID() == leavingNodeId){
+                       if(finishedShuffling && scalestore.getNodeID() == leavingNodeId){
                            std::cout<<"done shuffling!"<<std::endl;
                            break;
                            // todo yuval - this means that a node that a leaving n finished shuffling
                            // todo yuval - stops processing any transactions
                        }
 
-                       if(false && scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio ){//&& (t_i == 0 ||t_i==1 ) ) { // worker will go and shuffle
+                       if(scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio ){//&& (t_i == 0 ||t_i==1 ) ) { // worker will go and shuffle
                            finishedShuffling = mh.shuffleFrameAndIsLastShuffle(workerPtr);
                        } else {
                            K key = zipf_random->rand(zipf_offset);
