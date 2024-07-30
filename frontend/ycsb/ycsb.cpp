@@ -272,7 +272,7 @@ int main(int argc, char* argv[])
                                pageIdManager.isBeforeShuffle = false;
                            }
                        }
-                       if(finishedShuffling && scalestore.getNodeID() == leavingNodeId && t_i == 0){
+                       if(finishedShuffling && scalestore.getNodeID() == leavingNodeId){
                            std::chrono::steady_clock::time_point finishShuffling = std::chrono::steady_clock::now();
                            std::cout<<"Done shuffling! shuffle percentage :" << shuffleRatio<< " shuffle time: "<< std::chrono::duration_cast<std::chrono::microseconds>(finishShuffling - beginOfShuffling).count()  <<std::endl;
                            break;
