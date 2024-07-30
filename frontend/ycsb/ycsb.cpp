@@ -8,6 +8,8 @@
 #include "scalestore/utils/Time.hpp"
 // -------------------------------------------------------------------------------------
 #include <gflags/gflags.h>
+#include <chrono>
+
 // -------------------------------------------------------------------------------------
 DEFINE_uint32(YCSB_read_ratio, 100, "");
 DEFINE_bool(YCSB_all_workloads, false , "Execute all workloads i.e. 50 95 100 ReadRatio on same tree");
@@ -248,6 +250,8 @@ int main(int argc, char* argv[])
             YCSB_workloadInfo experimentInfo{TYPE, YCSB_tuple_count, READ_RATIO, ZIPF, (FLAGS_YCSB_local_zipf?"local_zipf":"global_zipf")};
             scalestore.startProfiler(experimentInfo);
             rdma::MessageHandler& mh = scalestore.getMessageHandler();
+            std::chrono::steady_clock::time_point beginOfShuffling;
+
              for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i) {
                 scalestore.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]() {
                    threads::Worker* workerPtr = scalestore.getWorkerPool().getWorkerByTid(t_i);
@@ -262,13 +266,15 @@ int main(int argc, char* argv[])
                            checkToStartShuffle++;
                            if(checkToStartShuffle == nodeLeavingTrigger){
                                std::cout<<"begin trigger" <<std::endl;
+                               beginOfShuffling = std::chrono::steady_clock::now();
                                pageIdManager.gossipNodeIsLeaving(workerPtr);
                                std::cout<<"done trigger" <<std::endl;
                                pageIdManager.isBeforeShuffle = false;
                            }
                        }
-                       if(finishedShuffling && scalestore.getNodeID() == leavingNodeId){
-                           std::cout<<"done shuffling!"<<std::endl;
+                       if(finishedShuffling && scalestore.getNodeID() == leavingNodeId && t_i == 0){
+                           std::chrono::steady_clock::time_point finishShuffling = std::chrono::steady_clock::now();
+                           std::cout<<"Done shuffling! shuffle percentage :" << shuffleRatio<< " shuffle time: "<< std::chrono::duration_cast<std::chrono::microseconds>(finishShuffling - beginOfShuffling).count()  <<std::endl;
                            break;
                            // todo yuval - this means that a node that a leaving n finished shuffling
                            // todo yuval - stops processing any transactions
