@@ -118,6 +118,8 @@ class Buffermanager
    template <typename ACCESS>
    Guard fix(PID pid, ACCESS functor);
    // -------------------------------------------------------------------------------------
+   BufferFrame& newPageAux();
+
    BufferFrame& newPage();
    BufferFrame& newRemotePage(NodeID nodeId);  // allocates page on a remote BM
    void readPageSync(PID pid, uint8_t* destination);

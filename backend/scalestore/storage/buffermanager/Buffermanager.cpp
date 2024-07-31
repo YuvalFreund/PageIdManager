@@ -105,6 +105,17 @@ Buffermanager::Buffermanager(rdma::CM<rdma::InitMessage>& cm, NodeID nodeId, s32
 }
 // -------------------------------------------------------------------------------------
 // returns a latched bufferframe & fresh page from owner
+
+BufferFrame& Buffermanager::newPageAux(){
+    if(pageIdManager.nodeId == 0){
+        if(pageIdManager.isBeforeShuffle == false){
+            return newRemotePage(1);
+        }
+    } else{
+        return newPage();
+    }
+}
+
 BufferFrame& Buffermanager::newPage() {
    //-------------------------------------------------------------------------------------   
    PID pid = PID(pageIdManager.addPage());
