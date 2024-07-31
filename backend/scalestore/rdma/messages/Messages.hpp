@@ -74,7 +74,6 @@ enum class RESULT : uint8_t {
    CopyFailedWithRestart =10,
    CopyFailedWithInvalidation =11,
    DirectoryChanged = 12, // this node is no longer the directory - node has to look in the new node
-   PageAtOldNode = 13 // page is still in the old node
 };
 // -------------------------------------------------------------------------------------
 // INIT Message is exchanged via RDMA S/R hence not in inheritance hierarchy
@@ -219,17 +218,6 @@ struct NodeLeavingUpdateResponse : public Message {
     NodeLeavingUpdateResponse() : Message(MESSAGE_TYPE::NLURR) {}
 };
 
-struct ImmediatePageTransferRequest : public Message {
-    uint64_t requestedPid;
-    uintptr_t pageOffset;
-    ImmediatePageTransferRequest(uint64_t requestedPid, uintptr_t pageOffset) : Message(MESSAGE_TYPE::IPTR), requestedPid(requestedPid), pageOffset(pageOffset) {}
-};
-
-struct ImmediatePageTransferResponse: public Message {
-    uint8_t receiveFlag = 1;
-    RESULT resultType;
-    ImmediatePageTransferResponse() : Message(MESSAGE_TYPE::IPTRR){}
-};
 // -------------------------------------------------------------------------------------
 // Get size of Largest Message
 union ALLDERIVED {
@@ -246,10 +234,8 @@ union ALLDERIVED {
     DelegationResponse drr;
     CreateOrUpdateShuffledFrameRequest cufsr;
     CreateOrUpdateShuffledFrameResponse cufsrr;
-    ImmediatePageTransferResponse iptrr;
     NodeLeavingUpdateRequest nlur;
     NodeLeavingUpdateResponse nlurr;
-    ImmediatePageTransferRequest iptr;
 };
 
 static constexpr uint64_t LARGEST_MESSAGE = sizeof(ALLDERIVED);
