@@ -419,7 +419,7 @@ restart:
          auto pVersionOld = guard.frame->pVersion.load();
          guard.frame->pVersion++;  // update here to prevent distributed deadlock
          // -------------------------------------------------------------------------------------
-          uint64_t pidOwner = pageIdManager.getUpdatedNodeIdOfPage(pid, usingOldRing);
+          uint64_t pidOwner = pageIdManager.getUpdatedNodeIdOfPage(pid);
           auto& contextT = threads::Worker::my().cctxs[pidOwner];
          auto& request = *MessageFabric::createMessage<PossessionUpdateRequest>(contextT.outgoing, pid, pVersionOld);
          // -------------------------------------------------------------------------------------
