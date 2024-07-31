@@ -110,6 +110,8 @@ BufferFrame& Buffermanager::newPageAux(){
     if(pageIdManager.nodeId == 0){
         if(pageIdManager.isBeforeShuffle == false){
             return newRemotePage(1);
+        }else{
+            return newPage();
         }
     } else{
         return newPage();
