@@ -229,7 +229,10 @@ restart:
          // -------------------------------------------------------------------------------------
          uintptr_t pageOffset = (uintptr_t)guard.frame->page;
          // -------------------------------------------------------------------------------------
-         uint64_t ownerId = pageIdManager.getUpdatedNodeIdOfPage(pid);
+         uint64_t ownerId = pageIdManager.getUpdatedNodeIdOfPage(pid, usingOldRing);
+         if(ownerId == nodeId){
+             ownerId = pageIdManager.getUpdatedNodeIdOfPage(pid, false);
+         }
          ensure(ownerId != nodeId);
          auto& contextT = threads::Worker::my().cctxs[ownerId];
          auto& request = *MessageFabric::createMessage<PossessionRequest>(
@@ -419,7 +422,10 @@ restart:
          auto pVersionOld = guard.frame->pVersion.load();
          guard.frame->pVersion++;  // update here to prevent distributed deadlock
          // -------------------------------------------------------------------------------------
-          uint64_t pidOwner = pageIdManager.getUpdatedNodeIdOfPage(pid);
+          uint64_t pidOwner = pageIdManager.getUpdatedNodeIdOfPage(pid, usingOldRing);
+          if(ownerId == nodeId){
+              ownerId = pageIdManager.getUpdatedNodeIdOfPage(pid, false);
+          }
           auto& contextT = threads::Worker::my().cctxs[pidOwner];
          auto& request = *MessageFabric::createMessage<PossessionUpdateRequest>(contextT.outgoing, pid, pVersionOld);
          // -------------------------------------------------------------------------------------

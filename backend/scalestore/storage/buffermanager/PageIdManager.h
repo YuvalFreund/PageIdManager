@@ -206,7 +206,7 @@ struct PageIdManager {
     // page id manager normal functionalities
     uint64_t addPage();
     void removePage(uint64_t pageId);
-    uint64_t getUpdatedNodeIdOfPage(uint64_t pageId);
+    uint64_t getUpdatedNodeIdOfPage(uint64_t pageId, bool searchOldRing);
     uint64_t getSsdSlotOfPageId(uint64_t pageId);
     void addPageWithExistingPageId(uint64_t existingPageId);
 
