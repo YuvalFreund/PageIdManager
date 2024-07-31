@@ -37,6 +37,7 @@ ScaleStore::ScaleStore(){
       fsync(ssd_fd);
    }
    ensure(fcntl(ssd_fd, F_GETFL) != -1);
+   std::cout<<"node id: "<<nodeId <<std::endl;
    // -------------------------------------------------------------------------------------
    // order of construction is important
     std::vector<uint64_t> nodesInCluster =  getNodeIdsVec(FLAGS_nodes);
