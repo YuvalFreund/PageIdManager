@@ -127,9 +127,12 @@ bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
     return retVal;
 }
 
-uint64_t PageIdManager::getNodeIdOfPage(uint64_t pageId, bool searchOldRing){
+uint64_t PageIdManager::getUpdatedNodeIdOfPage(uint64_t pageId){
     uint64_t retVal;
-    retVal = searchRingForNode(pageId,searchOldRing);
+    retVal = searchRingForNode(pageId,true);
+    if(retVal == nodeId){
+        retVal = searchRingForNode(pageId,false);
+    }
     return retVal;
 }
 
@@ -181,25 +184,11 @@ PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
     }
     uint64_t pageToShuffle = stackForShuffleJob.top();
     stackForShuffleJob.pop();
-    uint64_t destNode = getNodeIdOfPage(pageToShuffle, false);
+    uint64_t destNode = getUpdatedNodeIdOfPage(pageToShuffle, false);
     retVal = PageShuffleJob(pageToShuffle,destNode);
     pageIdShuffleMtx.unlock();
     return retVal;
 }
-
-bool PageIdManager::isPageAtOldNodeAndReset(uint64_t pageId){
-    bool retVal;
-    uint64_t partition = pageId & PAGE_ID_MASK;
-    retVal = pageIdToSsdSlotMap[partition].isPageInOldNodeAndReset(pageId);
-    return retVal;
-}
-
-void PageIdManager::setPageIsAtOldNode(uint64_t pageId){
-    uint64_t partition = pageId & PAGE_ID_MASK;
-    pageIdToSsdSlotMap[partition].setPageIsAtOldNode(pageId);
-}
-
-
 
 void  PageIdManager::gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr ) {
     prepareForShuffle(nodeId);
@@ -274,7 +263,7 @@ uint64_t PageIdManager::getNewPageId(bool oldRing){
         if(lockCheck){
             uint64_t temp = chosenPartition->second.guess;
             temp++;
-            while(getNodeIdOfPage(temp  ,oldRing) != nodeId){
+            while(getUpdatedNodeIdOfPage(temp, oldRing) != nodeId){
                 temp++;
             }
             chosenPartition->second.storeGuess(temp);

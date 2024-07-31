@@ -206,7 +206,7 @@ struct PageIdManager {
     // page id manager normal functionalities
     uint64_t addPage();
     void removePage(uint64_t pageId);
-    uint64_t getNodeIdOfPage(uint64_t pageId, bool searchOldRing);
+    uint64_t getUpdatedNodeIdOfPage(uint64_t pageId);
     uint64_t getSsdSlotOfPageId(uint64_t pageId);
     void addPageWithExistingPageId(uint64_t existingPageId);
 
@@ -218,8 +218,7 @@ struct PageIdManager {
     void setDirectoryOfPage(uint64_t pageId, uint64_t directory);
     bool isNodeDirectoryOfPageId(uint64_t pageId);
     uint64_t getTargetNodeForEviction(uint64_t pageId);
-    bool isPageAtOldNodeAndReset(uint64_t pageId);
-    void setPageIsAtOldNode(uint64_t pageId);
+
 
     // shuffling message
     void gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr );
