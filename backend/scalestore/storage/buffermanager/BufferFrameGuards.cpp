@@ -9,7 +9,7 @@ namespace storage {
 // new Page
 
 ExclusiveBFGuard::ExclusiveBFGuard(){
-   g.frame = &BM::global->newPage();
+   g.frame = &BM::global->newPageAux();
    g.frame->dirty = true;
    g.latchState = LATCH_STATE::EXCLUSIVE;
    g.state = STATE::INITIALIZED;
