@@ -226,6 +226,9 @@ uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
     uint64_t retVal;
     std::map<uint64_t, uint64_t> *mapToSearch = searchOldRing ? (&nodesRingLocationMap ) : (&newNodesRingLocationMap);
     std::vector<uint64_t> * vectorToSearch = searchOldRing ? (&nodeRingLocationsVector) : (&newNodeRingLocationsVector);
+    if(mapToSearch->size() == 1){
+        return 0;
+    }
     uint64_t hashedPageId = +tripleHash(pageId);
     uint64_t l = 0;
     uint64_t r = vectorToSearch->size() - 1;
