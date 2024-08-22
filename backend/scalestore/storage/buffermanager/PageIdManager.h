@@ -179,8 +179,11 @@ struct PageIdManager {
     std::set<uint64_t> nodeIdsInCluster;
     std::map<uint64_t, uint64_t> nodesRingLocationMap;
     std::vector<uint64_t> nodeRingLocationsVector;
+    uint64_t nodeRingLocationsArray[100];
     std::map<uint64_t, uint64_t> newNodesRingLocationMap;
     std::vector<uint64_t> newNodeRingLocationsVector;
+    uint64_t newNodeRingLocationsArray[100];
+
 
     //locks and atomics
     std::atomic<bool> isBeforeShuffle = true;

@@ -25,6 +25,8 @@ void PageIdManager::initConsistentHashingInfo(bool firstInit){
             nodeRingLocationsVector.push_back(it.first);
         }
         std::sort (nodeRingLocationsVector.begin(), nodeRingLocationsVector.end());
+        std::copy(nodeRingLocationsVector.begin(), nodeRingLocationsVector.end(), nodeRingLocationsArray);
+
     }else{
         for(auto it : nodesRingLocationMap){
             auto check = nodeIdsInCluster.find(it.second);
@@ -34,6 +36,8 @@ void PageIdManager::initConsistentHashingInfo(bool firstInit){
             }
         }
         std::sort (newNodeRingLocationsVector.begin(), newNodeRingLocationsVector.end());
+        std::copy(newNodeRingLocationsVector.begin(), newNodeRingLocationsVector.end(), newNodeRingLocationsArray);
+
     }
 }
 
@@ -229,26 +233,28 @@ uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
     uint64_t retVal;
     std::map<uint64_t, uint64_t> *mapToSearch = searchOldRing ? (&nodesRingLocationMap ) : (&newNodesRingLocationMap);
     std::vector<uint64_t> * vectorToSearch = searchOldRing ? (&nodeRingLocationsVector) : (&newNodeRingLocationsVector);
+    uint64_t * array = searchOldRing ? nodeRingLocationsArray : newNodeRingLocationsArray;
+
     if(mapToSearch->size() == 1){
         return 0;
     }
     uint64_t hashedPageId = +tripleHash(pageId);
     uint64_t l = 0;
-    uint64_t r = vectorToSearch->size() - 1;
+    uint64_t r = nodeIdsInCluster.size() * CONSISTENT_HASHING_WEIGHT;
     // edge case for cyclic operation
-    if(hashedPageId < vectorToSearch->at(l) || hashedPageId > vectorToSearch->at(r)) {
-        auto itr = mapToSearch->find(vectorToSearch->at(r));
+    if(hashedPageId < array[l] || hashedPageId >array[r]) {
+        auto itr = mapToSearch->find(array[r]);
         return itr->second;
     }
     // binary search
     while (l <= r) {
         uint64_t m = l + (r - l) / 2;
-        if (vectorToSearch->at(m) <= hashedPageId && vectorToSearch->at(m + 1) > hashedPageId) {
-            auto itr = mapToSearch->find(vectorToSearch->at(r));
+        if (array[m] <= hashedPageId && array[m + 1] > hashedPageId) {
+            auto itr = mapToSearch->find(array[r]);
             retVal = itr->second;
             break;
         }
-        if (vectorToSearch->at(m) < hashedPageId) {
+        if (array[m] < hashedPageId) {
             l = m + 1;
         } else{
             r = m - 1;
