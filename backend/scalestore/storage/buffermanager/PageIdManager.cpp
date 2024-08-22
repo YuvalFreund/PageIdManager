@@ -240,7 +240,7 @@ uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
     }
     uint64_t hashedPageId = +tripleHash(pageId);
     uint64_t l = 0;
-    uint64_t r = nodeIdsInCluster.size() * CONSISTENT_HASHING_WEIGHT;
+    uint64_t r = nodeIdsInCluster.size() * CONSISTENT_HASHING_WEIGHT - 1;
     // edge case for cyclic operation
     if(hashedPageId < array[l] || hashedPageId >array[r]) {
         auto itr = mapToSearch->find(array[r]);
