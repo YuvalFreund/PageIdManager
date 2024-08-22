@@ -115,6 +115,9 @@ uint64_t PageIdManager::getTargetNodeForEviction(uint64_t pageId){
 
 bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
     bool retVal = false;
+    if(nodeIdsInCluster.size() == 1 ){
+        return true; // avoiding search for the case of a single node
+    }
     if(isBeforeShuffle){
         uint64_t foundNodeId = searchRingForNode(pageId, true);
         retVal = (foundNodeId == nodeId);
