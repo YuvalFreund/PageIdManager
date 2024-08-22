@@ -173,12 +173,12 @@ int main(int argc, char* argv[])
    // -------------------------------------------------------------------------------------
    u64 YCSB_tuple_count = FLAGS_YCSB_tuple_count;
    // -------------------------------------------------------------------------------------
-    uint64_t shuffleRatio = 0;
+  //  uint64_t shuffleRatio = 0;
     if(FLAGS_YCSB_shuffle_ratio){
-        shuffleRatio = FLAGS_YCSB_shuffle_ratio;
+   //     shuffleRatio = FLAGS_YCSB_shuffle_ratio;
     }
 
-    uint64_t nodeLeavingTrigger = 100000;
+ //   uint64_t nodeLeavingTrigger = 100000;
 
 
     auto nodePartition = partition(scalestore.getNodeID(), FLAGS_nodes, YCSB_tuple_count);
@@ -259,8 +259,8 @@ int main(int argc, char* argv[])
                    storage::DistributedBarrier barrier(catalog.getCatalogEntry(BARRIER_ID).pid);
                    storage::BTree<K, V> tree(catalog.getCatalogEntry(BTREE_ID).pid);
                    barrier.wait();
-                   uint64_t checkToStartShuffle = 0;
-                   PageIdManager& pageIdManager = scalestore.getPageIdManager();
+                  // uint64_t checkToStartShuffle = 0;
+                   //PageIdManager& pageIdManager = scalestore.getPageIdManager();
                    while (keep_running) {
                        /*if(scalestore.getNodeID() == leavingNodeId && t_i == 0) {
                            checkToStartShuffle++;
