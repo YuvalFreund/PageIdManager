@@ -246,7 +246,7 @@ int main(int argc, char* argv[])
 
             uint64_t zipf_offset = 0;
             if (FLAGS_YCSB_local_zipf) zipf_offset = (YCSB_tuple_count / FLAGS_nodes) * scalestore.getNodeID();
-            uint64_t leavingNodeId = 0;
+            //uint64_t leavingNodeId = 0;
             YCSB_workloadInfo experimentInfo{TYPE, YCSB_tuple_count, READ_RATIO, ZIPF, (FLAGS_YCSB_local_zipf?"local_zipf":"global_zipf")};
             scalestore.startProfiler(experimentInfo);
             rdma::MessageHandler& mh = scalestore.getMessageHandler();
