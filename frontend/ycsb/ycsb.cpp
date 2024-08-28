@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
    // -------------------------------------------------------------------------------------
    u64 YCSB_tuple_count = FLAGS_YCSB_tuple_count;
    // -------------------------------------------------------------------------------------
-    uint64_t shuffleRatio = 0;
+    uint64_t shuffleRatio = 10;
     if(FLAGS_YCSB_shuffle_ratio){
         shuffleRatio = FLAGS_YCSB_shuffle_ratio;
     }
@@ -277,7 +277,6 @@ int main(int argc, char* argv[])
                            std::cout<<"Done shuffling! shuffle percentage :" << shuffleRatio<< " shuffle time: "<< std::chrono::duration_cast<std::chrono::microseconds>(finishShuffling - beginOfShuffling).count()  <<std::endl;
                            break;
                            // todo yuval - this means that a node that a leaving n finished shuffling
-                           // todo yuval - stops processing any transactions
                        }
 
                        if(scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio ){
