@@ -61,10 +61,10 @@ void PageIdManager::initPageIdIvs(){
 }
 
 void PageIdManager::initPageIdToSsdSlotMaps(){
-    int partitionSize =  65536; // todo yuval - this needs to be parameterized for evaluation later.
+    /*int partitionSize =  65536; // todo yuval - this needs to be parameterized for evaluation later.
     for(int i = 0; i<partitionSize; i++){
         pageIdToSsdSlotMap.try_emplace(i);
-    }
+    }*/
 }
 
 uint64_t PageIdManager::addPage(){
@@ -175,7 +175,7 @@ PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
             retVal.last = true; // done shuffling
             return retVal;
         }
-        if(pageIdToSsdSlotMap.find(workingShuffleMapIdx) != pageIdToSsdSlotMap.end()){
+        if(pageIdToSsdSlotMap[workingShuffleMapIdx].map.size() != 0){
             stackForShuffleJob = pageIdToSsdSlotMap[workingShuffleMapIdx].getStackForShuffling();
         }
     }
