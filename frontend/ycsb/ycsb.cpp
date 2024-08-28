@@ -262,7 +262,7 @@ int main(int argc, char* argv[])
                    uint64_t checkToStartShuffle = 0;
                    PageIdManager& pageIdManager = scalestore.getPageIdManager();
                    while (keep_running) {
-                       if(false && scalestore.getNodeID() == leavingNodeId && t_i == 0) {
+                       if(scalestore.getNodeID() == leavingNodeId && t_i == 0) {
                            checkToStartShuffle++;
                            if(checkToStartShuffle == nodeLeavingTrigger){
                                std::cout<<"begin trigger" <<std::endl;
@@ -271,7 +271,6 @@ int main(int argc, char* argv[])
                                std::cout<<"done trigger" <<std::endl;
                                pageIdManager.isBeforeShuffle = false;
                            }
-
                        }
                        if(finishedShuffling && scalestore.getNodeID() == leavingNodeId){
                            std::chrono::steady_clock::time_point finishShuffling = std::chrono::steady_clock::now();

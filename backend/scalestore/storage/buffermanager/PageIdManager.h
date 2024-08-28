@@ -84,7 +84,7 @@ struct PageIdManager {
         void setDirectoryForPage(uint64_t pageId, uint64_t directory){
             partitionLock.lock();
             uint64_t directoryIn64Bit = directory;
-            directoryIn64Bit <<= 48;
+            directoryIn64Bit <<= 56;
             map[pageId] = map[pageId] & PAGE_DIRECTORY_NEGATIVE_MASK;
             map[pageId] = map[pageId] | directoryIn64Bit;
             partitionLock.unlock();
@@ -97,7 +97,7 @@ struct PageIdManager {
             if(iter != map.end()){
                 retVal = iter->second;
                 retVal &= CACHED_DIRECTORY_MASK;
-                retVal >>= 48;
+                retVal >>= 56;
             }else{
                 retVal = INVALID_NODE_ID;
             }
@@ -109,6 +109,9 @@ struct PageIdManager {
             uint64_t retVal;
             partitionLock.lock();
             auto iter = map.find(pageId);
+            if(iter == map.end()){
+
+            }
             ensure(iter != map.end());
             retVal = iter->second;
             retVal &= SSD_SLOT_MASK;
@@ -143,7 +146,7 @@ struct PageIdManager {
     //constructor
     PageIdManager(uint64_t nodeId, const std::vector<uint64_t>& nodeIdsInput) : nodeId(nodeId){
         nodeIdAtMSB = nodeId;
-        nodeIdAtMSB <<= 48;
+        nodeIdAtMSB <<= 56;
         for(auto node: nodeIdsInput){
             nodeIdsInCluster.insert(node);
         }
