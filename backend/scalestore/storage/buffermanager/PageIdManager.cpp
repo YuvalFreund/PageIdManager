@@ -229,7 +229,7 @@ uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
     if(mapToSearch->size() == 1){
         return 0;
     }
-    uint64_t hashedPageId = +tripleHash(pageId);
+    uint64_t hashedPageId = scalestore::utils::FNV::hash(pageId);
     uint64_t l = 0;
     uint64_t r = vectorToSearch->size() - 1;
     // edge case for cyclic operation
