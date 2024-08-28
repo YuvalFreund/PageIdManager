@@ -275,24 +275,3 @@ uint64_t PageIdManager::getNewPageId(bool oldRing){
     return retVal;
 }
 
-uint64_t PageIdManager::getNewPageId(bool oldRing) {
-    uint64_t retVal;
-    bool lockCheck;
-    while (true) {
-        auto chosenPartition = pageIdIvPartitions.find(rand() % numPartitions);
-        lockCheck = chosenPartition->second.pageIdPartitionMtx.try_lock();
-        if (lockCheck) {
-            uint64_t temp = chosenPartition->second.guess;
-            temp++;
-            while (getUpdatedNodeIdOfPage(temp, oldRing) != nodeId) {
-                temp++;
-            }
-            chosenPartition->second.storeGuess(temp);
-            retVal = temp;
-            break;
-        }
-    }
-
-    return retVal;
-
-}
