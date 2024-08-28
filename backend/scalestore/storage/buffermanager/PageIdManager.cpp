@@ -127,6 +127,8 @@ bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
         uint64_t cachedDir = getCachedDirectoryOfPage(pageId);
         if (cachedDir == nodeId){
             retVal = true;
+        }else{
+            retVal = false;
         }
     }
     return retVal;
