@@ -91,7 +91,7 @@ struct PageIdManager {
         }
 
         uint64_t getDirectoryOfPage(uint64_t pageId){
-            uint64_t retVal;
+            uint64_t retVal = NVALID_NODE_ID;
             partitionLock.lock();
             auto iter = map.find(pageId);
             if(iter != map.end()){
@@ -109,9 +109,6 @@ struct PageIdManager {
             uint64_t retVal;
             partitionLock.lock();
             auto iter = map.find(pageId);
-            if(iter == map.end()){
-
-            }
             ensure(iter != map.end());
             retVal = iter->second;
             retVal &= SSD_SLOT_MASK;
