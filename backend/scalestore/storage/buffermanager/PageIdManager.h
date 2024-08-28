@@ -98,6 +98,7 @@ struct PageIdManager {
             uint64_t retVal = INVALID_NODE_ID;
             partitionLock.lock();
             auto iter = map.find(pageId);
+            ensure(iter != map.end());
             if(iter != map.end()){
                 retVal = iter->second;
                 retVal &= CACHED_DIRECTORY_MASK;
