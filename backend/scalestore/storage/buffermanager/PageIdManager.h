@@ -89,7 +89,7 @@ struct PageIdManager {
             directoryIn64Bit <<= 56;
             uint64_t newValueForMap = map[pageId];
             newValueForMap &= PAGE_DIRECTORY_NEGATIVE_MASK;
-            newValueForMap | directoryIn64Bit;
+            newValueForMap |= directoryIn64Bit;
             map[pageId] = newValueForMap;
             partitionLock.unlock();
         }
