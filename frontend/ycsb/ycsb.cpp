@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
    // -------------------------------------------------------------------------------------
    u64 YCSB_tuple_count = FLAGS_YCSB_tuple_count;
    // -------------------------------------------------------------------------------------
-    uint64_t shuffleRatio = 10;
+    uint64_t shuffleRatio = 80;
     if(FLAGS_YCSB_shuffle_ratio){
         shuffleRatio = FLAGS_YCSB_shuffle_ratio;
     }
