@@ -229,7 +229,6 @@ void PageIdManager::redeemSsdSlot(uint64_t freedSsdSlot){
 uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
     uint64_t retVal;
     std::map<uint64_t, uint64_t> *mapToSearch = searchOldRing ? (&nodesRingLocationMap ) : (&newNodesRingLocationMap);
-    //std::vector<uint64_t> * vectorToSearch = searchOldRing ? (&nodeRingLocationsVector) : (&newNodeRingLocationsVector);
     uint64_t * array = searchOldRing ? nodeRingLocationsArray : newNodeRingLocationsArray;
 
     if(mapToSearch->size() == 1){
