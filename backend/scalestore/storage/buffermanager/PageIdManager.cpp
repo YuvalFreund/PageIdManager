@@ -158,7 +158,7 @@ void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
 
 
 uint64_t PageIdManager::getCachedDirectoryOfPage(uint64_t pageId){
-    uint64_t retVal;
+    uint64_t retVal = INVALID_NODE_ID;
     uint64_t partition = pageId & PARTITION_MASK;
     retVal = pageIdToSsdSlotMap[partition].getDirectoryOfPage(pageId);
     return retVal;

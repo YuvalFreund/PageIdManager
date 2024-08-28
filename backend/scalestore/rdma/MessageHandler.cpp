@@ -427,8 +427,6 @@ void MessageHandler::startThread() {
                               guard.frame->state = BF_STATE::EVICTED;
                               guard.frame->dirty = true;
                               guard.frame->page = nullptr;
-                              //pageIdManager.setPageIsAtOldNode(request.shuffledPid);
-
                               // shared, node possessor
                           } else {
                               guard.frame->dirty = request.dirty;
@@ -507,7 +505,7 @@ try_shuffle:
         //std::cout<<"R"<<std::endl;
         uint64_t possessorsAsUint64 = pageIdManager.nodeId;
         readEvictedPageBeforeShuffle(guard);
-        guard.frame->page->magicDebuggingNumber = SHUFFLED_T0_NODE_1;
+       // guard.frame->page->magicDebuggingNumber = SHUFFLED_T0_NODE_1;
         auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFrameRequest>(context_.outgoing, pageId, possessorsAsUint64,POSSESSION::EXCLUSIVE,true,0);
         [[maybe_unused]]auto& createdFrameResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFrameResponse>(newNodeId, onTheWayUpdateRequest);
         succeededToShuffle = createdFrameResponse.accepted;
