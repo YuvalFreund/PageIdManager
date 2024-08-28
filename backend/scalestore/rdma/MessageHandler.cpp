@@ -490,6 +490,7 @@ void MessageHandler::startThread() {
 bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr){
 try_shuffle:
     bool succeededToShuffle;
+    std::cout<<"d";
     PageIdManager::PageShuffleJob nextJobToShuffle = pageIdManager.getNextPageShuffleJob();
     if(nextJobToShuffle.last){
         return true;
@@ -536,7 +537,6 @@ try_shuffle:
         guard.frame->latch.unlatchExclusive();
         goto try_shuffle;
     }
-    std::cout<<"d";
     return false;
 }
 
