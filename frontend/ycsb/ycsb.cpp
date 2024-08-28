@@ -23,7 +23,7 @@ DEFINE_bool(YCSB_record_latency, false, "");
 DEFINE_bool(YCSB_all_zipf, false, "");
 DEFINE_bool(YCSB_local_zipf, false, "");
 DEFINE_bool(YCSB_flush_pages, false, "");
-DEFINE_uint32(YCSB_shuffle_ratio, 20, "");
+DEFINE_uint32(YCSB_shuffle_ratio, 80, "");
 // -------------------------------------------------------------------------------------
 using u64 = uint64_t;
 using u8 = uint8_t;
