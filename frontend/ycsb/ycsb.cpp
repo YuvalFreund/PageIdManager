@@ -173,12 +173,12 @@ int main(int argc, char* argv[])
    // -------------------------------------------------------------------------------------
    u64 YCSB_tuple_count = FLAGS_YCSB_tuple_count;
    // -------------------------------------------------------------------------------------
-  //  uint64_t shuffleRatio = 0;
+    uint64_t shuffleRatio = 0;
     if(FLAGS_YCSB_shuffle_ratio){
-   //     shuffleRatio = FLAGS_YCSB_shuffle_ratio;
+        shuffleRatio = FLAGS_YCSB_shuffle_ratio;
     }
 
- //   uint64_t nodeLeavingTrigger = 100000;
+    uint64_t nodeLeavingTrigger = 100000;
 
 
     auto nodePartition = partition(scalestore.getNodeID(), FLAGS_nodes, YCSB_tuple_count);
@@ -246,7 +246,7 @@ int main(int argc, char* argv[])
 
             uint64_t zipf_offset = 0;
             if (FLAGS_YCSB_local_zipf) zipf_offset = (YCSB_tuple_count / FLAGS_nodes) * scalestore.getNodeID();
-            //uint64_t leavingNodeId = 0;
+            uint64_t leavingNodeId = 0;
             YCSB_workloadInfo experimentInfo{TYPE, YCSB_tuple_count, READ_RATIO, ZIPF, (FLAGS_YCSB_local_zipf?"local_zipf":"global_zipf")};
             scalestore.startProfiler(experimentInfo);
             rdma::MessageHandler& mh = scalestore.getMessageHandler();
@@ -259,10 +259,10 @@ int main(int argc, char* argv[])
                    storage::DistributedBarrier barrier(catalog.getCatalogEntry(BARRIER_ID).pid);
                    storage::BTree<K, V> tree(catalog.getCatalogEntry(BTREE_ID).pid);
                    barrier.wait();
-                  // uint64_t checkToStartShuffle = 0;
-                   //PageIdManager& pageIdManager = scalestore.getPageIdManager();
+                   uint64_t checkToStartShuffle = 0;
+                   PageIdManager& pageIdManager = scalestore.getPageIdManager();
                    while (keep_running) {
-                       /*if(scalestore.getNodeID() == leavingNodeId && t_i == 0) {
+                       if(scalestore.getNodeID() == leavingNodeId && t_i == 0) {
                            checkToStartShuffle++;
                            if(checkToStartShuffle == nodeLeavingTrigger){
                                std::cout<<"begin trigger" <<std::endl;
@@ -279,8 +279,8 @@ int main(int argc, char* argv[])
                            // todo yuval - this means that a node that a leaving n finished shuffling
                            // todo yuval - stops processing any transactions
                        }
-                       */
-                       if(false ){//scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio ){//&& (t_i == 0 ||t_i==1 ) ) { // worker will go and shuffle
+
+                       if(scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio ){
                            finishedShuffling = mh.shuffleFrameAndIsLastShuffle(workerPtr);
                        } else {
                            K key = zipf_random->rand(zipf_offset);
