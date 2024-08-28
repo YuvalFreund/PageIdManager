@@ -91,7 +91,7 @@ struct PageIdManager {
         }
 
         uint64_t getDirectoryOfPage(uint64_t pageId){
-            uint64_t retVal = NVALID_NODE_ID;
+            uint64_t retVal = INVALID_NODE_ID;
             partitionLock.lock();
             auto iter = map.find(pageId);
             if(iter != map.end()){
