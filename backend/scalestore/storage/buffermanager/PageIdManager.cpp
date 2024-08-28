@@ -18,7 +18,7 @@ void PageIdManager::initConsistentHashingInfo(bool firstInit){
     if(firstInit){
         for(unsigned long long i : nodeIdsInCluster){ //key - place on ring. value - node id
             for(uint64_t j = 0; j<CONSISTENT_HASHING_WEIGHT; j++){
-                nodesRingLocationMap[tripleHash(i * CONSISTENT_HASHING_WEIGHT + j) ] = i;
+                nodesRingLocationMap[scalestore::utils::FNV::hash(i * CONSISTENT_HASHING_WEIGHT + j) ] = i;
             }
         }
         for(auto & it : nodesRingLocationMap) {
@@ -37,7 +37,6 @@ void PageIdManager::initConsistentHashingInfo(bool firstInit){
         }
         std::sort (newNodeRingLocationsVector.begin(), newNodeRingLocationsVector.end());
         std::copy(newNodeRingLocationsVector.begin(), newNodeRingLocationsVector.end(), newNodeRingLocationsArray);
-
     }
 }
 
@@ -75,7 +74,7 @@ uint64_t PageIdManager::addPage(){
     uint64_t retVal = getNewPageId(isBeforeShuffle);
     uint64_t ssdSlotForNewPage = getFreeSsdSlot();
     ssdSlotForNewPage |= nodeIdAtMSB;
-    uint64_t partition = retVal & PAGE_ID_MASK;
+    uint64_t partition = retVal & PARTITION_MASK;
     pageIdToSsdSlotMap[partition].insertToMap(retVal,ssdSlotForNewPage);
     return retVal;
 }
@@ -83,12 +82,12 @@ uint64_t PageIdManager::addPage(){
 void PageIdManager::addPageWithExistingPageId(uint64_t existingPageId){
     uint64_t ssdSlotForNewPage = getFreeSsdSlot();
     ssdSlotForNewPage |= nodeIdAtMSB;
-    uint64_t partition = existingPageId & PAGE_ID_MASK;
+    uint64_t partition = existingPageId & PARTITION_MASK;
     pageIdToSsdSlotMap[partition].insertToMap(existingPageId,ssdSlotForNewPage);
 }
 
 void PageIdManager::removePage(uint64_t pageId){
-    uint64_t partition = pageId & PAGE_ID_MASK;
+    uint64_t partition = pageId & PARTITION_MASK;
     uint64_t slotToFree = pageIdToSsdSlotMap[partition].getSsdSlotOfPageAndRemove(pageId);
     redeemSsdSlot(slotToFree);
 }
@@ -119,9 +118,9 @@ uint64_t PageIdManager::getTargetNodeForEviction(uint64_t pageId){
 
 bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
     bool retVal = false;
-    /*if(nodeIdsInCluster.size() == 1){
+    if(nodeIdsInCluster.size() == 1){
         return true; // avoiding search for the case of a single node
-    }*/
+    }
     if(isBeforeShuffle){
         uint64_t foundNodeId = searchRingForNode(pageId, true);
         retVal = (foundNodeId == nodeId);
@@ -142,10 +141,9 @@ uint64_t PageIdManager::getUpdatedNodeIdOfPage(uint64_t pageId, bool searchOldRi
 
 uint64_t PageIdManager::getSsdSlotOfPageId(uint64_t pageId){
     uint64_t retVal;
-    uint64_t partition = pageId & PAGE_ID_MASK;
+    uint64_t partition = pageId & PARTITION_MASK;
     retVal = pageIdToSsdSlotMap[partition].getSsdSlotOfPage(pageId);
     retVal &= PAGE_DIRECTORY_NEGATIVE_MASK;
-    retVal &= PAGE_AT_OLD_NODE_MASK_NEGATIVE;
     return retVal;
 }
 
@@ -163,13 +161,13 @@ void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
 
 uint64_t PageIdManager::getCachedDirectoryOfPage(uint64_t pageId){
     uint64_t retVal;
-    uint64_t partition = pageId & PAGE_ID_MASK;
+    uint64_t partition = pageId & PARTITION_MASK;
     retVal = pageIdToSsdSlotMap[partition].getDirectoryOfPage(pageId);
     return retVal;
 }
 
 void PageIdManager::setDirectoryOfPage(uint64_t pageId, uint64_t directory){
-    uint64_t partition = pageId & PAGE_ID_MASK;
+    uint64_t partition = pageId & PARTITION_MASK;
     pageIdToSsdSlotMap[partition].setDirectoryForPage(pageId,directory);
 }
 
@@ -238,7 +236,7 @@ uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
     if(mapToSearch->size() == 1){
         return 0;
     }
-    uint64_t hashedPageId = +tripleHash(pageId);
+    uint64_t hashedPageId = scalestore::utils::FNV::hash(pageId);
     uint64_t l = 0;
     uint64_t r = nodeIdsInCluster.size() * CONSISTENT_HASHING_WEIGHT - 1;
     // edge case for cyclic operation
@@ -263,16 +261,16 @@ uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
     return retVal;
 }
 
-uint64_t PageIdManager::getNewPageId(bool oldRing){
+uint64_t PageIdManager::getNewPageId(bool oldRing) {
     uint64_t retVal;
     bool lockCheck;
-    while(true){
+    while (true) {
         auto chosenPartition = pageIdIvPartitions.find(rand() % numPartitions);
         lockCheck = chosenPartition->second.pageIdPartitionMtx.try_lock();
-        if(lockCheck){
+        if (lockCheck) {
             uint64_t temp = chosenPartition->second.guess;
             temp++;
-            while(getUpdatedNodeIdOfPage(temp, oldRing) != nodeId){
+            while (getUpdatedNodeIdOfPage(temp, oldRing) != nodeId) {
                 temp++;
             }
             chosenPartition->second.storeGuess(temp);
@@ -282,21 +280,5 @@ uint64_t PageIdManager::getNewPageId(bool oldRing){
     }
 
     return retVal;
-}
 
-inline uint64_t PageIdManager::FasterHash(uint64_t input) {
-    uint64_t local_rand = input;
-    uint64_t local_rand_hash = 8;
-    local_rand_hash = 40343 * local_rand_hash + ((local_rand) & 0xFFFF);
-    local_rand_hash = 40343 * local_rand_hash + ((local_rand >> 16) & 0xFFFF);
-    local_rand_hash = 40343 * local_rand_hash + ((local_rand >> 32) & 0xFFFF);
-    local_rand_hash = 40343 * local_rand_hash + (local_rand >> 48);
-    local_rand_hash = 40343 * local_rand_hash;
-    return local_rand_hash; // if 64 do not rotate
-    // else:
-    // return Rotr64(local_rand_hash, 56);
-}
-
-uint64_t PageIdManager::tripleHash(uint64_t input) {
-    return scalestore::utils::FNV::hash(input);
 }

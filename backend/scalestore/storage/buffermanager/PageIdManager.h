@@ -139,20 +139,6 @@ struct PageIdManager {
             return retVal;
         }
 
-        bool isPageInOldNodeAndReset(uint64_t pageId){
-            bool retVal;
-            partitionLock.lock();
-            retVal = (map[pageId] & PAGE_AT_OLD_NODE_MASK) > 0;
-            map[pageId] = map[pageId] &= PAGE_AT_OLD_NODE_MASK_NEGATIVE;
-            partitionLock.unlock();
-            return retVal;
-        }
-
-      void setPageIsAtOldNode(uint64_t pageId){
-          partitionLock.lock();
-          map[pageId] = map[pageId] |= PAGE_AT_OLD_NODE_SET;
-          partitionLock.unlock();
-      }
     };
     //constructor
     PageIdManager(uint64_t nodeId, const std::vector<uint64_t>& nodeIdsInput) : nodeId(nodeId){
@@ -230,8 +216,6 @@ struct PageIdManager {
     void redeemSsdSlot(uint64_t freedSsdSlot);
     uint64_t getNewPageId(bool oldRing);
     uint64_t getFreeSsdSlot();
-    inline uint64_t FasterHash(uint64_t input);
-    uint64_t tripleHash(uint64_t input);
     uint64_t searchRingForNode(uint64_t pageId, bool searchOldRing);
 
 };
