@@ -157,7 +157,7 @@ struct PageIdManager {
     // data structures for mapping
     std::unordered_map<uint64_t, FreeSsdSlotPartition> freeSsdSlotPartitions;
     std::unordered_map<uint64_t, FreePageIdPartition> pageIdIvPartitions;
-    std::unordered_map<uint64_t, SsdSlotMapPartition> pageIdToSsdSlotMap;
+    SsdSlotMapPartition pageIdToSsdSlotMap[65536];
 
     // constants
     uint64_t numPartitions;

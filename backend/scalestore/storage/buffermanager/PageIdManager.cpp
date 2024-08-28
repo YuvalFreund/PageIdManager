@@ -171,7 +171,7 @@ PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
     pageIdShuffleMtx.lock();
     while(stackForShuffleJob.empty()){
         workingShuffleMapIdx++;
-        if(workingShuffleMapIdx > ShuffleMapAmount) {
+        if(workingShuffleMapIdx > SSD_PID_MAPS_AMOUNT) {
             retVal.last = true; // done shuffling
             return retVal;
         }
