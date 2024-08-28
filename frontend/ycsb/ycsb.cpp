@@ -271,6 +271,7 @@ int main(int argc, char* argv[])
                                std::cout<<"done trigger" <<std::endl;
                                pageIdManager.isBeforeShuffle = false;
                            }
+
                        }
                        if(finishedShuffling && scalestore.getNodeID() == leavingNodeId){
                            std::chrono::steady_clock::time_point finishShuffling = std::chrono::steady_clock::now();
