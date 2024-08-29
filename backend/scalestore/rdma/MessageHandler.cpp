@@ -521,7 +521,7 @@ try_shuffle:
     }
     // check if manage to shuffle or retry to avoided the distributed dead lock
     if(succeededToShuffle) {
-        pageIdManager.setDirectoryOfPage(pageId, nextJobToShuffle.newNodeId);
+        //pageIdManager.setDirectoryOfPage(pageId, nextJobToShuffle.newNodeId);
         if(guard.frame->isPossessor(pageIdManager.nodeId) == false){
             bm.removeFrame(*guard.frame, [](BufferFrame& /*frame*/) {});
 
