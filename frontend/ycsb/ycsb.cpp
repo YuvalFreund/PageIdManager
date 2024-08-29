@@ -23,7 +23,7 @@ DEFINE_bool(YCSB_record_latency, false, "");
 DEFINE_bool(YCSB_all_zipf, false, "");
 DEFINE_bool(YCSB_local_zipf, false, "");
 DEFINE_bool(YCSB_flush_pages, false, "");
-DEFINE_uint32(YCSB_shuffle_ratio, 80, "");
+DEFINE_uint32(YCSB_shuffle_ratio, 100, "");
 // -------------------------------------------------------------------------------------
 using u64 = uint64_t;
 using u8 = uint8_t;
@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
    // -------------------------------------------------------------------------------------
    u64 YCSB_tuple_count = FLAGS_YCSB_tuple_count;
    // -------------------------------------------------------------------------------------
-    uint64_t shuffleRatio = 80;
+    uint64_t shuffleRatio = 100;
     if(FLAGS_YCSB_shuffle_ratio){
         shuffleRatio = FLAGS_YCSB_shuffle_ratio;
     }
