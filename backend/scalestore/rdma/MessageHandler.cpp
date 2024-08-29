@@ -531,7 +531,7 @@ try_shuffle:
         }
         workerPtr->counters.incr(profiling::WorkerCounters::shuffled_frames);
     }else{
-        //std::cout<<"j"<<std::endl;
+        std::cout<<"j"<<std::endl;
         pageIdManager.pushJobToStack(pageId);
         guard.frame->latch.unlatchExclusive();
         goto try_shuffle;
