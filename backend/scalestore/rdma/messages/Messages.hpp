@@ -194,7 +194,7 @@ struct DelegationResponse : public Message  {
 
 struct __attribute__((packed)) CreateOrUpdateShuffledFrameRequest : public Message {
     uint64_t shuffledPid;
-    uint64_t possessors; // this replaces POSSESSORS AS IT is not
+    uint64_t possessors;
     storage::POSSESSION possession;
     bool dirty;
     uint64_t pVersion;
