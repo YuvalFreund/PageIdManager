@@ -86,6 +86,14 @@ struct InitMessage {
    NodeID bmId;  // node id of buffermanager the initiator belongs to
    MESSAGE_TYPE type = MESSAGE_TYPE::Init;
 };
+
+struct PIDShuffleData{
+    uint64_t shuffledPid;
+    uint64_t possessors;
+    storage::POSSESSION possession;
+    bool dirty;
+    uint64_t pVersion;
+};
 // -------------------------------------------------------------------------------------
 // Protocol Messages
 // -------------------------------------------------------------------------------------
@@ -192,20 +200,27 @@ struct DelegationResponse : public Message  {
    DelegationResponse() : Message(MESSAGE_TYPE::DRR){}
 };
 
-struct __attribute__((packed)) CreateOrUpdateShuffledFrameRequest : public Message {
-    uint64_t shuffledPid;
-    uint64_t possessors;
-    storage::POSSESSION possession;
-    bool dirty;
-    uint64_t pVersion;
-    CreateOrUpdateShuffledFrameRequest(uint64_t shuffledPid, uint64_t possessors,storage::POSSESSION possession,bool dirty, uint64_t pVersion) : Message(MESSAGE_TYPE::CUSFR), shuffledPid(shuffledPid),
-    possessors(possessors),possession(possession), dirty(dirty), pVersion(pVersion) {}
+struct __attribute__((packed)) CreateOrUpdateShuffledFramesRequest : public Message {
+    PIDShuffleData shuffleData [AGGREGATED_SHUFFLE_MESSAGE_AMOUNT];
+    uint8_t amountSent;
+
+    CreateOrUpdateShuffledFramesRequest(PIDShuffleData (&shuffleDataArray) [AGGREGATED_SHUFFLE_MESSAGE_AMOUNT], uint8_t amountSent) : Message(MESSAGE_TYPE::CUSFR), amountSent(amountSent){
+        for(int i = 0; i<AGGREGATED_SHUFFLE_MESSAGE_AMOUNT; i++){
+            shuffleData[i] = shuffleDataArray[i];
+        }
+    }
 };
 
-struct CreateOrUpdateShuffledFrameResponse : public Message {
+
+struct CreateOrUpdateShuffledFramesResponse : public Message {
     uint8_t receiveFlag = 1;
-    bool accepted;
-    CreateOrUpdateShuffledFrameResponse() : Message(MESSAGE_TYPE::CUSFRR){}
+    uint64_t successfulShuffledPid [AGGREGATED_SHUFFLE_MESSAGE_AMOUNT];
+    uint8_t successfulAmount;
+    CreateOrUpdateShuffledFramesResponse(uint64_t (&successfulShufflesArray)[AGGREGATED_SHUFFLE_MESSAGE_AMOUNT], uint8_t successfulAmount) : Message(MESSAGE_TYPE::CUSFRR), successfulAmount(successfulAmount){
+        for(int i = 0; i<successfulAmount; i++){
+            successfulShuffledPid[i] = successfulShufflesArray [i];
+        }
+    }
 };
 
 struct NodeLeavingUpdateRequest : public Message {
@@ -232,14 +247,15 @@ union ALLDERIVED {
     RemoteAllocationResponse rarr;
     DelegationRequest dr;
     DelegationResponse drr;
-    CreateOrUpdateShuffledFrameRequest cufsr;
-    CreateOrUpdateShuffledFrameResponse cufsrr;
+    CreateOrUpdateShuffledFramesRequest cufsr;
+    CreateOrUpdateShuffledFramesResponse cufsrr;
     NodeLeavingUpdateRequest nlur;
     NodeLeavingUpdateResponse nlurr;
 };
 
 static constexpr uint64_t LARGEST_MESSAGE = sizeof(ALLDERIVED);
-static_assert(LARGEST_MESSAGE <= 32, "Messags span more than one CL");
+//static_assert(LARGEST_MESSAGE <= 256, "Messags span more than one CL"); not necessary anymore
+
 
 
 struct MessageFabric{

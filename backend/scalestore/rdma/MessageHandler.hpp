@@ -462,7 +462,7 @@ struct MessageHandler {
    }
 
 
-   bool shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr);
+   bool shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr,uint64_t t_i);
    void readEvictedPageBeforeShuffle(Guard& guard){
        ensure(guard.frame->latch.isLatched());
        if(guard.frame->page == nullptr){

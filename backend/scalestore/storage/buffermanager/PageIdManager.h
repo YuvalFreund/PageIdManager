@@ -53,15 +53,14 @@ struct PageIdManager {
         }
     };
 
-    struct PageShuffleJob{
-        uint64_t pageId;
+    struct PagesShuffleJob{
+        uint64_t pageIds [8];
         uint64_t newNodeId;
+        uint64_t amountToSend;
         bool last = false;
-        PageShuffleJob(uint64_t pageId, uint64_t newNodeId) : pageId(pageId), newNodeId(newNodeId) {}
-
+        PagesShuffleJob(){}
     };
     struct FreePageIdPartition{
-        // todo yuval -later switch to optimisitc locking
         std::mutex pageIdPartitionMtx;
         std::uint64_t guess;
         explicit FreePageIdPartition(uint64_t guess) : guess(guess){}
@@ -131,6 +130,10 @@ struct PageIdManager {
             return retVal;
         }
 
+
+
+
+
         uint64_t getSsdSlotOfPageAndRemove(uint64_t pageId){
             uint64_t retVal;
             partitionLock.lock();
@@ -162,7 +165,6 @@ struct PageIdManager {
     // constants
     uint64_t numPartitions;
     uint64_t nodeId;
-    int ShuffleMapAmount = 65536; // todo yuval -this needs to be parameterized
     uint64_t nodeIdAtMSB;
 
     // consistent hashing data
@@ -183,8 +185,9 @@ struct PageIdManager {
     std::mutex pageIdShuffleMtx;
 
     //shuffling
-    std::stack<uint64_t> stackForShuffleJob;
-
+    std::map<uint64_t, std::stack<uint64_t>> mapOfStacksForShuffle;
+    uint64_t highestNodeIdForShuffleJobs = 0; // This is initiated that way so when the first shuffle
+    uint64_t currentNodeIdForShuffleJobs = 10; // start, the map will be initiated
     // for page provider
     uint64_t nodeLeaving;
 
@@ -205,8 +208,8 @@ struct PageIdManager {
 
     // shuffling functions
     void prepareForShuffle(uint64_t nodeIdLeft);
-    PageShuffleJob getNextPageShuffleJob();
-    void pushJobToStack(uint64_t pageId);
+    PagesShuffleJob getNextPagesShuffleJob();
+    void pushJobToStack(uint64_t pageId,uint64_t nodeIdToShuffle);
     uint64_t getCachedDirectoryOfPage(uint64_t pageId);
     void setDirectoryOfPage(uint64_t pageId, uint64_t directory);
     bool isNodeDirectoryOfPageId(uint64_t pageId);

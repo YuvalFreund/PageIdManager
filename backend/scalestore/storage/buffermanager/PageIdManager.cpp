@@ -3,8 +3,6 @@
 //
 #include "PageIdManager.h"
 
-
-
 void PageIdManager::initPageIdManager(){
     numPartitions = FLAGS_pageIdManagerPartitions;
     std::srand (std::time (0)); // this generates a new seed for randomness
@@ -148,8 +146,6 @@ void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
     initConsistentHashingInfo(false);
     if(nodeIdLeft != nodeId){
         isBeforeShuffle = false;
-    }else{
-        stackForShuffleJob = pageIdToSsdSlotMap[workingShuffleMapIdx].getStackForShuffling();
     }
 }
 
@@ -166,26 +162,52 @@ void PageIdManager::setDirectoryOfPage(uint64_t pageId, uint64_t directory){
     pageIdToSsdSlotMap[partition].setDirectoryForPage(pageId,directory);
 }
 
-PageIdManager::PageShuffleJob PageIdManager::getNextPageShuffleJob(){
-    PageShuffleJob retVal(55885,0);
+PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(){
+    PagesShuffleJob retVal;
     pageIdShuffleMtx.lock();
-    while(stackForShuffleJob.empty()){
+
+    restart:
+    // preparing a new map of stacks
+    if(highestNodeIdForShuffleJobs < currentNodeIdForShuffleJobs){
         workingShuffleMapIdx++;
-        if(workingShuffleMapIdx > SSD_PID_MAPS_AMOUNT) {
-            retVal.last = true; // done shuffling
+        if(workingShuffleMapIdx > SSD_PID_MAPS_AMOUNT){ // the case where there is no more to shuffle
+            retVal.last = true;
             return retVal;
         }
-        if(pageIdToSsdSlotMap[workingShuffleMapIdx].map.size() != 0){
-            stackForShuffleJob = pageIdToSsdSlotMap[workingShuffleMapIdx].getStackForShuffling();
+        highestNodeIdForShuffleJobs = 0;
+        currentNodeIdForShuffleJobs = 0;
+        pageIdToSsdSlotMap[workingShuffleMapIdx].partitionLock.lock();
+        for(auto pair : pageIdToSsdSlotMap[workingShuffleMapIdx].map){
+            uint64_t pageToShuffle = pair.first;
+            uint64_t destNode = getUpdatedNodeIdOfPage(pageToShuffle, false);
+            if(destNode > highestNodeIdForShuffleJobs ) highestNodeIdForShuffleJobs = destNode;
+            mapOfStacksForShuffle[destNode].push(pageToShuffle);
+        }
+        pageIdToSsdSlotMap[workingShuffleMapIdx].partitionLock.unlock();
+    }
+    // loop to try and get 8 jobs
+    int shuffledJobs = 0;
+    while(mapOfStacksForShuffle[currentNodeIdForShuffleJobs].empty() == false && shuffledJobs < AGGREGATED_SHUFFLE_MESSAGE_AMOUNT){
+        uint64_t pageToShuffle = mapOfStacksForShuffle[currentNodeIdForShuffleJobs].top();
+        mapOfStacksForShuffle[currentNodeIdForShuffleJobs].pop();
+        retVal.newNodeId = currentNodeIdForShuffleJobs;
+        retVal.pageIds[shuffledJobs] = pageToShuffle;
+        shuffledJobs++;
+    }
+
+    if(shuffledJobs < AGGREGATED_SHUFFLE_MESSAGE_AMOUNT) {
+        // didn't get 8 pages to shuffle. it it is more htan 0 - we return whatever we found.
+        currentNodeIdForShuffleJobs++;
+        if (shuffledJobs == 0){
+            // either stack is finished or mapped is finished- but still we want to return pages to shuffle
+            goto restart;
         }
     }
-    uint64_t pageToShuffle = stackForShuffleJob.top();
-    stackForShuffleJob.pop();
-    uint64_t destNode = getUpdatedNodeIdOfPage(pageToShuffle, false);
-    retVal = PageShuffleJob(pageToShuffle,destNode);
+    retVal.amountToSend = shuffledJobs;
     pageIdShuffleMtx.unlock();
     return retVal;
 }
+
 
 void  PageIdManager::gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr ) {
     prepareForShuffle(nodeId);
@@ -211,9 +233,9 @@ uint64_t PageIdManager::getFreeSsdSlot(){
     return retVal;
 }
 
-void PageIdManager::pushJobToStack(uint64_t pageId){
+void PageIdManager::pushJobToStack(uint64_t pageId, uint64_t nodeIdToShuffle){
     pageIdShuffleMtx.lock();
-    stackForShuffleJob.push(pageId);
+    mapOfStacksForShuffle[nodeIdToShuffle].push(pageId);
     pageIdShuffleMtx.unlock();
 }
 
