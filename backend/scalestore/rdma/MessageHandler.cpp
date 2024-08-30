@@ -538,6 +538,7 @@ try_shuffle:
     [[maybe_unused]]auto& createdFramesResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFramesResponse>(newNodeId, onTheWayUpdateRequest);
     for(int i = 0; i < createdFramesResponse.successfulAmount; i++){
         uint64_t successfulPID = createdFramesResponse.successfulShuffledPid[i];
+        pageIdManager.setDirectoryOfPage(successfulPID, newNodeId);
         Guard* successfulGuard = pidToGuardMap[successfulPID];
         if(successfulGuard.frame->isPossessor(pageIdManager.nodeId) == false){
             bm.removeFrame(*successfulGuard->frame, [](BufferFrame& /*frame*/) {});
