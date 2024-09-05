@@ -495,7 +495,7 @@ void MessageHandler::startThread() {
 }
 
 
-bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr,[[maybe_unused]]uint64_t t_i){
+bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr){
 
     PageIdManager::PagesShuffleJob pagesShuffleJob = pageIdManager.getNextPagesShuffleJob();
     // todo check for if to return here because shuffle ended
