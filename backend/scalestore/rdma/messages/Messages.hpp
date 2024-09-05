@@ -217,11 +217,7 @@ struct CreateOrUpdateShuffledFramesResponse : public Message {
     uint8_t receiveFlag = 1;
     uint64_t successfulShuffledPid [AGGREGATED_SHUFFLE_MESSAGE_AMOUNT];
     uint8_t successfulAmount;
-    CreateOrUpdateShuffledFramesResponse(uint64_t (&successfulShufflesArray)[AGGREGATED_SHUFFLE_MESSAGE_AMOUNT], uint8_t successfulAmount) : Message(MESSAGE_TYPE::CUSFRR), successfulAmount(successfulAmount){
-        for(int i = 0; i<successfulAmount; i++){
-            successfulShuffledPid[i] = successfulShufflesArray [i];
-        }
-    }
+    CreateOrUpdateShuffledFramesResponse() : Message(MESSAGE_TYPE::CUSFRR){}
 };
 
 struct NodeLeavingUpdateRequest : public Message {
