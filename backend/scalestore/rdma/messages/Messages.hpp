@@ -2,7 +2,7 @@
 // -------------------------------------------------------------------------------------
 #include "Defs.hpp"
 #include "scalestore/storage/buffermanager/BufferFrame.hpp"
-#include "scalestore/storage/buffermanager/PageIdManagerDegs.h"
+#include "scalestore/storage/buffermanager/PageIdManagerDefs.h"
 
 // -------------------------------------------------------------------------------------
 
