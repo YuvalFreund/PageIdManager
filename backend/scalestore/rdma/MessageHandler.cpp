@@ -496,8 +496,7 @@ void MessageHandler::startThread() {
 
 
 bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr,uint64_t t_i){
-try_shuffle:
-    bool succeededToShuffle;
+
     PageIdManager::PagesShuffleJob pagesShuffleJob = pageIdManager.getNextPagesShuffleJob();
     // todo check for if to return here because shuffle ended
 
@@ -513,7 +512,6 @@ try_shuffle:
         ensure(guard.state != STATE::RETRY);
         pidToGuardMap[pageId] = &guard;
         if(guard.state == STATE::SSD && guard.frame->possession == POSSESSION::NOBODY) {
-            uint64_t possessorsAsUint64 = pageIdManager.nodeId;
             readEvictedPageBeforeShuffle(guard);
             shuffleData[i].dirty = true;
             shuffleData[i].pVersion = 0;
@@ -539,7 +537,7 @@ try_shuffle:
         uint64_t successfulPID = createdFramesResponse.successfulShuffledPid[i];
         pageIdManager.setDirectoryOfPage(successfulPID, newNodeId);
         Guard* successfulGuard = pidToGuardMap[successfulPID];
-        if(successfulGuard.frame->isPossessor(pageIdManager.nodeId) == false){
+        if(successfulGuard->frame->isPossessor(pageIdManager.nodeId) == false){
             bm.removeFrame(*successfulGuard->frame, [](BufferFrame& /*frame*/) {});
             // guard is unlatched here
 
