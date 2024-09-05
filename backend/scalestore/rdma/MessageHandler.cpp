@@ -520,7 +520,6 @@ try_shuffle:
             shuffleData[i].possession = POSSESSION::EXCLUSIVE;
             shuffleData[i].possessors = pageIdManager.nodeId;
         }else {
-
             ensure(guard.state != storage::STATE::UNINITIALIZED)
             ensure(guard.state != storage::STATE::NOT_FOUND);
             ensure(guard.state != storage::STATE::RETRY);
