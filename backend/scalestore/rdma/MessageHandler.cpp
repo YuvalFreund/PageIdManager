@@ -469,14 +469,13 @@ void MessageHandler::startThread() {
                       response.successfulAmount = successfulShuffles;
                       for(int i = 0; i<successfulShuffles; i++){
                           response.successfulShuffledPid[i] = successfulPids[i];
-                      }
-                      if(t_i == 0){
-                          std::cout<< " e " << std::endl;
+                          if(t_i == 0){
+                              std::cout<< "pid: "<<successfulPids[i] << std::endl;
+                          }
                       }
                       writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
                       if(t_i == 0){
                           std::cout<< " f " << std::endl;
-                      }
                       break;
                   }
 
@@ -556,8 +555,6 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     if(t_i == 0){ std::cout << "A" <<std::endl;}
     auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFramesRequest>(context_.outgoing,shuffleData,pagesShuffleJob.amountToSend);
     if(t_i == 0){ std::cout << "B" <<std::endl;}
-    if(t_i == 0){ std::cout << "B" <<std::endl;}
-
     [[maybe_unused]]auto& createdFramesResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFramesResponse>(newNodeId, onTheWayUpdateRequest);
     if(t_i == 0){ std::cout << "C" <<std::endl;}
 
@@ -568,8 +565,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         Guard* successfulGuard = pidToGuardMap[successfulPID];
         if(successfulGuard->frame->isPossessor(pageIdManager.nodeId) == false){
             bm.removeFrame(*successfulGuard->frame, [](BufferFrame& /*frame*/) {});
-            // guard is unlatched here
-
+            // guard is unlatched here^^^^^
         }else{
             successfulGuard->frame->shuffled = true;
             successfulGuard->frame->latch.unlatchExclusive();
