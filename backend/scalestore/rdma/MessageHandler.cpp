@@ -536,6 +536,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
             shuffleData[i].pVersion = 0;
             shuffleData[i].possession = POSSESSION::EXCLUSIVE;
             shuffleData[i].possessors = pageIdManager.nodeId;
+            shuffleData[i].shuffledPid = pageId;
         }else {
             ensure(guard.state != storage::STATE::UNINITIALIZED)
             ensure(guard.state != storage::STATE::NOT_FOUND);
@@ -547,6 +548,8 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
             shuffleData[i].pVersion = guard.frame->pVersion;
             shuffleData[i].possession = guard.frame->possession;
             shuffleData[i].possessors = possessorsAsUint64;
+            shuffleData[i].shuffledPid = pageId;
+
         }
     }
 
