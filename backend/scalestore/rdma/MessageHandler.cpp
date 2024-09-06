@@ -496,7 +496,7 @@ void MessageHandler::startThread() {
 
 
 
-bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr){
+bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr, uint64_t t_i){
 
     PageIdManager::PagesShuffleJob pagesShuffleJob = pageIdManager.getNextPagesShuffleJob();
     // todo check for if to return here because shuffle ended
@@ -531,10 +531,13 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
             shuffleData[i].possessors = possessorsAsUint64;
         }
     }
-    std::cout<<"d";
+    if(t_i == 0){
+        std::cout<<"node: "<< newNodeId << " amount to send " << amountToSend;
+    }
+
     auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFramesRequest>(context_.outgoing,shuffleData,pagesShuffleJob.amountToSend);
     [[maybe_unused]]auto& createdFramesResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFramesResponse>(newNodeId, onTheWayUpdateRequest);
-    std::cout<<"j";
+
 
     for(int i = 0; i < createdFramesResponse.successfulAmount; i++){
         uint64_t successfulPID = createdFramesResponse.successfulShuffledPid[i];
