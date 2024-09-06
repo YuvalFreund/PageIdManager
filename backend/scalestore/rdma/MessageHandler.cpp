@@ -532,7 +532,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         }
     }
     if(t_i == 0){
-        std::cout<<"node: "<< newNodeId << " amount to send " << amountToSend;
+        std::cout<<"node: "<< newNodeId << " amount to send " << shuffleData.amountToSend;
     }
 
     auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFramesRequest>(context_.outgoing,shuffleData,pagesShuffleJob.amountToSend);
