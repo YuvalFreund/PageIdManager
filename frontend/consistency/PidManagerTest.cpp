@@ -212,7 +212,7 @@ int main(int argc, char* argv[]) {
             const uint64_t inc = FLAGS_worker * FLAGS_nodes;
             for (; start < numberTuples; start = start + inc) {
                 if(scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio ){//&& (t_i == 0 ||t_i==1 ) ) { // worker will go and shuffle
-                    finishedShuffling = mh.shuffleFrameAndIsLastShuffle(workerPtr);
+                    finishedShuffling = mh.shuffleFrameAndIsLastShuffle(workerPtr,t_i);
                 }
                 auto updated = tree.lookupAndUpdate(start, [](V& value) { value++; });
                 ensure(updated);
