@@ -38,7 +38,7 @@ namespace scalestore {
 namespace rdma {
 
 // smaller inline size reduces WQE, max with our cards would be 220
-static constexpr uint64_t INLINE_SIZE = 64; // LARGEST MESSAGE
+static constexpr uint64_t INLINE_SIZE = LARGEST MESSAGE;
 
 enum completion : bool {
   signaled = true,

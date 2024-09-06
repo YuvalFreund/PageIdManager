@@ -251,7 +251,7 @@ union ALLDERIVED {
 };
 
 static constexpr uint64_t LARGEST_MESSAGE = sizeof(ALLDERIVED);
-//static_assert(LARGEST_MESSAGE <= 256, "Messags span more than one CL"); not necessary anymore
+//static_assert(LARGEST_MESSAGE <= 256, "Messags span more than one CL"); //  not necessary anymore
 
 
 
