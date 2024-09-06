@@ -495,6 +495,7 @@ void MessageHandler::startThread() {
 }
 
 
+
 bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr){
 
     PageIdManager::PagesShuffleJob pagesShuffleJob = pageIdManager.getNextPagesShuffleJob();
