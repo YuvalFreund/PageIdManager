@@ -404,9 +404,7 @@ void MessageHandler::startThread() {
                       auto& request = *reinterpret_cast<CreateOrUpdateShuffledFramesRequest*>(ctx.request);
                       uint8_t  successfulShuffles = 0 ;
                       uint64_t successfulPids [AGGREGATED_SHUFFLE_MESSAGE_AMOUNT];
-                      if(t_i == 0){
-                          std::cout<< " amountSent " << request.amountSent << std::endl;
-                      }
+                      std::cout<< " amountSent " << request.amountSent << std::endl;
                       for(int i = 0; i<request.amountSent; i++){
                           PIDShuffleData pidShuffleData = request.shuffleData[i];
                           uint64_t shuffledPid = pidShuffleData.shuffledPid;
