@@ -545,7 +545,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
             successfulGuard->frame->shuffled = true;
             successfulGuard->frame->latch.unlatchExclusive();
         }
-        workerPtr->counters.incr(profiling::WorkerCounters::shuffled_frames);
+        workerPtr->counters.incr_by(profiling::WorkerCounters::shuffled_frames,createdFramesResponse.successfulAmount);
         pidToGuardMap.erase(successfulPID);
     }
 
