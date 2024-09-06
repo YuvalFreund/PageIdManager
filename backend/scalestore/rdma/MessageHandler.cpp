@@ -553,6 +553,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     if(t_i == 0){ std::cout << "A" <<std::endl;}
     auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFramesRequest>(context_.outgoing,shuffleData,pagesShuffleJob.amountToSend);
     if(t_i == 0){ std::cout << "B" <<std::endl;}
+    if(t_i == 0){ std::cout << "B" <<std::endl;}
 
     [[maybe_unused]]auto& createdFramesResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFramesResponse>(newNodeId, onTheWayUpdateRequest);
     if(t_i == 0){ std::cout << "C" <<std::endl;}
