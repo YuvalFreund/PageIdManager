@@ -401,7 +401,7 @@ void MessageHandler::startThread() {
                   }
 
                   case MESSAGE_TYPE::CUSFR: {
-                      std::cout<< " k " << request.amountSent << std::endl;
+                      std::cout<< " k " << std::endl;
                       auto& request = *reinterpret_cast<CreateOrUpdateShuffledFramesRequest*>(ctx.request);
                       uint8_t  successfulShuffles = 0 ;
                       uint64_t successfulPids [AGGREGATED_SHUFFLE_MESSAGE_AMOUNT];
