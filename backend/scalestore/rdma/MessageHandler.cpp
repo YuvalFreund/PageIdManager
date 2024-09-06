@@ -404,13 +404,25 @@ void MessageHandler::startThread() {
                       auto& request = *reinterpret_cast<CreateOrUpdateShuffledFramesRequest*>(ctx.request);
                       uint8_t  successfulShuffles = 0 ;
                       uint64_t successfulPids [AGGREGATED_SHUFFLE_MESSAGE_AMOUNT];
+                      if(t_i == 0){
+                          std::cout<< " amountSent " << request.amountSent << std::endl;
+                      }
                       for(int i = 0; i<request.amountSent; i++){
                           PIDShuffleData pidShuffleData = request.shuffleData[i];
                           uint64_t shuffledPid = pidShuffleData.shuffledPid;
                           pageIdManager.addPageWithExistingPageId(shuffledPid);
+                          if(t_i == 0){
+                              std::cout<< " a " << std::endl;
+                          }
                           auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(PID(shuffledPid), Protocol<storage::POSSESSION::EXCLUSIVE>(), ctx.bmId,true);
+                          if(t_i == 0){
+                              std::cout<< " b " << std::endl;
+                          }
                           if(guard.state == STATE::RETRY){ // this it to deal with a case of the distrubted deadlock
                               pageIdManager.removePage(shuffledPid);
+                              if(t_i == 0){
+                                  std::cout<< " c " << std::endl;
+                              }
                           }else{
                               guard.frame->possession = pidShuffleData.possession;
                               if(pidShuffleData.possession == POSSESSION::SHARED){
@@ -452,13 +464,21 @@ void MessageHandler::startThread() {
                               successfulShuffles++;
                           }
                       }
-
+                      if(t_i == 0){
+                          std::cout<< " d " << std::endl;
+                      }
                       auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFramesResponse>(ctx.response);
                       response.successfulAmount = successfulShuffles;
                       for(int i = 0; i<successfulShuffles; i++){
                           response.successfulShuffledPid[i] = successfulPids[i];
                       }
+                      if(t_i == 0){
+                          std::cout<< " e " << std::endl;
+                      }
                       writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
+                      if(t_i == 0){
+                          std::cout<< " f " << std::endl;
+                      }
                       break;
                   }
 
@@ -532,7 +552,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         }
     }
     if(t_i == 0){
-        std::cout<<"node: "<< newNodeId << " amount to send " << pagesShuffleJob.amountToSend;
+        //std::cout<<"node: "<< newNodeId << " amount to send " << pagesShuffleJob.amountToSend;
     }
 
     auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFramesRequest>(context_.outgoing,shuffleData,pagesShuffleJob.amountToSend);
