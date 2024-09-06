@@ -38,7 +38,7 @@ ScaleStore::ScaleStore(){
    }
    ensure(fcntl(ssd_fd, F_GETFL) != -1);
    std::cout<<"node id: "<<nodeId <<std::endl;
-   std::cout<<"Largest Message "<<scalestore::rdma::LARGEST_MESSAGE;
+   std::cout<<"Largest Message "<<scalestore::rdma::LARGEST_MESSAGE<<std::endl;
 
     // -------------------------------------------------------------------------------------
    // order of construction is important
