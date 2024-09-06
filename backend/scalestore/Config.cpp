@@ -29,7 +29,7 @@ DEFINE_string(ownIp, "172.18.94.80", "own IP server");
 DEFINE_uint64(pollingInterval, 16, " Number of unsignaled messages before a signaled (power of 2)");
 DEFINE_bool(read, true, "read protocol");
 DEFINE_bool(random, false, "use random pages");
-DEFINE_uint64(messageHandlerThreads, 9, " number message handler ");
+DEFINE_uint64(messageHandlerThreads, 4, " number message handler ");
 DEFINE_uint64(messageHandlerMaxRetries, 10, "Number retries before message gets restarted at client"); // prevents deadlocks but also mitigates early aborts
 // -------------------------------------------------------------------------------------
 DEFINE_uint32(sockets, 2 , "Number Sockets");
