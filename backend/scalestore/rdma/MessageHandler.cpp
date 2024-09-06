@@ -549,12 +549,13 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
             shuffleData[i].possessors = possessorsAsUint64;
         }
     }
-    if(t_i == 0){
-        //std::cout<<"node: "<< newNodeId << " amount to send " << pagesShuffleJob.amountToSend;
-    }
 
+    if(t_i == 0){ std::cout << "A" <<std::endl}
     auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFramesRequest>(context_.outgoing,shuffleData,pagesShuffleJob.amountToSend);
+    if(t_i == 0){ std::cout << "B" <<std::endl}
+
     [[maybe_unused]]auto& createdFramesResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFramesResponse>(newNodeId, onTheWayUpdateRequest);
+    if(t_i == 0){ std::cout << "C" <<std::endl}
 
 
     for(int i = 0; i < createdFramesResponse.successfulAmount; i++){
