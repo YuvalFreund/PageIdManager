@@ -531,9 +531,11 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
             shuffleData[i].possessors = possessorsAsUint64;
         }
     }
-
+    std::cout<<"d";
     auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFramesRequest>(context_.outgoing,shuffleData,pagesShuffleJob.amountToSend);
     [[maybe_unused]]auto& createdFramesResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFramesResponse>(newNodeId, onTheWayUpdateRequest);
+    std::cout<<"j";
+
     for(int i = 0; i < createdFramesResponse.successfulAmount; i++){
         uint64_t successfulPID = createdFramesResponse.successfulShuffledPid[i];
         pageIdManager.setDirectoryOfPage(successfulPID, newNodeId);
