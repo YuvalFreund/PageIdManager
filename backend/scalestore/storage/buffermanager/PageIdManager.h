@@ -54,7 +54,7 @@ struct PageIdManager {
     };
 
     struct PagesShuffleJob{
-        uint64_t pageIds [8];
+        uint64_t pageIds [AGGREGATED_SHUFFLE_MESSAGE_AMOUNT];
         uint64_t newNodeId;
         uint64_t amountToSend;
         bool last = false;

@@ -523,6 +523,8 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     auto& context_ = workerPtr->cctxs[newNodeId];
     ensure(newNodeId != nodeId);
     std::map<uint64_t,scalestore::storage::Guard *> pidToGuardMap;
+
+    // todo - an array of guards pointers like int he page provider
     for(uint64_t i = 0 ; i< pagesShuffleJob.amountToSend; i++){
         auto pageId = pagesShuffleJob.pageIds[i];
         auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId,false);
