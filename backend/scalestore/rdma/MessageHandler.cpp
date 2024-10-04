@@ -550,7 +550,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId,false);
         ensure(guard.state != STATE::UNINITIALIZED);
         ensure(guard.state != STATE::RETRY);
-        pidToGuardMap[pageId] = guard;
+        pidToGuardMap[pageId] = std::move(guard);
         if(guard.state == STATE::SSD && guard.frame->possession == POSSESSION::NOBODY) {
             readEvictedPageBeforeShuffle(guard);
             shuffleData[i].dirty = true;
