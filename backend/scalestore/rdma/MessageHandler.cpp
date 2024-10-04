@@ -522,7 +522,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     auto newNodeId = pagesShuffleJob.newNodeId;
     auto& context_ = workerPtr->cctxs[newNodeId];
     ensure(newNodeId != nodeId);
-    std::map<uint64_t,scalestore::storage::Guard *> pidToGuardMap;
+    std::map<uint64_t,scalestore::storage::Guard> pidToGuardMap;
 
     // todo - an array of guards pointers like int he page provider
     for(uint64_t i = 0 ; i< pagesShuffleJob.amountToSend; i++){
@@ -530,7 +530,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId,false);
         ensure(guard.state != STATE::UNINITIALIZED);
         ensure(guard.state != STATE::RETRY);
-        pidToGuardMap[pageId] = &guard;
+        pidToGuardMap[pageId] = guard;
         if(guard.state == STATE::SSD && guard.frame->possession == POSSESSION::NOBODY) {
             readEvictedPageBeforeShuffle(guard);
             shuffleData[i].dirty = true;
@@ -564,13 +564,13 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     for(int i = 0; i < createdFramesResponse.successfulAmount; i++){
         uint64_t successfulPID = createdFramesResponse.successfulShuffledPid[i];
         pageIdManager.setDirectoryOfPage(successfulPID, newNodeId);
-        Guard* successfulGuard = pidToGuardMap[successfulPID];
-        if(successfulGuard->frame->isPossessor(pageIdManager.nodeId) == false){
-            bm.removeFrame(*successfulGuard->frame, [](BufferFrame& /*frame*/) {});
+        Guard successfulGuard = pidToGuardMap[successfulPID];
+        if(successfulGuard.frame->isPossessor(pageIdManager.nodeId) == false){
+            bm.removeFrame(successfulGuard->frame, [](BufferFrame& /*frame*/) {});
             // guard is unlatched here^^^^^
         }else{
-            successfulGuard->frame->shuffled = true;
-            successfulGuard->frame->latch.unlatchExclusive();
+            successfulGuard.frame->shuffled = true;
+            successfulGuard.frame->latch.unlatchExclusive();
         }
         workerPtr->counters.incr_by(profiling::WorkerCounters::shuffled_frames,createdFramesResponse.successfulAmount);
         pidToGuardMap.erase(successfulPID);
