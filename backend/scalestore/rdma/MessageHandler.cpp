@@ -542,7 +542,8 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     auto newNodeId = pagesShuffleJob.newNodeId;
     auto& context_ = workerPtr->cctxs[newNodeId];
     ensure(newNodeId != nodeId);
-    std::map<uint64_t,scalestore::storage::Guard> pidToGuardMap;
+    std::vector<std::pair<Guard, uint64_t>> guardsAndPids;
+    guards_p.reserve(AGGREGATED_SHUFFLE_MESSAGE_AMOUNT);
 
     // todo - an array of guards pointers like int he page provider
     for(uint64_t i = 0 ; i< pagesShuffleJob.amountToSend; i++){
@@ -550,7 +551,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId,false);
         ensure(guard.state != STATE::UNINITIALIZED);
         ensure(guard.state != STATE::RETRY);
-        pidToGuardMap[pageId] = std::move(guard);
+        guardsAndPids.push_back({std::move(guard), pageId});
         if(guard.state == STATE::SSD && guard.frame->possession == POSSESSION::NOBODY) {
             readEvictedPageBeforeShuffle(guard);
             shuffleData[i].dirty = true;
@@ -580,25 +581,30 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     [[maybe_unused]]auto& createdFramesResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFramesResponse>(newNodeId, onTheWayUpdateRequest);
     if(t_i == 0){ std::cout << "C" <<std::endl;}
 
-
+    std::set<uint64_t> successfullyShufflePids;
     for(int i = 0; i < createdFramesResponse.successfulAmount; i++){
-        uint64_t successfulPID = createdFramesResponse.successfulShuffledPid[i];
-        pageIdManager.setDirectoryOfPage(successfulPID, newNodeId);
-        auto successfulGuard = pidToGuardMap.find(successfulPID);
-        if(successfulGuard->second.frame->isPossessor(pageIdManager.nodeId) == false){
-            bm.removeFrame(successfulGuard->second.frame, [](BufferFrame& /*frame*/) {});
-            // guard is unlatched here^^^^^
-        }else{
-            successfulGuard->second.frame->shuffled = true;
-            successfulGuard->second.frame->latch.unlatchExclusive();
-        }
-        workerPtr->counters.incr_by(profiling::WorkerCounters::shuffled_frames,createdFramesResponse.successfulAmount);
-        pidToGuardMap.erase(successfulPID);
+        successfullyShufflePids.insert(createdFramesResponse.successfulShuffledPid[i]);
     }
 
-    for(auto pair : pidToGuardMap){
-        pageIdManager.pushJobToStack(pair.first,newNodeId);
-        pair.second->frame->latch.unlatchExclusive();
+    for (auto& guardPidPair : guardsAndPids) {
+        // the case where the page was shuffled successfully
+        auto& guard = guardPidPair.first;
+        auto& pid = guardPidPair.second;
+        if(successfullyShufflePids.find(guardPidPair.second) != successfullyShufflePids.end()) {
+            if(guard.frame->isPossessor(pageIdManager.nodeId) == false){
+                bm.removeFrame(guard.frame, [](BufferFrame& /*frame*/) {});
+                // guard is unlatched here^^^^^
+            }else{
+                guard.frame->shuffled = true;
+                guard.frame->latch.unlatchExclusive();
+            }
+            workerPtr->counters.incr_by(profiling::WorkerCounters::shuffled_frames,createdFramesResponse.successfulAmount);
+
+        }// the case where the page wasn't shuffled successfully
+        else{
+            pageIdManager.pushJobToStack(pid,newNodeId); // todo - look if there is no edge case in returining to a stack that wasn't finished
+            guard.frame->latch.unlatchExclusive();
+        }
     }
 
     return false;
