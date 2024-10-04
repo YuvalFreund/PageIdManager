@@ -543,7 +543,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     auto& context_ = workerPtr->cctxs[newNodeId];
     ensure(newNodeId != nodeId);
     std::vector<std::pair<Guard, uint64_t>> guardsAndPids;
-    guards_p.reserve(AGGREGATED_SHUFFLE_MESSAGE_AMOUNT);
+    guardsAndPids.reserve(AGGREGATED_SHUFFLE_MESSAGE_AMOUNT);
 
     // todo - an array of guards pointers like int he page provider
     for(uint64_t i = 0 ; i< pagesShuffleJob.amountToSend; i++){
