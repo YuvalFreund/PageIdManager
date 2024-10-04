@@ -584,7 +584,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     for(int i = 0; i < createdFramesResponse.successfulAmount; i++){
         uint64_t successfulPID = createdFramesResponse.successfulShuffledPid[i];
         pageIdManager.setDirectoryOfPage(successfulPID, newNodeId);
-        auto& successfulGuard = pidToGuardMap[successfulPID];
+        auto& successfulGuard = pidToGuardMap.at(successfulPID);
         if(successfulGuard.frame->isPossessor(pageIdManager.nodeId) == false){
             bm.removeFrame(successfulGuard.frame, [](BufferFrame& /*frame*/) {});
             // guard is unlatched here^^^^^
