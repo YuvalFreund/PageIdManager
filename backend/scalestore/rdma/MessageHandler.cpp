@@ -156,352 +156,370 @@ void MessageHandler::startThread() {
          std::vector<uint64_t> latencies(mbPartition.numberMailboxes);
 
          while (threadsRunning || connectedClients.load()) {
-            for (uint64_t m_i = 0; m_i < mbPartition.numberMailboxes; m_i++, mailboxIdx++) {
-               // -------------------------------------------------------------------------------------
-               if (mailboxIdx >= mbPartition.numberMailboxes) mailboxIdx = 0;
+             for (uint64_t m_i = 0; m_i < mbPartition.numberMailboxes; m_i++, mailboxIdx++) {
+                 // -------------------------------------------------------------------------------------
+                 if (mailboxIdx >= mbPartition.numberMailboxes) mailboxIdx = 0;
 
-               if (mailboxes[mailboxIdx] == 0) continue;
-               // -------------------------------------------------------------------------------------
-               mailboxes[mailboxIdx] = 0;  // reset mailbox before response is sent
-               // -------------------------------------------------------------------------------------
-               // handle message
-               uint64_t clientId = mailboxIdx + beginId;  // correct for partiton
-               auto& ctx = cctxs[clientId];
-               // reset infligh copy requests if needed
-               if (mbPartition.inflightCRs[m_i].inflight) {  // only we modify this entry, however there could be readers
-                  std::unique_lock<std::mutex> ulquard(mbPartition.inflightCRMutex);
-                  mbPartition.inflightCRs[m_i].inflight = false;
-                  mbPartition.inflightCRs[m_i].pid = EMPTY_PID;
-                  mbPartition.inflightCRs[m_i].pVersion = 0;
-               }
+                 if (mailboxes[mailboxIdx] == 0) continue;
+                 // -------------------------------------------------------------------------------------
+                 mailboxes[mailboxIdx] = 0;  // reset mailbox before response is sent
+                 // -------------------------------------------------------------------------------------
+                 // handle message
+                 uint64_t clientId = mailboxIdx + beginId;  // correct for partiton
+                 auto &ctx = cctxs[clientId];
+                 // reset infligh copy requests if needed
+                 if (mbPartition.inflightCRs[m_i].inflight) {  // only we modify this entry, however there could be readers
+                     std::unique_lock <std::mutex> ulquard(mbPartition.inflightCRMutex);
+                     mbPartition.inflightCRs[m_i].inflight = false;
+                     mbPartition.inflightCRs[m_i].pid = EMPTY_PID;
+                     mbPartition.inflightCRs[m_i].pVersion = 0;
+                 }
 
-               switch (ctx.request->type) {
-                  case MESSAGE_TYPE::Finish: {
-                     connectedClients--;
-                     break;
-                  }
-                  case MESSAGE_TYPE::DR: {
-                     auto& request = *reinterpret_cast<DelegationRequest*>(ctx.request);
-                     ctx.remoteMbOffsets[request.bmId] = request.mbOffset;
-                     ctx.remotePlOffsets[request.bmId] = request.mbPayload;
-                     auto& response = *MessageFabric::createMessage<DelegationResponse>(ctx.response);
-                     writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
-                     break;
-                  }
-                  case MESSAGE_TYPE::PRX: {
-                     auto& request = *reinterpret_cast<PossessionRequest*>(ctx.request);
-                     handlePossessionRequest<POSSESSION::EXCLUSIVE>(mbPartition, request, ctx, clientId, mailboxIdx, counters,
-                                                                    async_read_buffer, threads::ThreadContext::my().page_handle);
-                     break;
-                  }
-                  case MESSAGE_TYPE::PRS: {
-                     auto& request = *reinterpret_cast<PossessionRequest*>(ctx.request);
-                     handlePossessionRequest<POSSESSION::SHARED>(mbPartition, request, ctx, clientId, mailboxIdx, counters,
-                                                                 async_read_buffer, threads::ThreadContext::my().page_handle);
-                     break;
-                  }
-                  case MESSAGE_TYPE::PMR: {
-                     auto& request = *reinterpret_cast<PossessionMoveRequest*>(ctx.request);
-                     // we are not owner therefore we transfer the page or notify if possession removed
-                     auto guard = bm.findFrame<CONTENTION_METHOD::NON_BLOCKING>(PID(request.pid), Invalidation(), ctx.bmId);
-                     // -------------------------------------------------------------------------------------
-                     if (guard.state == STATE::RETRY) {
-                        ensure(guard.latchState != LATCH_STATE::EXCLUSIVE);
-                        if (!request.needPage)  // otherwise we need to let the request complete
-                           guard.frame->mhWaiting = true;
-                        mailboxes[mailboxIdx] = 1;
-                        counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
-                        continue;
+                 switch (ctx.request->type) {
+                     case MESSAGE_TYPE::Finish: {
+                         connectedClients--;
+                         break;
                      }
-                     // -------------------------------------------------------------------------------------
-                     ensure(guard.state != STATE::NOT_FOUND);
-                     ensure(guard.state != STATE::UNINITIALIZED);
-                     ensure(guard.frame);
-                     ensure(request.pid == guard.frame->pid);
-                     ensure(guard.frame->page != nullptr);
-                     ensure(guard.frame->latch.isLatched());
-                     ensure(guard.latchState == LATCH_STATE::EXCLUSIVE);
-                     // -------------------------------------------------------------------------------------
-                     auto& response = *MessageFabric::createMessage<PossessionMoveResponse>(ctx.response, RESULT::WithPage);
-                     // Respond
-                     // -------------------------------------------------------------------------------------
-                     if (request.needPage) {
-                        writePageAndMsg(clientId, guard.frame->page, request.pageOffset, response,
-                                        threads::ThreadContext::my().page_handle);
-                        counters.incr(profiling::WorkerCounters::rdma_pages_tx);
-                     } else {
-                        response.resultType = RESULT::NoPage;
-                        writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
+                     case MESSAGE_TYPE::DR: {
+                         auto &request = *reinterpret_cast<DelegationRequest *>(ctx.request);
+                         ctx.remoteMbOffsets[request.bmId] = request.mbOffset;
+                         ctx.remotePlOffsets[request.bmId] = request.mbPayload;
+                         auto &response = *MessageFabric::createMessage<DelegationResponse>(ctx.response);
+                         writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
+                         break;
                      }
-                     // -------------------------------------------------------------------------------------
-                     // Invalidate Page
-                     // -------------------------------------------------------------------------------------
-                     bm.removeFrame(*guard.frame,[&](BufferFrame& frame){
-                                                    ctx.activeInvalidationBatch->add(frame.page); 
-                                                 });
-                     // -------------------------------------------------------------------------------------
-                     break;
-                  }
-                  case MESSAGE_TYPE::PCR: {
-                     auto& request = *reinterpret_cast<PossessionCopyRequest*>(ctx.request);
-                     auto guard = bm.findFrame<CONTENTION_METHOD::NON_BLOCKING>(PID(request.pid), Copy(), ctx.bmId);
-                     auto& response = *MessageFabric::createMessage<rdma::PossessionCopyResponse>(ctx.response, RESULT::WithPage);
-                     // -------------------------------------------------------------------------------------
-                     // entry already invalidated by someone
-                     if ((guard.state == STATE::UNINITIALIZED || guard.state == STATE::NOT_FOUND)) {
-                        response.resultType = RESULT::CopyFailedWithInvalidation;
-                        writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
-                        ctx.retries = 0;
-                        counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
-                        continue;
+                     case MESSAGE_TYPE::PRX: {
+                         auto &request = *reinterpret_cast<PossessionRequest *>(ctx.request);
+                         handlePossessionRequest<POSSESSION::EXCLUSIVE>(mbPartition, request, ctx, clientId, mailboxIdx,
+                                                                        counters,
+                                                                        async_read_buffer,
+                                                                        threads::ThreadContext::my().page_handle);
+                         break;
                      }
-                     // -------------------------------------------------------------------------------------
-                     // found entry but could not latch check max restart
-                     if (guard.state == STATE::RETRY) {
-                        if (guard.frame->pVersion == request.pVersion && ctx.retries < FLAGS_messageHandlerMaxRetries) { // is this abort needed? to check if mh_waiting? 
-                           ctx.retries++;
-                           mailboxes[mailboxIdx] = 1;
-                           counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
-                           continue;
-                        }
-                        response.resultType = RESULT::CopyFailedWithRestart;
-                        writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
-                        ctx.retries = 0;
-                        counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
-                        continue;
+                     case MESSAGE_TYPE::PRS: {
+                         auto &request = *reinterpret_cast<PossessionRequest *>(ctx.request);
+                         handlePossessionRequest<POSSESSION::SHARED>(mbPartition, request, ctx, clientId, mailboxIdx,
+                                                                     counters,
+                                                                     async_read_buffer,
+                                                                     threads::ThreadContext::my().page_handle);
+                         break;
                      }
-                     // -------------------------------------------------------------------------------------
-                     // potential deadlock, restart and release latches
-                     if (guard.frame->mhWaiting && guard.frame->state != BF_STATE::HOT) {
-                        ensure((guard.frame->state == BF_STATE::IO_RDMA) | (guard.frame->state == BF_STATE::FREE));
-                        response.resultType = RESULT::CopyFailedWithRestart;
-                        writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
-                        guard.frame->latch.unlatchShared();
-                        ctx.retries = 0;
-                        counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
-                        continue;
+                     case MESSAGE_TYPE::PMR: {
+                         auto &request = *reinterpret_cast<PossessionMoveRequest *>(ctx.request);
+                         // we are not owner therefore we transfer the page or notify if possession removed
+                         auto guard = bm.findFrame<CONTENTION_METHOD::NON_BLOCKING>(PID(request.pid), Invalidation(),
+                                                                                    ctx.bmId);
+                         // -------------------------------------------------------------------------------------
+                         if (guard.state == STATE::RETRY) {
+                             ensure(guard.latchState != LATCH_STATE::EXCLUSIVE);
+                             if (!request.needPage)  // otherwise we need to let the request complete
+                                 guard.frame->mhWaiting = true;
+                             mailboxes[mailboxIdx] = 1;
+                             counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
+                             continue;
+                         }
+                         // -------------------------------------------------------------------------------------
+                         ensure(guard.state != STATE::NOT_FOUND);
+                         ensure(guard.state != STATE::UNINITIALIZED);
+                         ensure(guard.frame);
+                         ensure(request.pid == guard.frame->pid);
+                         ensure(guard.frame->page != nullptr);
+                         ensure(guard.frame->latch.isLatched());
+                         ensure(guard.latchState == LATCH_STATE::EXCLUSIVE);
+                         // -------------------------------------------------------------------------------------
+                         auto &response = *MessageFabric::createMessage<PossessionMoveResponse>(ctx.response,
+                                                                                                RESULT::WithPage);
+                         // Respond
+                         // -------------------------------------------------------------------------------------
+                         if (request.needPage) {
+                             writePageAndMsg(clientId, guard.frame->page, request.pageOffset, response,
+                                             threads::ThreadContext::my().page_handle);
+                             counters.incr(profiling::WorkerCounters::rdma_pages_tx);
+                         } else {
+                             response.resultType = RESULT::NoPage;
+                             writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
+                         }
+                         // -------------------------------------------------------------------------------------
+                         // Invalidate Page
+                         // -------------------------------------------------------------------------------------
+                         bm.removeFrame(*guard.frame, [&](BufferFrame &frame) {
+                             ctx.activeInvalidationBatch->add(frame.page);
+                         });
+                         // -------------------------------------------------------------------------------------
+                         break;
                      }
-                     // -------------------------------------------------------------------------------------
-                     ensure(guard.frame->possession == POSSESSION::SHARED);
-                     ensure(request.pid == guard.frame->pid);
-                     ensure(guard.frame->pVersion == request.pVersion);
-                     ensure(guard.frame != nullptr);
-                     ensure(guard.frame->page != nullptr);
-                     // -------------------------------------------------------------------------------------
-                     // write back pages
-                     writePageAndMsg(clientId, guard.frame->page, request.pageOffset, response, threads::ThreadContext::my().page_handle);
-                     counters.incr(profiling::WorkerCounters::rdma_pages_tx);
-                     guard.frame->latch.unlatchShared();
-                     ctx.retries = 0;
+                     case MESSAGE_TYPE::PCR: {
+                         auto &request = *reinterpret_cast<PossessionCopyRequest *>(ctx.request);
+                         auto guard = bm.findFrame<CONTENTION_METHOD::NON_BLOCKING>(PID(request.pid), Copy(), ctx.bmId);
+                         auto &response = *MessageFabric::createMessage<rdma::PossessionCopyResponse>(ctx.response,
+                                                                                                      RESULT::WithPage);
+                         // -------------------------------------------------------------------------------------
+                         // entry already invalidated by someone
+                         if ((guard.state == STATE::UNINITIALIZED || guard.state == STATE::NOT_FOUND)) {
+                             response.resultType = RESULT::CopyFailedWithInvalidation;
+                             writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
+                             ctx.retries = 0;
+                             counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
+                             continue;
+                         }
+                         // -------------------------------------------------------------------------------------
+                         // found entry but could not latch check max restart
+                         if (guard.state == STATE::RETRY) {
+                             if (guard.frame->pVersion == request.pVersion && ctx.retries <
+                                                                              FLAGS_messageHandlerMaxRetries) { // is this abort needed? to check if mh_waiting?
+                                 ctx.retries++;
+                                 mailboxes[mailboxIdx] = 1;
+                                 counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
+                                 continue;
+                             }
+                             response.resultType = RESULT::CopyFailedWithRestart;
+                             writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
+                             ctx.retries = 0;
+                             counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
+                             continue;
+                         }
+                         // -------------------------------------------------------------------------------------
+                         // potential deadlock, restart and release latches
+                         if (guard.frame->mhWaiting && guard.frame->state != BF_STATE::HOT) {
+                             ensure((guard.frame->state == BF_STATE::IO_RDMA) | (guard.frame->state == BF_STATE::FREE));
+                             response.resultType = RESULT::CopyFailedWithRestart;
+                             writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
+                             guard.frame->latch.unlatchShared();
+                             ctx.retries = 0;
+                             counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
+                             continue;
+                         }
+                         // -------------------------------------------------------------------------------------
+                         ensure(guard.frame->possession == POSSESSION::SHARED);
+                         ensure(request.pid == guard.frame->pid);
+                         ensure(guard.frame->pVersion == request.pVersion);
+                         ensure(guard.frame != nullptr);
+                         ensure(guard.frame->page != nullptr);
+                         // -------------------------------------------------------------------------------------
+                         // write back pages
+                         writePageAndMsg(clientId, guard.frame->page, request.pageOffset, response,
+                                         threads::ThreadContext::my().page_handle);
+                         counters.incr(profiling::WorkerCounters::rdma_pages_tx);
+                         guard.frame->latch.unlatchShared();
+                         ctx.retries = 0;
 
-                     break;
-                  }
-                  case MESSAGE_TYPE::PUR: {
-                      auto& request = *reinterpret_cast<PossessionUpdateRequest*>(ctx.request);
-                      auto& response = *MessageFabric::createMessage<rdma::PossessionUpdateResponse>(ctx.response, RESULT::UpdateSucceed);
-                      //first check if we are even the directory - otherwise it there is no need to lock
-                      bool localPage = pageIdManager.isNodeDirectoryOfPageId(request.pid);
-                      if(localPage == false){
-                          response.resultType = RESULT::DirectoryChanged;
-                          writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
-                          break;
-                      }
-                      auto guard = bm.findFrame<CONTENTION_METHOD::NON_BLOCKING>(request.pid, Invalidation(), ctx.bmId);
-                      // -------------------------------------------------------------------------------------
+                         break;
+                     }
+                     case MESSAGE_TYPE::PUR: {
+                         auto &request = *reinterpret_cast<PossessionUpdateRequest *>(ctx.request);
+                         auto &response = *MessageFabric::createMessage<rdma::PossessionUpdateResponse>(ctx.response,
+                                                                                                        RESULT::UpdateSucceed);
+                         //first check if we are even the directory - otherwise it there is no need to lock
+                         bool localPage = pageIdManager.isNodeDirectoryOfPageId(request.pid);
+                         if (localPage == false) {
+                             response.resultType = RESULT::DirectoryChanged;
+                             writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
+                             break;
+                         }
+                         auto guard = bm.findFrame<CONTENTION_METHOD::NON_BLOCKING>(request.pid, Invalidation(),
+                                                                                    ctx.bmId);
+                         // -------------------------------------------------------------------------------------
 
 
 
-                     if ((guard.state == STATE::RETRY) && (guard.frame->pVersion == request.pVersion)) {
-                        guard.frame->mhWaiting = true;
-                        ensure(guard.latchState == LATCH_STATE::UNLATCHED);
-                        mailboxes[mailboxIdx] = 1;
-                        counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
-                        continue;
+                         if ((guard.state == STATE::RETRY) && (guard.frame->pVersion == request.pVersion)) {
+                             guard.frame->mhWaiting = true;
+                             ensure(guard.latchState == LATCH_STATE::UNLATCHED);
+                             mailboxes[mailboxIdx] = 1;
+                             counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
+                             continue;
+                         }
+
+                         if ((guard.frame->pVersion > request.pVersion)) {
+                             response.resultType = rdma::RESULT::UpdateFailed;
+                             writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
+                             guard.frame->mhWaiting = false;
+                             if (guard.latchState == LATCH_STATE::EXCLUSIVE) guard.frame->latch.unlatchExclusive();
+                             counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
+                             continue;
+                         }
+
+                         ensure(guard.state != STATE::UNINITIALIZED);
+                         ensure(guard.state != STATE::NOT_FOUND);
+                         ensure(guard.state != STATE::RETRY);
+                         ensure(request.pid == guard.frame->pid);
+                         ensure(guard.frame->pVersion == request.pVersion);
+                         // -------------------------------------------------------------------------------------
+                         ensure(guard.frame->latch.isLatched());
+                         ensure(guard.latchState == LATCH_STATE::EXCLUSIVE);
+                         ensure((guard.frame->possessors.shared.test(ctx.bmId)));
+                         // -------------------------------------------------------------------------------------
+                         // Update states
+                         // -------------- -----------------------------------------------------------------------
+                         guard.frame->pVersion++;
+                         response.pVersion = guard.frame->pVersion;
+                         guard.frame->possessors.shared.reset(nodeId);  // reset own node id already
+                         // test if there are more shared possessors
+                         if (guard.frame->possessors.shared.any()) {
+                             response.resultType = RESULT::UpdateSucceedWithSharedConflict;
+                             response.conflictingNodeId = guard.frame->possessors.shared;
+                         }
+                         // -------------------------------------------------------------------------------------
+                         // evict page as other node modifys it
+                         if (guard.frame->state != BF_STATE::EVICTED) {
+                             ensure(guard.frame->page);
+                             ctx.activeInvalidationBatch->add(guard.frame->page);
+                             guard.frame->page = nullptr;
+                             guard.frame->state = BF_STATE::EVICTED;
+                         }
+                         // -------------------------------------------------------------------------------------
+                         guard.frame->possession = POSSESSION::EXCLUSIVE;
+                         guard.frame->setPossessor(ctx.bmId);
+                         guard.frame->dirty = true;  // set dirty
+                         ensure(guard.frame->isPossessor(ctx.bmId));
+                         // -------------------------------------------------------------------------------------
+                         writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
+                         // -------------------------------------------------------------------------------------
+                         guard.frame->mhWaiting = false;
+                         guard.frame->latch.unlatchExclusive();
+                         // -------------------------------------------------------------------------------------
+                         break;
+                     }
+                     case MESSAGE_TYPE::RAR: {
+                         [[maybe_unused]] auto &request = *reinterpret_cast<RemoteAllocationRequest *>(ctx.request);
+                         // -------------------------------------------------------------------------------------
+                         PID pid = PID(pageIdManager.addPage());
+                         // -------------------------------------------------------------------------------------
+                         BufferFrame &frame = bm.insertFrame(pid, [&](BufferFrame &frame) {
+                             frame.latch.latchExclusive();
+                             frame.setPossession(POSSESSION::EXCLUSIVE);
+                             frame.setPossessor(ctx.bmId);
+                             frame.state = BF_STATE::EVICTED;
+                             frame.pid = pid;
+                             frame.pVersion = 0;
+                             frame.dirty = true;
+                             frame.epoch = bm.globalEpoch.load();
+                         });
+
+                         frame.latch.unlatchExclusive();
+                         // -------------------------------------------------------------------------------------
+                         auto &response = *MessageFabric::createMessage<rdma::RemoteAllocationResponse>(ctx.response,
+                                                                                                        pid);
+                         writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
+                         break;
                      }
 
-                     if ((guard.frame->pVersion > request.pVersion)) {
-                        response.resultType = rdma::RESULT::UpdateFailed;
-                        writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
-                        guard.frame->mhWaiting = false;
-                        if (guard.latchState == LATCH_STATE::EXCLUSIVE) guard.frame->latch.unlatchExclusive();
-                        counters.incr(profiling::WorkerCounters::mh_msgs_restarted);
-                        continue;
+                     case MESSAGE_TYPE::NLUR: {
+                         auto &request = *reinterpret_cast<NodeLeavingUpdateRequest *>(ctx.request);
+                         pageIdManager.prepareForShuffle(request.leavingNodeId);
+                         auto &response = *MessageFabric::createMessage<rdma::NodeLeavingUpdateResponse>(ctx.response);
+                         writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
+                         break;
                      }
 
-                     ensure(guard.state != STATE::UNINITIALIZED);
-                     ensure(guard.state != STATE::NOT_FOUND);
-                     ensure(guard.state != STATE::RETRY);
-                     ensure(request.pid == guard.frame->pid);
-                     ensure(guard.frame->pVersion == request.pVersion);
-                     // -------------------------------------------------------------------------------------
-                     ensure(guard.frame->latch.isLatched());
-                     ensure(guard.latchState == LATCH_STATE::EXCLUSIVE);
-                     ensure((guard.frame->possessors.shared.test(ctx.bmId)));
-                     // -------------------------------------------------------------------------------------
-                     // Update states
-                     // -------------- -----------------------------------------------------------------------
-                     guard.frame->pVersion++;
-                     response.pVersion = guard.frame->pVersion;
-                     guard.frame->possessors.shared.reset(nodeId);  // reset own node id already
-                     // test if there are more shared possessors
-                     if (guard.frame->possessors.shared.any()) {
-                        response.resultType = RESULT::UpdateSucceedWithSharedConflict;
-                        response.conflictingNodeId = guard.frame->possessors.shared;
+                     case MESSAGE_TYPE::CUSFR: {
+                         std::cout << " k " << std::endl;
+                         auto &request = *reinterpret_cast<CreateOrUpdateShuffledFramesRequest *>(ctx.request);
+                         uint8_t successfulShuffles = 0;
+                         uint64_t successfulPids[AGGREGATED_SHUFFLE_MESSAGE_AMOUNT];
+                         for (int i = 0; i < request.amountSent; i++) {
+                             PIDShuffleData pidShuffleData = request.shuffleData[i];
+                             uint64_t shuffledPid = pidShuffleData.shuffledPid;
+                             pageIdManager.addPageWithExistingPageId(shuffledPid);
+                             if (t_i == 0) {
+                                 std::cout << " a " << std::endl;
+                             }
+                             auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(PID(shuffledPid),
+                                                                                                Protocol<storage::POSSESSION::EXCLUSIVE>(),
+                                                                                                ctx.bmId, true);
+                             if (t_i == 0) {
+                                 std::cout << " b " << std::endl;
+                             }
+                             if (guard.state ==
+                                 STATE::RETRY) { // this it to deal with a case of the distrubted deadlock
+                                 pageIdManager.removePage(shuffledPid);
+                                 if (t_i == 0) {
+                                     std::cout << " c " << std::endl;
+                                 }
+                             } else {
+                                 guard.frame->possession = pidShuffleData.possession;
+                                 if (pidShuffleData.possession == POSSESSION::SHARED) {
+                                     guard.frame->possessors.shared.bitmap = pidShuffleData.possessors;
+                                 } else {
+                                     guard.frame->possessors.exclusive = pidShuffleData.possessors;
+                                 }
+                                 guard.frame->pid = shuffledPid;
+                                 uint64_t localpVersion = guard.frame->pVersion.load();
+                                 guard.frame->pVersion =
+                                         pidShuffleData.pVersion > localpVersion ? pidShuffleData.pVersion
+                                                                                 : localpVersion;
+                                 if (guard.frame->possession == POSSESSION::SHARED) {
+                                     // shared, node not possessor
+                                     if (guard.frame->isPossessor(bm.nodeId) == false) {
+                                         guard.frame->state = BF_STATE::EVICTED;
+                                         guard.frame->dirty = true;
+                                         guard.frame->page = nullptr;
+                                         // shared, node possessor
+                                     } else {
+                                         guard.frame->dirty = pidShuffleData.dirty;
+                                         ensure(guard.frame->state == BF_STATE::HOT);
+                                     }
+                                 } else if (guard.frame->possession == POSSESSION::EXCLUSIVE) {
+                                     // exclusive, node not possessor
+                                     if (guard.frame->isPossessor(bm.nodeId) == false) {
+                                         guard.frame->dirty = true;
+                                         guard.frame->state = BF_STATE::EVICTED;
+                                         guard.frame->page = nullptr;
+                                         // exclusive, node possessor
+                                     } else {
+                                         guard.frame->dirty = true;
+                                         ensure(guard.frame->state == BF_STATE::HOT);
+                                     }
+                                 } else {
+                                     throw std::runtime_error("Invalid possession for shuffled frame");
+                                 }
+                                 guard.frame->shuffled = true; // just fot gdb debug
+                                 guard.frame->latch.unlatchExclusive();
+                                 successfulPids[successfulShuffles] = shuffledPid;
+                                 successfulShuffles++;
+                             }
+                         }
+                         if (t_i == 0) {
+                             std::cout << " d " << std::endl;
+                         }
+                         auto &response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFramesResponse>(
+                                 ctx.response);
+                         response.successfulAmount = successfulShuffles;
+                         for (int i = 0; i < successfulShuffles; i++) {
+                             response.successfulShuffledPid[i] = successfulPids[i];
+                             if (t_i == 0) {
+                                 std::cout << "pid: " << successfulPids[i] << std::endl;
+                             }
+                         }
+                         writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
+                         if (t_i == 0) {
+                             std::cout << " f " << std::endl;
+                             break;
+                         }
+
+
                      }
-                     // -------------------------------------------------------------------------------------
-                     // evict page as other node modifys it
-                     if (guard.frame->state != BF_STATE::EVICTED) {
-                        ensure(guard.frame->page);
-                        ctx.activeInvalidationBatch->add(guard.frame->page);
-                        guard.frame->page = nullptr;
-                        guard.frame->state = BF_STATE::EVICTED;
-                     }
-                     // -------------------------------------------------------------------------------------
-                     guard.frame->possession = POSSESSION::EXCLUSIVE;
-                     guard.frame->setPossessor(ctx.bmId);
-                     guard.frame->dirty = true;  // set dirty
-                     ensure(guard.frame->isPossessor(ctx.bmId));
-                     // -------------------------------------------------------------------------------------
-                     writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
-                     // -------------------------------------------------------------------------------------
-                     guard.frame->mhWaiting = false;
-                     guard.frame->latch.unlatchExclusive();
-                     // -------------------------------------------------------------------------------------
-                     break;
-                  }
-                  case MESSAGE_TYPE::RAR: {
-                     [[maybe_unused]] auto& request = *reinterpret_cast<RemoteAllocationRequest*>(ctx.request);
-                     // -------------------------------------------------------------------------------------
-                     PID pid = PID(pageIdManager.addPage());
-                     // -------------------------------------------------------------------------------------
-                     BufferFrame& frame =bm.insertFrame(pid, [&](BufferFrame& frame){
-                                                                frame.latch.latchExclusive();
-                                                                frame.setPossession(POSSESSION::EXCLUSIVE);
-                                                                frame.setPossessor(ctx.bmId);
-                                                                frame.state = BF_STATE::EVICTED;
-                                                                frame.pid = pid;
-                                                                frame.pVersion = 0;
-                                                                frame.dirty = true;
-                                                                frame.epoch = bm.globalEpoch.load();
-                                                          });  
-                     
-                     frame.latch.unlatchExclusive();
-                     // -------------------------------------------------------------------------------------
-                     auto& response = *MessageFabric::createMessage<rdma::RemoteAllocationResponse>(ctx.response, pid);
-                     writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
-                     break;
-                  }
-
-                  case MESSAGE_TYPE::NLUR:{
-                      auto& request = *reinterpret_cast<NodeLeavingUpdateRequest*>(ctx.request);
-                      pageIdManager.prepareForShuffle(request.leavingNodeId);
-                      auto& response = *MessageFabric::createMessage<rdma::NodeLeavingUpdateResponse>(ctx.response);
-                      writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
-                      break;
-                  }
-
-                  case MESSAGE_TYPE::CUSFR: {
-                      std::cout<< " k " << std::endl;
-                      auto& request = *reinterpret_cast<CreateOrUpdateShuffledFramesRequest*>(ctx.request);
-                      uint8_t  successfulShuffles = 0 ;
-                      uint64_t successfulPids [AGGREGATED_SHUFFLE_MESSAGE_AMOUNT];
-                      for(int i = 0; i<request.amountSent; i++){
-                          PIDShuffleData pidShuffleData = request.shuffleData[i];
-                          uint64_t shuffledPid = pidShuffleData.shuffledPid;
-                          pageIdManager.addPageWithExistingPageId(shuffledPid);
-                          if(t_i == 0){
-                              std::cout<< " a " << std::endl;
-                          }
-                          auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(PID(shuffledPid), Protocol<storage::POSSESSION::EXCLUSIVE>(), ctx.bmId,true);
-                          if(t_i == 0){
-                              std::cout<< " b " << std::endl;
-                          }
-                          if(guard.state == STATE::RETRY){ // this it to deal with a case of the distrubted deadlock
-                              pageIdManager.removePage(shuffledPid);
-                              if(t_i == 0){
-                                  std::cout<< " c " << std::endl;
-                              }
-                          }else{
-                              guard.frame->possession = pidShuffleData.possession;
-                              if(pidShuffleData.possession == POSSESSION::SHARED){
-                                  guard.frame->possessors.shared.bitmap = pidShuffleData.possessors;
-                              }else{
-                                  guard.frame->possessors.exclusive = pidShuffleData.possessors;
-                              }
-                              guard.frame->pid = shuffledPid;
-                              uint64_t localpVersion =  guard.frame->pVersion.load();
-                              guard.frame->pVersion = pidShuffleData.pVersion > localpVersion ? pidShuffleData.pVersion :  localpVersion;
-                              if(guard.frame->possession == POSSESSION::SHARED) {
-                                  // shared, node not possessor
-                                  if(guard.frame->isPossessor(bm.nodeId) == false) {
-                                      guard.frame->state = BF_STATE::EVICTED;
-                                      guard.frame->dirty = true;
-                                      guard.frame->page = nullptr;
-                                      // shared, node possessor
-                                  } else {
-                                      guard.frame->dirty = pidShuffleData.dirty;
-                                      ensure(guard.frame->state == BF_STATE::HOT);
-                                  }
-                              }else if (guard.frame->possession == POSSESSION::EXCLUSIVE){
-                                  // exclusive, node not possessor
-                                  if(guard.frame->isPossessor(bm.nodeId) == false) {
-                                      guard.frame->dirty = true;
-                                      guard.frame->state = BF_STATE::EVICTED;
-                                      guard.frame->page = nullptr;
-                                      // exclusive, node possessor
-                                  } else {
-                                      guard.frame->dirty = true;
-                                      ensure(guard.frame->state == BF_STATE::HOT);
-                                  }
-                              }else {
-                                  throw std::runtime_error("Invalid possession for shuffled frame");
-                              }
-                              guard.frame->shuffled = true; // just fot gdb debug
-                              guard.frame->latch.unlatchExclusive();
-                              successfulPids[successfulShuffles] = shuffledPid;
-                              successfulShuffles++;
-                          }
-                      }
-                      if(t_i == 0){
-                          std::cout<< " d " << std::endl;
-                      }
-                      auto& response = *MessageFabric::createMessage<rdma::CreateOrUpdateShuffledFramesResponse>(ctx.response);
-                      response.successfulAmount = successfulShuffles;
-                      for(int i = 0; i<successfulShuffles; i++){
-                          response.successfulShuffledPid[i] = successfulPids[i];
-                          if(t_i == 0){
-                              std::cout<< "pid: "<<successfulPids[i] << std::endl;
-                          }
-                      }
-                      writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
-                      if(t_i == 0){
-                          std::cout<< " f " << std::endl;
-                      break;
-                  }
-
-
-               }
-
-                   default:
-                       throw std::runtime_error("Unexpected Message in MB " + std::to_string(mailboxIdx) + " type " +
-                                                std::to_string((size_t)ctx.request->type));
-               counters.incr(profiling::WorkerCounters::mh_msgs_handled);
-            }
-            mailboxIdx = ++startPosition;
-            // submit
-            [[maybe_unused]] auto nsubmit = async_read_buffer.submit();
-            const uint64_t polled_events = async_read_buffer.pollEventsSync();
-            async_read_buffer.getReadBfs(
-                [&](BufferFrame& frame, uint64_t client_id, bool recheck_msg) {
-                   // unlatch
-                   frame.latch.unlatchExclusive();
-                   counters.incr(profiling::WorkerCounters::ssd_pages_read);
-                   if (recheck_msg) mailboxes[client_id] = 1;
-                },
-                polled_events);
-            // check async reads
+                     default:
+                         throw std::runtime_error("Unexpected Message in MB " + std::to_string(mailboxIdx) + " type " +
+                                                  std::to_string((size_t) ctx.request->type));
+                         counters.incr(profiling::WorkerCounters::mh_msgs_handled);
+                 }
+                 mailboxIdx = ++startPosition;
+                 // submit
+                 [[maybe_unused]] auto nsubmit = async_read_buffer.submit();
+                 const uint64_t polled_events = async_read_buffer.pollEventsSync();
+                 async_read_buffer.getReadBfs(
+                         [&](BufferFrame &frame, uint64_t client_id, bool recheck_msg) {
+                             // unlatch
+                             frame.latch.unlatchExclusive();
+                             counters.incr(profiling::WorkerCounters::ssd_pages_read);
+                             if (recheck_msg) mailboxes[client_id] = 1;
+                         },
+                         polled_events);
+                 // check async reads
+             }
+             threadCount--;
          }
-         threadCount--;
       });
 
       // threads::CoreManager::getInstance().pinThreadToCore(t.native_handle());
