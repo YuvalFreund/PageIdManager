@@ -590,7 +590,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         auto& pid = guardPidPair.second;
         if(successfullyShufflePids.find(guardPidPair.second) != successfullyShufflePids.end()) {
             if(guard.frame->isPossessor(pageIdManager.nodeId) == false){
-                bm.removeFrame(guard.frame, [](BufferFrame& /*frame*/) {});
+                bm.removeFrame(*guard.frame, [](BufferFrame& /*frame*/) {});
                 // guard is unlatched here^^^^^
             }else{
                 guard.frame->shuffled = true;
