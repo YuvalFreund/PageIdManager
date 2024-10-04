@@ -494,10 +494,8 @@ void MessageHandler::startThread() {
                          writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
                          if (t_i == 0) {
                              std::cout << " f " << std::endl;
-                             break;
                          }
-
-
+                         break;
                      }
                      default:
                          throw std::runtime_error("Unexpected Message in MB " + std::to_string(mailboxIdx) + " type " +
