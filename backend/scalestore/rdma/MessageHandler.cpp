@@ -525,8 +525,6 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     if(pagesShuffleJob.last){
         return true;
     }
-    // todo check for if to return here because shuffle ended
-
     PIDShuffleData shuffleData [AGGREGATED_SHUFFLE_MESSAGE_AMOUNT];
     auto newNodeId = pagesShuffleJob.newNodeId;
     auto& context_ = workerPtr->cctxs[newNodeId];
