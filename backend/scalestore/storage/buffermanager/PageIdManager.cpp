@@ -169,6 +169,7 @@ PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(){
     restart:
     // preparing a new map of stacks
     if(highestNodeIdForShuffleJobs < currentNodeIdForShuffleJobs){
+        std::cout<<workingShuffleMapIdx<<std::endl;
         workingShuffleMapIdx++;
         if(workingShuffleMapIdx > SSD_PID_MAPS_AMOUNT){ // the case where there is no more to shuffle
             retVal.last = true;

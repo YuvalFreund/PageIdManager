@@ -186,8 +186,9 @@ struct PageIdManager {
 
     //shuffling
     std::map<uint64_t, std::stack<uint64_t>> mapOfStacksForShuffle;
-    uint64_t highestNodeIdForShuffleJobs = 0; // This is initiated that way so when the first shuffle
-    uint64_t currentNodeIdForShuffleJobs = 10; // start, the map will be initiated
+    // This is initiated that way so when the first shuffle starts, the map will be initiated
+    std::atomic<uint64_t> highestNodeIdForShuffleJobs = 0;
+    std::atomic<uint64_t> currentNodeIdForShuffleJobs = 10;
     // for page provider
     uint64_t nodeLeaving;
 
