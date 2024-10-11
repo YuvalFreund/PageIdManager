@@ -46,10 +46,11 @@ enum class MESSAGE_TYPE : uint8_t {
     // -------------------------------------------------------------------------------------
     //node leaving update
     NLUR = 18,
-    NLURR = 18,
+    NLURR = 19,
     // -------------------------------------------------------------------------------------
-    IPTR = 20,
-    IPTRR = 21,
+    //node finished shuffle request
+    NFSR =20,
+    NFSRR = 21,
     // -------------------------------------------------------------------------------------
    DPMR = 96, // delegate possession request
    // Remote information for delegation
@@ -230,6 +231,15 @@ struct NodeLeavingUpdateResponse : public Message {
     NodeLeavingUpdateResponse() : Message(MESSAGE_TYPE::NLURR) {}
 };
 
+struct NodeFinishedShuffleRequest : public Message{
+    uint64_t leavingNodeId;
+    NodeFinishedShuffleRequest() (uint64_t leavingNodeId) : Message(MESSAGE_TYPE::NFSR), leavingNodeId(leavingNodeId) {}
+};
+
+struct NodeFinishedShuffleResponse : public Message {
+    uint8_t receiveFlag = 1;
+    NodeFinishedShuffleResponse() : Message(MESSAGE_TYPE::NFSRR) {}
+};
 // -------------------------------------------------------------------------------------
 // Get size of Largest Message
 union ALLDERIVED {

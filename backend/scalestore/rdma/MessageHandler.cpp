@@ -412,6 +412,12 @@ void MessageHandler::startThread() {
                          break;
                      }
 
+                     case MESSAGE_TYPE::NFSR{
+                         auto &request = *reinterpret_cast<NodeFinishedShuffleRequest *>(ctx.request);
+                         pageIdManager(request.leavingNodeId);
+                         break;
+                     }
+
                      case MESSAGE_TYPE::CUSFR: {
                          auto &request = *reinterpret_cast<CreateOrUpdateShuffledFramesRequest *>(ctx.request);
                          uint8_t successfulShuffles = 0;

@@ -66,7 +66,8 @@ void PageIdManager::initPageIdToSsdSlotMaps(){
 }
 
 uint64_t PageIdManager::addPage(){
-    uint64_t retVal = getNewPageId(isBeforeShuffle);
+    bool createPidByOldRing = (shuffleState == SHUFFLE_STATE::BEFORE_SHUFFLE);
+    uint64_t retVal = getNewPageId(createPidByOldRing);
     uint64_t ssdSlotForNewPage = getFreeSsdSlot();
     ssdSlotForNewPage |= nodeIdAtMSB;
     uint64_t partition = retVal & PARTITION_MASK;
@@ -89,9 +90,9 @@ void PageIdManager::removePage(uint64_t pageId){
 
 uint64_t PageIdManager::getTargetNodeForEviction(uint64_t pageId){
     uint64_t retVal;
-    if(isBeforeShuffle){
+    if(shuffleState == SHUFFLE_STATE::BEFORE_SHUFFLE){
         retVal = searchRingForNode(pageId, true);
-    }else{
+    }else if (shuffleState == SHUFFLE_STATE::DURING_SHUFFLE) {
         uint64_t checkCachedLocation = getCachedDirectoryOfPage(pageId);
         if(checkCachedLocation != INVALID_NODE_ID){
             retVal = checkCachedLocation; // this node is either old or new directory
@@ -106,22 +107,27 @@ uint64_t PageIdManager::getTargetNodeForEviction(uint64_t pageId){
         if(retVal == nodeId){
             retVal = searchRingForNode(pageId, true);
         }
+    }else if (shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE){ // after shuffle
+        retVal = searchRingForNode(pageId, false);
     }
     return retVal;
 }
 
 bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
     bool retVal;
-    if(isBeforeShuffle){
+    if(shuffleState == SHUFFLE_STATE::BEFORE_SHUFFLE){
         uint64_t foundNodeId = searchRingForNode(pageId, true);
         retVal = (foundNodeId == nodeId);
-    }else{
+    }else if (shuffleState == SHUFFLE_STATE::DURING_SHUFFLE){
         uint64_t cachedDir = getCachedDirectoryOfPage(pageId);
         if (cachedDir == nodeId){
             retVal = true;
         }else{
             retVal = false;
         }
+    } else if (shuffleState == SHUFFLE_STATE::BEFORE_SHUFFLE){
+        uint64_t foundNodeId = searchRingForNode(pageId, false);
+        retVal = (foundNodeId == nodeId);
     }
     return retVal;
 }
@@ -145,7 +151,7 @@ void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
     nodeLeaving = nodeIdLeft;
     initConsistentHashingInfo(false);
     if(nodeIdLeft != nodeId){
-        isBeforeShuffle = false;
+        shuffleState = SHUFFLE_STATE::DURING_SHUFFLE;
     }
 }
 
@@ -298,3 +304,6 @@ uint64_t PageIdManager::getNewPageId(bool oldRing){
     return retVal;
 }
 
+void PageIdManager::handleNodeFinishedShuffling(uint64_t nodeIdLeaving){
+    shuffleState = SHUFFLE_STATE::AFTER_SHUFFLE;
+}

@@ -269,11 +269,11 @@ int main(int argc, char* argv[])
                                beginOfShuffling = std::chrono::steady_clock::now();
                                pageIdManager.gossipNodeIsLeaving(workerPtr);
                                std::cout<<"done trigger" <<std::endl;
-                               pageIdManager.isBeforeShuffle = false;
+                               pageIdManager.shuffleState = SHUFFLE_STATE::DURING_SHUFFLE;
                            }
                        }
 
-                       if(scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio ){
+                       if(scalestore.getNodeID() == leavingNodeId && pageIdManager.shuffleState == SHUFFLE_STATE::DURING_SHUFFLE && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio ){
                            bool finished = mh.shuffleFrameAndIsLastShuffle(workerPtr,t_i);
                            if(finished && scalestore.getNodeID() == leavingNodeId && t_i == 0){
                                std::chrono::steady_clock::time_point finishShuffling = std::chrono::steady_clock::now();

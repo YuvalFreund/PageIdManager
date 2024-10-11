@@ -108,8 +108,7 @@ Buffermanager::Buffermanager(rdma::CM<rdma::InitMessage>& cm, NodeID nodeId, s32
 
 BufferFrame& Buffermanager::newPageAux(){
     if(pageIdManager.nodeId == 0){
-        if(pageIdManager.isBeforeShuffle == false){
-            std::cout<<"T"<<std::endl;
+        if(pageIdManager.shuffleState == SHUFFLE_STATE::DURING_SHUFFLE){
             return newRemotePage(1);
         }else{
             return newPage();

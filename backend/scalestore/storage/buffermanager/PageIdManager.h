@@ -178,6 +178,8 @@ struct PageIdManager {
 
 
     //locks and atomics
+    enum class SHUFFLE_STATE { BEFORE_SHUFFLE, DURING_SHUFFLE, AFTER_SHUFFLE };  // Define an enum class
+    std::atomic<SHUFFLE_STATE> shuffleState = SHUFFLE_STATE::BEFORE_SHUFFLE;  // Define an atomic enum
     std::atomic<bool> isBeforeShuffle = true;
     std::atomic<int> workingShuffleMapIdx = 0;
     std::atomic<bool> shuffleDone = false;
@@ -215,7 +217,7 @@ struct PageIdManager {
     void setDirectoryOfPage(uint64_t pageId, uint64_t directory);
     bool isNodeDirectoryOfPageId(uint64_t pageId);
     uint64_t getTargetNodeForEviction(uint64_t pageId);
-
+    void handleNodeFinishedShuffling(uint64_t nodeIdLeaving);
 
     // shuffling message
     void gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr );
