@@ -412,7 +412,7 @@ void MessageHandler::startThread() {
                          break;
                      }
 
-                     case MESSAGE_TYPE::NFSR{
+                     case MESSAGE_TYPE::NFSR:{
                          auto &request = *reinterpret_cast<NodeFinishedShuffleRequest *>(ctx.request);
                          pageIdManager(request.leavingNodeId);
                          break;
