@@ -243,7 +243,7 @@ int main(int argc, char* argv[])
             std::atomic<bool> keep_running = true;
             std::atomic<bool> finishedShuffling =false;
             std::atomic<u64> running_threads_counter = 0;
-            std::atomic<int> threadsFinishedShuffle = 0;
+            std::atomic<uint64_t> threadsFinishedShuffle = 0;
             uint64_t zipf_offset = 0;
             if (FLAGS_YCSB_local_zipf) zipf_offset = (YCSB_tuple_count / FLAGS_nodes) * scalestore.getNodeID();
             uint64_t leavingNodeId = 0;
