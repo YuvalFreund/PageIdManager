@@ -185,7 +185,7 @@ PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(){
         }
         pageIdToSsdSlotMap[workingShuffleMapIdx].partitionLock.unlock();
     }
-    // loop to try and get 8 jobs
+    // loop to try and get AGGREGATED_SHUFFLE_MESSAGE_AMOUNT jobs
     int shuffledJobs = 0;
     while(mapOfStacksForShuffle[currentNodeIdForShuffleJobs].empty() == false && shuffledJobs < AGGREGATED_SHUFFLE_MESSAGE_AMOUNT){
         uint64_t pageToShuffle = mapOfStacksForShuffle[currentNodeIdForShuffleJobs].top();

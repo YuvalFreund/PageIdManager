@@ -522,6 +522,9 @@ void MessageHandler::startThread() {
 bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr, [[maybe_unused]]uint64_t t_i){
 
     PageIdManager::PagesShuffleJob pagesShuffleJob = pageIdManager.getNextPagesShuffleJob();
+    if(pagesShuffleJob.last){
+        return true;
+    }
     // todo check for if to return here because shuffle ended
 
     PIDShuffleData shuffleData [AGGREGATED_SHUFFLE_MESSAGE_AMOUNT];
