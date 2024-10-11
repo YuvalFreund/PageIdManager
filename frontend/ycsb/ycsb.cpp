@@ -275,11 +275,10 @@ int main(int argc, char* argv[])
 
                        if(scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio ){
                            bool finished = mh.shuffleFrameAndIsLastShuffle(workerPtr,t_i);
-                           if(finished && scalestore.getNodeID() == leavingNodeId){
+                           if(finished && scalestore.getNodeID() == leavingNodeId && t_i == 0){
                                std::chrono::steady_clock::time_point finishShuffling = std::chrono::steady_clock::now();
                                std::cout<<"Done shuffling! shuffle percentage :" << shuffleRatio<< " shuffle time: "<< std::chrono::duration_cast<std::chrono::microseconds>(finishShuffling - beginOfShuffling).count()  <<std::endl;
                                break;
-                               // todo yuval - this means that a node that a leaving n finished shuffling
                            }
                        } else {
                            K key = zipf_random->rand(zipf_offset);
