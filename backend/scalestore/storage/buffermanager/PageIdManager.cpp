@@ -170,7 +170,7 @@ PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(){
     // preparing a new map of stacks
     if(highestNodeIdForShuffleJobs < currentNodeIdForShuffleJobs){
         workingShuffleMapIdx++;
-        if(workingShuffleMapIdx == SSD_PID_MAPS_AMOUNT){ // the case where there is no more to shuffle
+        if(workingShuffleMapIdx >= SSD_PID_MAPS_AMOUNT){ // the case where there is no more to shuffle
             retVal.last = true;
             return retVal;
         }
