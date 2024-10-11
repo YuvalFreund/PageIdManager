@@ -434,9 +434,7 @@ void MessageHandler::startThread() {
                                  }
                                  guard.frame->pid = shuffledPid;
                                  uint64_t localpVersion = guard.frame->pVersion.load();
-                                 guard.frame->pVersion =
-                                         pidShuffleData.pVersion > localpVersion ? pidShuffleData.pVersion
-                                                                                 : localpVersion;
+                                 guard.frame->pVersion = (pidShuffleData.pVersion > localpVersion) ? pidShuffleData.pVersion: localpVersion;
                                  if (guard.frame->possession == POSSESSION::SHARED) {
                                      // shared, node not possessor
                                      if (guard.frame->isPossessor(bm.nodeId) == false) {
@@ -516,7 +514,6 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
 
     PageIdManager::PagesShuffleJob pagesShuffleJob = pageIdManager.getNextPagesShuffleJob();
     if(pagesShuffleJob.last){
-        std::cout<<"F";
         return true;
     }
     PIDShuffleData shuffleData [AGGREGATED_SHUFFLE_MESSAGE_AMOUNT];
@@ -558,9 +555,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
 
     //if(t_i == 0){ std::cout << "A" <<std::endl;}
     auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFramesRequest>(context_.outgoing,shuffleData,pagesShuffleJob.amountToSend);
-    //if(t_i == 0){ std::cout << "B" <<std::endl;}
     [[maybe_unused]]auto& createdFramesResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFramesResponse>(newNodeId, onTheWayUpdateRequest);
-    //if(t_i == 0){ std::cout << "C" <<std::endl;}
 
     std::set<uint64_t> successfullyShufflePids;
     for(int i = 0; i < createdFramesResponse.successfulAmount; i++){

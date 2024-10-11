@@ -172,6 +172,7 @@ PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(){
         workingShuffleMapIdx++;
         if(workingShuffleMapIdx >= SSD_PID_MAPS_AMOUNT){ // the case where there is no more to shuffle
             retVal.last = true;
+            pageIdShuffleMtx.unlock();
             return retVal;
         }
         highestNodeIdForShuffleJobs = 0;
