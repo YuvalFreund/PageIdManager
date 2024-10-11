@@ -173,12 +173,12 @@ int main(int argc, char* argv[])
    // -------------------------------------------------------------------------------------
    u64 YCSB_tuple_count = FLAGS_YCSB_tuple_count;
    // -------------------------------------------------------------------------------------
-    uint64_t shuffleRatio = 80;
+    uint64_t shuffleRatio = 100;
     if(FLAGS_YCSB_shuffle_ratio){
         shuffleRatio = FLAGS_YCSB_shuffle_ratio;
     }
 
-    uint64_t nodeLeavingTrigger = 1000000;
+    uint64_t nodeLeavingTrigger = 100000;
 
 
     auto nodePartition = partition(scalestore.getNodeID(), FLAGS_nodes, YCSB_tuple_count);
@@ -272,15 +272,15 @@ int main(int argc, char* argv[])
                                pageIdManager.isBeforeShuffle = false;
                            }
                        }
-                       if(finishedShuffling && scalestore.getNodeID() == leavingNodeId){
-                           std::chrono::steady_clock::time_point finishShuffling = std::chrono::steady_clock::now();
-                           std::cout<<"Done shuffling! shuffle percentage :" << shuffleRatio<< " shuffle time: "<< std::chrono::duration_cast<std::chrono::microseconds>(finishShuffling - beginOfShuffling).count()  <<std::endl;
-                           break;
-                           // todo yuval - this means that a node that a leaving n finished shuffling
-                       }
 
                        if(scalestore.getNodeID() == leavingNodeId && pageIdManager.isBeforeShuffle == false && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio ){
-                           finishedShuffling = mh.shuffleFrameAndIsLastShuffle(workerPtr,t_i);
+                           bool finished = mh.shuffleFrameAndIsLastShuffle(workerPtr,t_i);
+                           if(finished && scalestore.getNodeID() == leavingNodeId){
+                               std::chrono::steady_clock::time_point finishShuffling = std::chrono::steady_clock::now();
+                               std::cout<<"Done shuffling! shuffle percentage :" << shuffleRatio<< " shuffle time: "<< std::chrono::duration_cast<std::chrono::microseconds>(finishShuffling - beginOfShuffling).count()  <<std::endl;
+                               break;
+                               // todo yuval - this means that a node that a leaving n finished shuffling
+                           }
                        } else {
                            K key = zipf_random->rand(zipf_offset);
                            ensure(key < YCSB_tuple_count);
