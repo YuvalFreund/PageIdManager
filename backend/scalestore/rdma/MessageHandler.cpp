@@ -585,7 +585,6 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
                 guard.frame->shuffled = true;
                 guard.frame->latch.unlatchExclusive();
             }
-            workerPtr->counters.incr_by(profiling::WorkerCounters::shuffled_frames,createdFramesResponse.successfulAmount);
 
         }// the case where the page wasn't shuffled successfully
         else{
@@ -593,6 +592,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
             guard.frame->latch.unlatchExclusive();
         }
     }
+    workerPtr->counters.incr_by(profiling::WorkerCounters::shuffled_frames,createdFramesResponse.successfulAmount);
 
     return false;
 }
