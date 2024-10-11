@@ -530,6 +530,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         ensure(guard.state != STATE::UNINITIALIZED);
         ensure(guard.state != STATE::RETRY);
         guardsAndPids.push_back({std::move(guard), pageId});
+        // the case where this page was evicted and now needs to be read before it is shuffled
         if(guard.state == STATE::SSD && guard.frame->possession == POSSESSION::NOBODY) {
             readEvictedPageBeforeShuffle(guard);
             shuffleData[i].dirty = true;
