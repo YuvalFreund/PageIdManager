@@ -233,7 +233,7 @@ struct NodeLeavingUpdateResponse : public Message {
 
 struct NodeFinishedShuffleRequest : public Message{
     uint64_t leavingNodeId;
-    NodeFinishedShuffleRequest() (uint64_t leavingNodeId) : Message(MESSAGE_TYPE::NFSR), leavingNodeId(leavingNodeId) {}
+    NodeFinishedShuffleRequest (uint64_t leavingNodeId) : Message(MESSAGE_TYPE::NFSR), leavingNodeId(leavingNodeId) {}
 };
 
 struct NodeFinishedShuffleResponse : public Message {

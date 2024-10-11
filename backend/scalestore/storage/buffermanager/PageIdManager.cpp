@@ -304,6 +304,6 @@ uint64_t PageIdManager::getNewPageId(bool oldRing){
     return retVal;
 }
 
-void PageIdManager::handleNodeFinishedShuffling(uint64_t nodeIdLeaving){
+void PageIdManager::handleNodeFinishedShuffling([[maybe_unused]]uint64_t nodeIdLeaving){
     shuffleState = SHUFFLE_STATE::AFTER_SHUFFLE;
 }

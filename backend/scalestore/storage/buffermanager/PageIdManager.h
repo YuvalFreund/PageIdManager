@@ -178,7 +178,6 @@ struct PageIdManager {
 
 
     //locks and atomics
-    enum class SHUFFLE_STATE { BEFORE_SHUFFLE, DURING_SHUFFLE, AFTER_SHUFFLE };  // Define an enum class
     std::atomic<SHUFFLE_STATE> shuffleState = SHUFFLE_STATE::BEFORE_SHUFFLE;  // Define an atomic enum
     std::atomic<bool> isBeforeShuffle = true;
     std::atomic<int> workingShuffleMapIdx = 0;

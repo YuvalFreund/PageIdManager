@@ -6,6 +6,8 @@
 #include "Guard.hpp"
 #include "Partition.hpp"
 #include "PartitionedQueue.hpp"
+#include "PageIdManagerDefs.h"
+
 #include "scalestore/profiling/counters/WorkerCounters.hpp"
 #include "scalestore/rdma/CommunicationManager.hpp"
 #include "scalestore/rdma/messages/Messages.hpp"
