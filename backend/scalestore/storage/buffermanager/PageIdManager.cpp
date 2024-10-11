@@ -169,7 +169,6 @@ PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(){
     restart:
     // preparing a new map of stacks
     if(highestNodeIdForShuffleJobs < currentNodeIdForShuffleJobs){
-        std::cout<<workingShuffleMapIdx<<std::endl;
         workingShuffleMapIdx++;
         if(workingShuffleMapIdx > SSD_PID_MAPS_AMOUNT){ // the case where there is no more to shuffle
             retVal.last = true;
@@ -197,7 +196,7 @@ PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(){
     }
 
     if(shuffledJobs < AGGREGATED_SHUFFLE_MESSAGE_AMOUNT) {
-        // didn't get 8 pages to shuffle. it it is more htan 0 - we return whatever we found.
+        // didn't get AGGREGATED_SHUFFLE_MESSAGE_AMOUNT pages to shuffle. if it is more than 0 - we return whatever we found.
         currentNodeIdForShuffleJobs++;
         if (shuffledJobs == 0){
             // either stack is finished or mapped is finished- but still we want to return pages to shuffle
