@@ -228,6 +228,18 @@ void  PageIdManager::gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr
     }
 }
 
+void  PageIdManager::gossipNodeFinishedShuffling(scalestore::threads::Worker* workerPtr){
+    for (auto nodeToUpdate: nodeIdsInCluster) {
+        if (nodeToUpdate == nodeId) continue;
+        auto &context_ = workerPtr->cctxs[nodeToUpdate];
+        auto nodeFinishedShuffleRequest = *scalestore::rdma::MessageFabric::createMessage<scalestore::rdma::NodeFinishedShuffleRequest>(
+                context_.outgoing, nodeId);
+        [[maybe_unused]]auto &nodeFinishedShuffleResponse = workerPtr->writeMsgSync<scalestore::rdma::NodeLeavingUpdateResponse>(
+                nodeToUpdate, nodeFinishedShuffleRequest);
+    }
+}
+
+
 uint64_t PageIdManager::getFreeSsdSlot(){
     uint64_t  retVal;
     while(true){
@@ -307,3 +319,5 @@ uint64_t PageIdManager::getNewPageId(bool oldRing){
 void PageIdManager::handleNodeFinishedShuffling([[maybe_unused]]uint64_t nodeIdLeaving){
     shuffleState = SHUFFLE_STATE::AFTER_SHUFFLE;
 }
+
+

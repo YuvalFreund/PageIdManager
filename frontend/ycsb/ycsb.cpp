@@ -243,7 +243,7 @@ int main(int argc, char* argv[])
             std::atomic<bool> keep_running = true;
             std::atomic<bool> finishedShuffling =false;
             std::atomic<u64> running_threads_counter = 0;
-
+            std::atomic<int> threadsFinishedShuffle = 0;
             uint64_t zipf_offset = 0;
             if (FLAGS_YCSB_local_zipf) zipf_offset = (YCSB_tuple_count / FLAGS_nodes) * scalestore.getNodeID();
             uint64_t leavingNodeId = 0;
@@ -275,9 +275,16 @@ int main(int argc, char* argv[])
 
                        if(scalestore.getNodeID() == leavingNodeId && pageIdManager.shuffleState == SHUFFLE_STATE::DURING_SHUFFLE && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio ){
                            bool finished = mh.shuffleFrameAndIsLastShuffle(workerPtr,t_i);
-                           if(finished && scalestore.getNodeID() == leavingNodeId && t_i == 0){
+                           if(finished){
+                               threadsFinishedShuffle++;
+                               if(t_i != 0) {
+                                   break;
+                               }
+                           }
+                           if(finished && t_i == 0 && threadsFinishedShuffle == FLAGS_worker){
                                std::chrono::steady_clock::time_point finishShuffling = std::chrono::steady_clock::now();
                                std::cout<<"Done shuffling! shuffle percentage :" << shuffleRatio<< " shuffle time: "<< std::chrono::duration_cast<std::chrono::microseconds>(finishShuffling - beginOfShuffling).count()  <<std::endl;
+                               pageIdManager.
                                break;
                            }
                        } else {
