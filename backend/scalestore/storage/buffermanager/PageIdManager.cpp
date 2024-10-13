@@ -125,7 +125,7 @@ bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
         }else{
             retVal = false;
         }
-    } else if (shuffleState == SHUFFLE_STATE::BEFORE_SHUFFLE){
+    } else if (shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE){
         uint64_t foundNodeId = searchRingForNode(pageId, false);
         retVal = (foundNodeId == nodeId);
     }
