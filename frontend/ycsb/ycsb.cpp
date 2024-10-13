@@ -252,7 +252,6 @@ int main(int argc, char* argv[])
             rdma::MessageHandler& mh = scalestore.getMessageHandler();
             //scalestore::storage::PageProvider& pageProvider = scalestore.getPageProvider();
             std::chrono::steady_clock::time_point beginOfShuffling;
-
              for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i) {
                 scalestore.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]() {
                    threads::Worker* workerPtr = scalestore.getWorkerPool().getWorkerByTid(t_i);
