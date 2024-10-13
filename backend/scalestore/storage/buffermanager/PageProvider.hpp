@@ -72,7 +72,7 @@ struct PageProvider {
    storage::Buffermanager& bm;
    std::vector<MessageHandler::MailboxPartition>& mhPartitions;
    PageIdManager& pageIdManager;
-   const uint64_t freeBFLimit;
+   uint64_t freeBFLimit;
    const uint64_t coolingBFLimit;
    s32 ssd_fd;
    std::vector<std::thread> pp_threads;
