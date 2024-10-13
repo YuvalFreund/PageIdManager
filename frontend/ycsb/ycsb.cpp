@@ -250,7 +250,7 @@ int main(int argc, char* argv[])
             YCSB_workloadInfo experimentInfo{TYPE, YCSB_tuple_count, READ_RATIO, ZIPF, (FLAGS_YCSB_local_zipf?"local_zipf":"global_zipf")};
             scalestore.startProfiler(experimentInfo);
             rdma::MessageHandler& mh = scalestore.getMessageHandler();
-            PageProvider& pageProvider = scalestore.getPageProvider();
+            scalestore::storage::PageProvider& pageProvider = scalestore.getPageProvider();
             std::chrono::steady_clock::time_point beginOfShuffling;
 
              for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i) {

@@ -57,7 +57,7 @@ class ScaleStore
    // -------------------------------------------------------------------------------------
    PageIdManager& getPageIdManager(){return *pageIdManager;}
     // -------------------------------------------------------------------------------------
-    storage::PageProvider& getPageProvider(){return *pp;}
+   storage::PageProvider& getPageProvider(){return *pp;}
     // -------------------------------------------------------------------------------------
     NodeID getNodeID() { return nodeId; }
    // -------------------------------------------------------------------------------------
