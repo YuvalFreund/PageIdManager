@@ -425,13 +425,15 @@ void MessageHandler::startThread() {
                          for (int i = 0; i < request.amountSent; i++) {
                              PIDShuffleData pidShuffleData = request.shuffleData[i];
                              uint64_t shuffledPid = pidShuffleData.shuffledPid;
-                             pageIdManager.addPageWithExistingPageId(shuffledPid);
                              auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(PID(shuffledPid),
                                                                                                 Protocol<storage::POSSESSION::EXCLUSIVE>(),
                                                                                                 ctx.bmId, true);
                              if (guard.state == STATE::RETRY) { // this it to deal with a case of the distrubted deadlock
-                                 pageIdManager.removePage(shuffledPid);
+                                 //todo - maybe remove:: pageIdManager.removePage(shuffledPid);
                              } else {
+                                 //todo - maybe move back to here
+                                 pageIdManager.addPageWithExistingPageId(shuffledPid);
+
                                  guard.frame->possession = pidShuffleData.possession;
                                  if (pidShuffleData.possession == POSSESSION::SHARED) {
                                      guard.frame->possessors.shared.bitmap = pidShuffleData.possessors;
