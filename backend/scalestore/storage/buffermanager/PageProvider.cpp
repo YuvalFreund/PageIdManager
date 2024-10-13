@@ -59,6 +59,9 @@ PageProvider::~PageProvider() {
    stopThread();
 }
 // -------------------------------------------------------------------------------------
+void PageProvider::changeEvictionRate(int percentage){
+        freeBFLimit = std::ceil((percentage * 1.0 * bm.dramPoolNumberPages / 100.0));
+}
 
 void PageProvider::startThread() {
    // -------------------------------------------------------------------------------------

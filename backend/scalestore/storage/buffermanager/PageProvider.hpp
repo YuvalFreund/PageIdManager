@@ -78,6 +78,7 @@ struct PageProvider {
    std::vector<std::thread> pp_threads;
    void startThread();
    void stopThread();
+   void changeEvictionRate(int percentage);
    void init();
    PageProvider(CM<rdma::InitMessage>& cm,
                 storage::Buffermanager& bm,
