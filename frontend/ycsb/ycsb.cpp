@@ -280,11 +280,11 @@ int main(int argc, char* argv[])
                                    threadsFinishedShuffle++;
                                    break;
                                }else{
-                                   if(threadsFinishedShuffle == FLAGS_worker ){
+                                   if(threadsFinishedShuffle == FLAGS_worker - 1){
                                        std::chrono::steady_clock::time_point finishShuffling = std::chrono::steady_clock::now();
                                        std::cout<<"Done shuffling! shuffle percentage :" << shuffleRatio<< " shuffle time: "<< std::chrono::duration_cast<std::chrono::microseconds>(finishShuffling - beginOfShuffling).count()  <<std::endl;
-                                       pageIdManager.gossipNodeFinishedShuffling(workerPtr);
-                                       //todo - check later pageProvider.changeEvictionRate(100);
+                                       //pageIdManager.gossipNodeFinishedShuffling(workerPtr);
+                                       pageProvider.changeEvictionRate(100);
                                        break;
                                    }
                                }
