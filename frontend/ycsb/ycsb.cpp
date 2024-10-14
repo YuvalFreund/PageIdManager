@@ -283,7 +283,7 @@ int main(int argc, char* argv[])
                                        std::chrono::steady_clock::time_point finishShuffling = std::chrono::steady_clock::now();
                                        std::cout<<"Done shuffling! shuffle percentage :" << shuffleRatio<< " shuffle time: "<< std::chrono::duration_cast<std::chrono::microseconds>(finishShuffling - beginOfShuffling).count()  <<std::endl;
                                        pageIdManager.gossipNodeFinishedShuffling(workerPtr);
-                                       //scalestore.getPageProvider();.forceEvictionAfterShuffle();
+                                       //scalestore.getPageProvider().forceEvictionAfterShuffle();
                                        break;
                                    }
                                }
@@ -324,120 +324,6 @@ int main(int argc, char* argv[])
             // -------------------------------------------------------------------------------------
             scalestore.stopProfiler();
 
-            if (FLAGS_YCSB_record_latency) {
-               std::atomic<bool> keep_running = true;
-               constexpr uint64_t LATENCY_SAMPLES = 1e6;
-               YCSB_workloadInfo experimentInfo{"Latency", YCSB_tuple_count, READ_RATIO, ZIPF, (FLAGS_YCSB_local_zipf?"local_zipf":"global_zipf")};
-               scalestore.startProfiler(experimentInfo);
-               std::vector<uint64_t> tl_microsecond_latencies[FLAGS_worker];
-               for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i) {
-                  scalestore.getWorkerPool().scheduleJobAsync(t_i, [&, t_i]() {
-                     running_threads_counter++;
-
-                     uint64_t ops = 0;
-                     storage::DistributedBarrier barrier(catalog.getCatalogEntry(BARRIER_ID).pid);
-                     storage::BTree<K, V> tree(catalog.getCatalogEntry(BTREE_ID).pid);
-                     barrier.wait();
-
-                     // use for GAM comparision
-                     // V payload;
-                     // utils::RandomGenerator::getRandString(reinterpret_cast<u8*>(&payload), sizeof(V));
-                     while (keep_running) {
-                        K key = zipf_random->rand(zipf_offset);
-                        ensure(key < YCSB_tuple_count);
-                        V result;
-                        if (READ_RATIO == 100 || utils::RandomGenerator::getRandU64(0, 100) < READ_RATIO) {
-                           auto start = utils::getTimePoint();
-                           auto success = tree.lookup_opt(key, result);
-                           ensure(success);
-                           auto end = utils::getTimePoint();
-                           threads::Worker::my().counters.incr_by(profiling::WorkerCounters::latency, (end - start));
-                           if(ops < LATENCY_SAMPLES)
-                              tl_microsecond_latencies[t_i].push_back(end - start);
-                        } else {
-                           // out-comment for GAM comparision
-                           V payload;
-                           utils::RandomGenerator::getRandString(reinterpret_cast<u8*>(&payload), sizeof(V)); 
-                           auto start = utils::getTimePoint();
-                           tree.insert(key, payload);
-                           auto end = utils::getTimePoint();
-                           threads::Worker::my().counters.incr_by(profiling::WorkerCounters::latency, (end - start));
-                           if(ops < LATENCY_SAMPLES)
-                              tl_microsecond_latencies[t_i].push_back(end - start);
-                        }
-                        threads::Worker::my().counters.incr(profiling::WorkerCounters::tx_p);
-                        ops++;
-                     }
-                     running_threads_counter--;
-                  });
-               }
-               sleep(10);
-               keep_running = false;
-               while (running_threads_counter) {
-                  _mm_pause();
-               }
-               // -------------------------------------------------------------------------------------
-               // Join Threads
-               // -------------------------------------------------------------------------------------
-               scalestore.getWorkerPool().joinAll();
-               // -------------------------------------------------------------------------------------
-               scalestore.stopProfiler();
-               // -------------------------------------------------------------------------------------
-
-               // combine vector of threads into one
-               std::vector<uint64_t> microsecond_latencies;
-               for (uint64_t t_i = 0; t_i < FLAGS_worker; ++t_i) {
-                  microsecond_latencies.insert(microsecond_latencies.end(), tl_microsecond_latencies[t_i].begin(), tl_microsecond_latencies[t_i].end());
-               }
-               
-               {
-                  std::cout << "Shuffle samples " << microsecond_latencies.size() << std::endl;
-                  std::random_device rd;
-                  std::mt19937 g(rd());
-                  std::shuffle(microsecond_latencies.begin(), microsecond_latencies.end(), g);
-
-                  // write out 400 samples
-                  std::ofstream latency_file;
-                  std::ofstream::openmode open_flags = std::ios::app;
-                  std::string filename = "latency_samples_" + FLAGS_csvFile;
-                  bool csv_initialized = std::filesystem::exists(filename);
-                  latency_file.open(filename, open_flags);
-                  if (!csv_initialized) {
-                     latency_file << "workload,tag,ReadRatio,YCSB_tuple_count,zipf,latency" << std::endl;
-                  }
-                  for(uint64_t s_i =0; s_i < 1000; s_i++){
-                     latency_file << TYPE << ","<<FLAGS_tag << "," << READ_RATIO << "," << YCSB_tuple_count << "," << ZIPF << "," << microsecond_latencies[s_i] << std::endl;
-                  }
-                  latency_file.close();
-                  
-               }
-               std::cout << "Sorting Latencies"
-                         << "\n";
-
-               std::sort(microsecond_latencies.begin(), microsecond_latencies.end());
-               std::cout << "Latency (min/median/max/99%): " << (microsecond_latencies[0]) << ","
-                         << (microsecond_latencies[microsecond_latencies.size() / 2]) << ","
-                         << (microsecond_latencies.back()) << ","
-                         << (microsecond_latencies[(int)(microsecond_latencies.size() * 0.99)]) << std::endl;
-               // -------------------------------------------------------------------------------------
-               // write to csv file
-               std::ofstream latency_file;
-               std::ofstream::openmode open_flags = std::ios::app;
-               std::string filename = "latency_" + FLAGS_csvFile;
-               bool csv_initialized = std::filesystem::exists(filename);
-               latency_file.open(filename, open_flags);
-               if (!csv_initialized) {
-                  latency_file << "workload,tag,ReadRatio,YCSB_tuple_count,zipf,min,median,max,95th,99th,999th" << std::endl;
-               }
-               latency_file << TYPE << ","<<FLAGS_tag << ","  << READ_RATIO << "," << YCSB_tuple_count << "," << ZIPF << "," << (microsecond_latencies[0])
-                            << "," << (microsecond_latencies[microsecond_latencies.size() / 2]) << ","
-                            << (microsecond_latencies.back()) << ","
-                            << (microsecond_latencies[(int)(microsecond_latencies.size() * 0.95)]) << ","
-                            << (microsecond_latencies[(int)(microsecond_latencies.size() * 0.99)]) << ","
-                            << (microsecond_latencies[(int)(microsecond_latencies.size() * 0.999)])
-                            << std::endl;
-               latency_file.close();
-            }
          }
       }
    }
