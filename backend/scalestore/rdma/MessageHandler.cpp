@@ -431,6 +431,7 @@ void MessageHandler::startThread() {
                                                                                                 ctx.bmId, true);
                              if (guard.state == STATE::RETRY) { // this it to deal with a case of the distrubted deadlock
                                  //todo - maybe remove:: pageIdManager.removePage(shuffledPid);
+                                 std::cout<<"D"<<std::endl;
                              } else {
                                  //todo - maybe move back to here
                                  pageIdManager.addPageWithExistingPageId(shuffledPid);

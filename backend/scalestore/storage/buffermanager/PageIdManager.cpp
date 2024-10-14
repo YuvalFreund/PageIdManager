@@ -130,7 +130,7 @@ bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
         retVal = (foundNodeId == nodeId);
     }*/
    }
-    if(shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE && nodeId ==1){
+    if(shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE && nodeId == 1){
         ensure(retVal);
     }
     return retVal;
