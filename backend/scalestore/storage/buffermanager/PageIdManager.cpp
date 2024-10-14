@@ -268,7 +268,7 @@ uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
     uint64_t retVal;
     std::map<uint64_t, uint64_t> *mapToSearch = searchOldRing ? (&nodesRingLocationMap ) : (&newNodesRingLocationMap);
     std::vector<uint64_t> * vectorToSearch = searchOldRing ? (&nodeRingLocationsVector) : (&newNodeRingLocationsVector);
-    if(nodeIdsInCluster->size() == 1){
+    if(nodeIdsInCluster.size() == 1){
         return nodeId;
     }
     uint64_t hashedPageId = scalestore::utils::FNV::hash(pageId);
