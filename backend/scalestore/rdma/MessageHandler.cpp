@@ -431,7 +431,6 @@ void MessageHandler::startThread() {
                                                                                                 ctx.bmId, true);
                              if (guard.state == STATE::RETRY) { // this it to deal with a case of the distrubted deadlock
                                  //todo - maybe remove:: pageIdManager.removePage(shuffledPid);
-                                 std::cout<<"D"<<std::endl;
                              } else {
                                  //todo - maybe move back to here
                                  pageIdManager.addPageWithExistingPageId(shuffledPid);
@@ -589,7 +588,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
 
         }// the case where the page wasn't shuffled successfully
         else{
-            pageIdManager.pushJobToStack(pid,newNodeId); // todo - look if there is no edge case in returining to a stack that wasn't finished
+            pageIdManager.pushJobToStack(pid,newNodeId); // todo - look if there is no edge case in returning to a stack that wasn't finished
             guard.frame->latch.unlatchExclusive();
         }
     }
