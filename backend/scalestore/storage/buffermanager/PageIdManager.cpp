@@ -118,18 +118,18 @@ bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
     if(shuffleState == SHUFFLE_STATE::BEFORE_SHUFFLE){
         uint64_t foundNodeId = searchRingForNode(pageId, true);
         retVal = (foundNodeId == nodeId);
-    }else if (shuffleState == SHUFFLE_STATE::DURING_SHUFFLE ||shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE) {
+    }else if (shuffleState == SHUFFLE_STATE::DURING_SHUFFLE ||shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE){
         uint64_t cachedDir = getCachedDirectoryOfPage(pageId);
-        if (cachedDir == nodeId) {
+        if (cachedDir == nodeId){
             retVal = true;
-        } else {
+        }else{
             retVal = false;
         }
-        /* } else if (shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE){
-             uint64_t foundNodeId = searchRingForNode(pageId, false);
-             retVal = (foundNodeId == nodeId);
-         }*/
-    }
+   /* } else if (shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE){
+        uint64_t foundNodeId = searchRingForNode(pageId, false);
+        retVal = (foundNodeId == nodeId);
+    }*/
+   }
     return retVal;
 }
 
@@ -268,9 +268,9 @@ uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
     uint64_t retVal;
     std::map<uint64_t, uint64_t> *mapToSearch = searchOldRing ? (&nodesRingLocationMap ) : (&newNodesRingLocationMap);
     std::vector<uint64_t> * vectorToSearch = searchOldRing ? (&nodeRingLocationsVector) : (&newNodeRingLocationsVector);
-    if(nodeIdsInCluster.size() == 1){
+    /*if(nodeIdsInCluster->size() == 1){
         return nodeId;
-    }
+    }*/
     uint64_t hashedPageId = scalestore::utils::FNV::hash(pageId);
     uint64_t l = 0;
     uint64_t r = vectorToSearch->size() - 1;
