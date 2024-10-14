@@ -433,8 +433,9 @@ void MessageHandler::startThread() {
 
                              } else {
                                  pageIdManager.addPageWithExistingPageId(shuffledPid);
-                                 //bool dirCheck = pageIdManager.isNodeDirectoryOfPageId(shuffledPid);
-                                 //ensure(dirCheck);
+                                 bool dirCheck = pageIdManager.isNodeDirectoryOfPageId(shuffledPid);
+                                 ensure(dirCheck);
+                                 ensure(pageIdManager.shuffleState != SHUFFLE_STATE::AFTER_SHUFFLE);
                                  guard.frame->possession = pidShuffleData.possession;
                                  if (pidShuffleData.possession == POSSESSION::SHARED) {
                                      guard.frame->possessors.shared.bitmap = pidShuffleData.possessors;
