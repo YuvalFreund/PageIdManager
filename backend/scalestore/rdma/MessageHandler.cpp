@@ -415,6 +415,7 @@ void MessageHandler::startThread() {
                      case MESSAGE_TYPE::NFSR:{
                          auto &request = *reinterpret_cast<NodeFinishedShuffleRequest *>(ctx.request);
                          pageIdManager.handleNodeFinishedShuffling(request.leavingNodeId);
+                         std::cout<<"nsfr"<<std::endl;
                          break;
                      }
 
