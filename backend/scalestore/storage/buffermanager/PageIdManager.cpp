@@ -129,7 +129,6 @@ bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
         uint64_t foundNodeId = searchRingForNode(pageId, false);
         retVal = (foundNodeId == nodeId);
     }
-
     return retVal;
 }
 
@@ -269,7 +268,7 @@ uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
     std::map<uint64_t, uint64_t> *mapToSearch = searchOldRing ? (&nodesRingLocationMap ) : (&newNodesRingLocationMap);
     std::vector<uint64_t> * vectorToSearch = searchOldRing ? (&nodeRingLocationsVector) : (&newNodeRingLocationsVector);
     if(mapToSearch->size() == 1){
-        return 0;
+        return nodeId;
     }
     uint64_t hashedPageId = scalestore::utils::FNV::hash(pageId);
     uint64_t l = 0;

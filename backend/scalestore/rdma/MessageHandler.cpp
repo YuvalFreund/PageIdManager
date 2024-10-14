@@ -580,7 +580,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
                 bm.removeFrame(*guard.frame, [](BufferFrame& /*frame*/) {});
                 // guard is unlatched here^^^^^
             }else{
-                guard.frame->shuffled = true;
+                guard.frame->shuffled = true; // just for debug
                 guard.frame->latch.unlatchExclusive();
             }
 
