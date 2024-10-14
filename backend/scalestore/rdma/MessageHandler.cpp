@@ -422,7 +422,7 @@ void MessageHandler::startThread() {
                      case MESSAGE_TYPE::CUSFR: {
                          auto &request = *reinterpret_cast<CreateOrUpdateShuffledFramesRequest *>(ctx.request);
                          uint8_t successfulShuffles = 0;
-                         uint64_t successfulPids[AGGREGATED_SHUFFLE_MESSAGE_AMOUNT];
+                         uint64_t successfulPids[AGGREGATED_SHUFFLE_MESSAGE_AMOUNT] = {};
                          for (int i = 0; i < request.amountSent; i++) {
                              PIDShuffleData pidShuffleData = request.shuffleData[i];
                              uint64_t shuffledPid = pidShuffleData.shuffledPid;
@@ -430,12 +430,11 @@ void MessageHandler::startThread() {
                                                                                                 Protocol<storage::POSSESSION::EXCLUSIVE>(),
                                                                                                 ctx.bmId, true);
                              if (guard.state == STATE::RETRY) { // this it to deal with a case of the distrubted deadlock
-                                 //todo - maybe remove:: pageIdManager.removePage(shuffledPid);
+
                              } else {
-                                 //todo - maybe move back to here
                                  pageIdManager.addPageWithExistingPageId(shuffledPid);
-                                 bool dirCheck = pageIdManager.isNodeDirectoryOfPageId(shuffledPid);
-                                 ensure(dirCheck);
+                                 //bool dirCheck = pageIdManager.isNodeDirectoryOfPageId(shuffledPid);
+                                 //ensure(dirCheck);
                                  guard.frame->possession = pidShuffleData.possession;
                                  if (pidShuffleData.possession == POSSESSION::SHARED) {
                                      guard.frame->possessors.shared.bitmap = pidShuffleData.possessors;

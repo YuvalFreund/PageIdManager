@@ -273,15 +273,15 @@ int main(int argc, char* argv[])
                            }
                        }
 
-                       if(scalestore.getNodeID() == leavingNodeId && pageIdManager.shuffleState == SHUFFLE_STATE::DURING_SHUFFLE && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio ){
+                       if (scalestore.getNodeID() == leavingNodeId && pageIdManager.shuffleState == SHUFFLE_STATE::DURING_SHUFFLE && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio){
                            bool finished = mh.shuffleFrameAndIsLastShuffle(workerPtr,t_i);
-                           if(finished){
+                           if (finished){
                                threadsFinishedShuffle++;
                                if(t_i != 0) {
                                    break;
                                }
                            }
-                           if(finished && t_i == 0 && threadsFinishedShuffle == FLAGS_worker){
+                           if(finished && t_i == 0 && threadsFinishedShuffle == FLAGS_worker+1){
                                std::chrono::steady_clock::time_point finishShuffling = std::chrono::steady_clock::now();
                                std::cout<<"Done shuffling! shuffle percentage :" << shuffleRatio<< " shuffle time: "<< std::chrono::duration_cast<std::chrono::microseconds>(finishShuffling - beginOfShuffling).count()  <<std::endl;
                                pageIdManager.gossipNodeFinishedShuffling(workerPtr);
