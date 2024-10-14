@@ -118,17 +118,17 @@ bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
     if(shuffleState == SHUFFLE_STATE::BEFORE_SHUFFLE){
         uint64_t foundNodeId = searchRingForNode(pageId, true);
         retVal = (foundNodeId == nodeId);
-    }else if (shuffleState == SHUFFLE_STATE::DURING_SHUFFLE){
+    }else if (shuffleState == SHUFFLE_STATE::DURING_SHUFFLE ||shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE){
         uint64_t cachedDir = getCachedDirectoryOfPage(pageId);
         if (cachedDir == nodeId){
             retVal = true;
         }else{
             retVal = false;
         }
-    } else if (shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE){
+   /* } else if (shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE){
         uint64_t foundNodeId = searchRingForNode(pageId, false);
         retVal = (foundNodeId == nodeId);
-    }
+    }*/
     return retVal;
 }
 
