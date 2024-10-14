@@ -284,7 +284,7 @@ int main(int argc, char* argv[])
                                        std::chrono::steady_clock::time_point finishShuffling = std::chrono::steady_clock::now();
                                        std::cout<<"Done shuffling! shuffle percentage :" << shuffleRatio<< " shuffle time: "<< std::chrono::duration_cast<std::chrono::microseconds>(finishShuffling - beginOfShuffling).count()  <<std::endl;
                                        //pageIdManager.gossipNodeFinishedShuffling(workerPtr);
-                                       pageProvider.changeEvictionRate(100);
+                                       pageProvider.forceEvictionAfterShuffle();
                                        break;
                                    }
                                }
