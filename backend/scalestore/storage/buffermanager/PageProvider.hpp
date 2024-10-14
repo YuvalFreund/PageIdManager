@@ -67,7 +67,8 @@ struct EvictionResponse {
 struct PageProvider {
    std::atomic<bool> finishedInit = false;
    std::atomic<bool> threadsRunning = true;
-   std::atomic<size_t> threadCount = 0;
+   std::atomic<bool> shuffleAllPagesFlag = false;
+    std::atomic<size_t> threadCount = 0;
    rdma::CM<InitMessage>& cm;
    storage::Buffermanager& bm;
    std::vector<MessageHandler::MailboxPartition>& mhPartitions;
@@ -78,7 +79,7 @@ struct PageProvider {
    std::vector<std::thread> pp_threads;
    void startThread();
    void stopThread();
-   void changeEvictionRate(int percentage);
+   void forceEvictionAfterShuffle();
    void init();
    PageProvider(CM<rdma::InitMessage>& cm,
                 storage::Buffermanager& bm,

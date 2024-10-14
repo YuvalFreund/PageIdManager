@@ -59,8 +59,8 @@ PageProvider::~PageProvider() {
    stopThread();
 }
 // -------------------------------------------------------------------------------------
-void PageProvider::changeEvictionRate(int percentage){
-        freeBFLimit = std::ceil((percentage * 1.0 * bm.dramPoolNumberPages / 100.0));
+void PageProvider::forceEvictionAfterShuffle(){
+    shuffleAllPagesFlag = true;
 }
 
 void PageProvider::startThread() {
@@ -160,7 +160,7 @@ void PageProvider::startThread() {
             return ((bm.getFreePages() + (freeBFLimit * 0.1)) < (tmpPages + evicted));
          };
          // start real eviction
-         auto pp_start_eviction_condition = [&]() { return (bm.getFreePages() < freeBFLimit); };
+         auto pp_start_eviction_condition = [&]() { return (bm.getFreePages() < freeBFLimit) || shuffleAllPagesFlag; };
          // -------------------------------------------------------------------------------------
          RingBuffer<BufferFrame*> coolingBuffer(1000);
          RingBuffer<Page*> privatePageBuffer(batchSize * FLAGS_nodes * 4);
