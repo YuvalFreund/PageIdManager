@@ -129,6 +129,7 @@ bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
         uint64_t foundNodeId = searchRingForNode(pageId, false);
         retVal = (foundNodeId == nodeId);
     }
+
     return retVal;
 }
 
