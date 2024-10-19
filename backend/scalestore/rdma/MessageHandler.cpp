@@ -491,8 +491,8 @@ void MessageHandler::startThread() {
                      default:
                          throw std::runtime_error("Unexpected Message in MB " + std::to_string(mailboxIdx) + " type " +
                                                   std::to_string((size_t) ctx.request->type));
-                         counters.incr(profiling::WorkerCounters::mh_msgs_handled);
                  }
+                 counters.incr(profiling::WorkerCounters::mh_msgs_handled);
                  mailboxIdx = ++startPosition;
                  // submit
                  [[maybe_unused]] auto nsubmit = async_read_buffer.submit();
