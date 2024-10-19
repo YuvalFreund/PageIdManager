@@ -432,6 +432,8 @@ void MessageHandler::startThread() {
                              if (guard.state == STATE::RETRY) { // this it to deal with a case of the distrubted deadlock
 
                              } else {
+                                 pageIdManager.addPageWithExistingPageId(shuffledPid);
+
                                  bool dirCheck = pageIdManager.isNodeDirectoryOfPageId(shuffledPid);
                                  ensure(dirCheck);
                                  ensure(pageIdManager.shuffleState != SHUFFLE_STATE::AFTER_SHUFFLE);
@@ -469,7 +471,6 @@ void MessageHandler::startThread() {
                                  } else {
                                      throw std::runtime_error("Invalid possession for shuffled frame");
                                  }
-                                 pageIdManager.addPageWithExistingPageId(shuffledPid);
 
                                  guard.frame->shuffled = true; // just fot gdb debug
                                  guard.frame->latch.unlatchExclusive();
