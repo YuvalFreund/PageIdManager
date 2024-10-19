@@ -533,8 +533,6 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     ensure(newNodeId != nodeId);
     std::vector<std::pair<Guard, uint64_t>> guardsAndPids;
     guardsAndPids.reserve(AGGREGATED_SHUFFLE_MESSAGE_AMOUNT);
-
-    // todo - an array of guards pointers like int he page provider
     for(uint64_t i = 0 ; i< pagesShuffleJob.amountToSend; i++){
         auto pageId = pagesShuffleJob.pageIds[i];
         auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(PID(pageId), Exclusive(), nodeId,false);
@@ -564,10 +562,24 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
 
         }
     }
-
-    //if(t_i == 0){ std::cout << "A" <<std::endl;}
     auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFramesRequest>(context_.outgoing,shuffleData,pagesShuffleJob.amountToSend);
+    std::chrono::steady_clock::time_point beforeMessage = std::chrono::steady_clock::now();
     [[maybe_unused]]auto& createdFramesResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFramesResponse>(newNodeId, onTheWayUpdateRequest);
+    std::chrono::steady_clock::time_point afterMessage = std::chrono::steady_clock::now();
+    if(t_i == 0 && aggregatedTimeMeasureCounter < aggregatedMsgAmount ){
+        latencyMeasureResults[aggregatedTimeMeasureCounter] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterMessage - beforeMessage).count());
+        aggregatedTimeMeasureCounter++;
+        if(aggregatedTimeMeasureCounter == aggregatedMsgAmount){
+            for(uint64_t i = 0; i < aggregatedMsgAmount; i++){
+                aggregatedTimeMeasure += latencyMeasureResults[i];
+                std::cout<< latencyMeasureResults[i] << " ";
+            }
+            std::cout << std::endl;
+            double aggregatedResult = aggregatedTimeMeasure / (double) aggregatedMsgAmount;
+            std::cout<<"msgtime:"<< aggregatedResult <<std::endl;
+        }
+    }
+    //if(t_i == 0){ std::cout << "A" <<std::endl;}
 
     std::set<uint64_t> successfullyShufflePids;
     for(int i = 0; i < createdFramesResponse.successfulAmount; i++){
