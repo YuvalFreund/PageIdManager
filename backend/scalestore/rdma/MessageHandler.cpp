@@ -562,22 +562,9 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         }
     }
     auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFramesRequest>(context_.outgoing,shuffleData,pagesShuffleJob.amountToSend);
-    std::chrono::steady_clock::time_point beforeMessage = std::chrono::steady_clock::now();
     [[maybe_unused]]auto& createdFramesResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFramesResponse>(newNodeId, onTheWayUpdateRequest);
     std::chrono::steady_clock::time_point afterMessage = std::chrono::steady_clock::now();
-    if(t_i == 0 && aggregatedTimeMeasureCounter < aggregatedMsgAmount ){
-        latencyMeasureResults[aggregatedTimeMeasureCounter] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterMessage - beforeMessage).count());
-        aggregatedTimeMeasureCounter++;
-        if(aggregatedTimeMeasureCounter == aggregatedMsgAmount){
-            for(uint64_t i = 0; i < aggregatedMsgAmount; i++){
-                aggregatedTimeMeasure += latencyMeasureResults[i];
-                std::cout<< latencyMeasureResults[i] << " ";
-            }
-            std::cout << std::endl;
-            double aggregatedResult = aggregatedTimeMeasure / (double) aggregatedMsgAmount;
-            std::cout<<"msgtime:"<< aggregatedResult <<std::endl;
-        }
-    }
+
     //if(t_i == 0){ std::cout << "A" <<std::endl;}
 
     std::set<uint64_t> successfullyShufflePids;
@@ -605,6 +592,19 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         }
     }
     workerPtr->counters.incr_by(profiling::WorkerCounters::shuffled_frames,createdFramesResponse.successfulAmount);
+    if(t_i == 0 && aggregatedTimeMeasureCounter < aggregatedMsgAmount ){
+        latencyMeasureResults[aggregatedTimeMeasureCounter] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterMessage - beforeMessage).count());
+        aggregatedTimeMeasureCounter++;
+        if(aggregatedTimeMeasureCounter == aggregatedMsgAmount){
+            for(uint64_t i = 0; i < aggregatedMsgAmount; i++){
+                aggregatedTimeMeasure += latencyMeasureResults[i];
+                std::cout<< latencyMeasureResults[i] << " ";
+            }
+            std::cout << std::endl;
+            double aggregatedResult = aggregatedTimeMeasure / (double) aggregatedMsgAmount;
+            std::cout<<"msgtime:"<< aggregatedResult <<std::endl;
+        }
+    }
     return false;
 }
 
