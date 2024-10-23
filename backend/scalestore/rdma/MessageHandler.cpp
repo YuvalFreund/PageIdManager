@@ -611,7 +611,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
 
 void MessageHandler::printShuffleLatency (uint64_t numThreads, [[maybe_unused]]uint64_t tiToPrint){
 
-    for(uint64_t t_i = 0; i < numThreads; i++){
+    for(uint64_t t_i = 0; t_i < numThreads; t_i++){
         double afterPoppingMeasure = 0;
         double afterLockingMeasure = 0;
         double afterMessageMeasure = 0;
