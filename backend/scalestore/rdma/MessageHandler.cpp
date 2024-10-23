@@ -403,7 +403,6 @@ void MessageHandler::startThread() {
                          writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
                          break;
                      }
-
                      case MESSAGE_TYPE::NLUR: {
                          auto &request = *reinterpret_cast<NodeLeavingUpdateRequest *>(ctx.request);
                          pageIdManager.prepareForShuffle(request.leavingNodeId);
@@ -411,14 +410,12 @@ void MessageHandler::startThread() {
                          writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
                          break;
                      }
-
                      case MESSAGE_TYPE::NFSR:{
                          auto &request = *reinterpret_cast<NodeFinishedShuffleRequest *>(ctx.request);
                          pageIdManager.handleNodeFinishedShuffling(request.leavingNodeId);
                          std::cout<<"nsfr"<<std::endl;
                          break;
                      }
-
                      case MESSAGE_TYPE::CUSFR: {
                          auto &request = *reinterpret_cast<CreateOrUpdateShuffledFramesRequest *>(ctx.request);
                          uint8_t successfulShuffles = 0;
@@ -598,11 +595,11 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         }
     }
     std::chrono::steady_clock::time_point afterAll = std::chrono::steady_clock::now();
-    if(t_i == 10 && aggregatedTimeMeasureCounter < aggregatedMsgAmount ){
-        afterPoppingResults[aggregatedTimeMeasureCounter] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterPopping - shuffle_begin).count());
-        afterLockingResults[aggregatedTimeMeasureCounter] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterLocking - shuffle_begin).count());
-        afterMessageResults[aggregatedTimeMeasureCounter] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterMessage - shuffle_begin).count());
-        afterAllResults[aggregatedTimeMeasureCounter] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterAll - shuffle_begin).count());
+    if( aggregatedTimeMeasureCounter < aggregatedMsgAmount ){
+        afterPoppingResults[t_i][aggregatedTimeMeasureCounter] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterPopping - shuffle_begin).count());
+        afterLockingResults[t_i][aggregatedTimeMeasureCounter] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterLocking - shuffle_begin).count());
+        afterMessageResults[t_i][aggregatedTimeMeasureCounter] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterMessage - shuffle_begin).count());
+        afterAllResults[t_i][aggregatedTimeMeasureCounter] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterAll - shuffle_begin).count());
         aggregatedTimeMeasureCounter++;
         if(aggregatedTimeMeasureCounter == aggregatedMsgAmount){
             double afterPoppingMeasure = 0;
@@ -611,10 +608,10 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
             double afterAllMeasure = 0;
 
             for(uint64_t i = 0; i < aggregatedMsgAmount; i++){
-                afterPoppingMeasure += afterPoppingResults[i];
-                afterLockingMeasure += afterLockingResults[i];
-                afterMessageMeasure += afterMessageResults[i];
-                afterAllMeasure += afterAllResults[i];
+                afterPoppingMeasure += afterPoppingResults[t_i][i];
+                afterLockingMeasure += afterLockingResults[t_i][i];
+                afterMessageMeasure += afterMessageResults[t_i][i];
+                afterAllMeasure += afterAllResults[t_i][i];
                 //std::cout<< latencyMeasureResults[i] << " ";
             }
             std::cout << std::endl;
@@ -622,10 +619,10 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
             double aggregatedLockingResult = afterLockingMeasure / (double) aggregatedMsgAmount;
             double aggregatedMessageResult = afterMessageMeasure / (double) aggregatedMsgAmount;
             double aggregatedAllResult = afterAllMeasure / (double) aggregatedMsgAmount;
-            std::cout<<"pop:"<< aggregatedPoppingResult <<std::endl;
-            std::cout<<"lock:"<< aggregatedLockingResult <<std::endl;
-            std::cout<<"msg:"<< aggregatedMessageResult <<std::endl;
-            std::cout<<"all:"<< aggregatedAllResult <<std::endl;
+           // std::cout<<"pop:"<< aggregatedPoppingResult <<std::endl;
+           // std::cout<<"lock:"<< aggregatedLockingResult <<std::endl;
+           // std::cout<<"msg:"<< aggregatedMessageResult <<std::endl;
+            std::cout<<t_i<<" all:"<< aggregatedAllResult <<std::endl;
         }
     }
     workerPtr->counters.incr_by(profiling::WorkerCounters::shuffled_frames,createdFramesResponse.successfulAmount);

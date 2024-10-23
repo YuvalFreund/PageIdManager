@@ -94,10 +94,10 @@ struct MessageHandler {
     // -------------------------------------------------------------------------------------
    NodeID nodeId;
     uint64_t aggregatedMsgAmount = 500;
-    double afterPoppingResults[1000];
-    double afterLockingResults[1000];
-    double afterMessageResults[1000];
-    double afterAllResults[1000];
+    double afterPoppingResults[20][1000];
+    double afterLockingResults[20][1000];
+    double afterMessageResults[20][1000];
+    double afterAllResults[20][1000];
 
     uint64_t aggregatedTimeMeasureCounter = 0;
     std::vector<ConnectionContext> cctxs;
