@@ -93,7 +93,7 @@ struct MessageHandler {
    storage::Buffermanager& bm;
     // -------------------------------------------------------------------------------------
    NodeID nodeId;
-    uint64_t aggregatedMsgAmount = 200;
+    uint64_t aggregatedMsgAmount = 500;
     double afterPoppingResults[1000];
     double afterLockingResults[1000];
     double afterMessageResults[1000];
