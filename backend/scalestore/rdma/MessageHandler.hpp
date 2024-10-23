@@ -99,7 +99,7 @@ struct MessageHandler {
     double afterMessageResults[20][1000];
     double afterAllResults[20][1000];
 
-    uint64_t aggregatedTimeMeasureCounter[20] = {};
+    uint64_t aggregatedTimeMeasureCounter[20] = { 0 };
     std::vector<ConnectionContext> cctxs;
     std::vector<MailboxPartition> mbPartitions;
     std::atomic<uint64_t> connectedClients = 0;
