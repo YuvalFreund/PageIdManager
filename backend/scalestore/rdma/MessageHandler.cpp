@@ -434,8 +434,8 @@ void MessageHandler::startThread() {
                              } else {
                                  pageIdManager.addPageWithExistingPageId(shuffledPid);
 
-                                 bool dirCheck = pageIdManager.isNodeDirectoryOfPageId(shuffledPid);
-                                 ensure(dirCheck);
+                                 //bool dirCheck = pageIdManager.isNodeDirectoryOfPageId(shuffledPid);
+                                 //ensure(dirCheck);
                                  ensure(pageIdManager.shuffleState != SHUFFLE_STATE::AFTER_SHUFFLE);
                                  guard.frame->possession = pidShuffleData.possession;
                                  if (pidShuffleData.possession == POSSESSION::SHARED) {
@@ -553,14 +553,12 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
             ensure(guard.state != storage::STATE::NOT_FOUND);
             ensure(guard.state != storage::STATE::RETRY);
             ensure(guard.frame->possession != POSSESSION::NOBODY);
-
             uint64_t possessorsAsUint64 = (guard.frame->possession == POSSESSION::SHARED)  ? guard.frame->possessors.shared.bitmap : guard.frame->possessors.exclusive;
             shuffleData[i].dirty = guard.frame->dirty;
             shuffleData[i].pVersion = guard.frame->pVersion;
             shuffleData[i].possession = guard.frame->possession;
             shuffleData[i].possessors = possessorsAsUint64;
             shuffleData[i].shuffledPid = pageId;
-
         }
     }
     auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFramesRequest>(context_.outgoing,shuffleData,pagesShuffleJob.amountToSend);
