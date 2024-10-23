@@ -602,34 +602,39 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         afterAllResults[t_i][aggregatedTimeMeasureCounter[t_i]] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterAll - shuffle_begin).count());
         aggregatedTimeMeasureCounter[t_i]++;
         if(aggregatedTimeMeasureCounter[t_i] == aggregatedMsgAmount){
-            double afterPoppingMeasure = 0;
-            double afterLockingMeasure = 0;
-            double afterMessageMeasure = 0;
-            double afterAllMeasure = 0;
 
-            for(uint64_t i = 0; i < aggregatedMsgAmount; i++){
-                afterPoppingMeasure += afterPoppingResults[t_i][i];
-                afterLockingMeasure += afterLockingResults[t_i][i];
-                afterMessageMeasure += afterMessageResults[t_i][i];
-                afterAllMeasure += afterAllResults[t_i][i];
-                //std::cout<< latencyMeasureResults[i] << " ";
-            }
-            std::cout << std::endl;
-            double aggregatedPoppingResult = afterPoppingMeasure / (double) aggregatedMsgAmount;
-           double aggregatedLockingResult = afterLockingMeasure / (double) aggregatedMsgAmount;
-            double aggregatedMessageResult = afterMessageMeasure / (double) aggregatedMsgAmount;
-            double aggregatedAllResult = afterAllMeasure / (double) aggregatedMsgAmount;
-            if(t_i == 10){
-                std::cout<<"pop:"<< aggregatedPoppingResult <<std::endl;
-                std::cout<<"lock:"<< aggregatedLockingResult <<std::endl;
-                std::cout<<"msg:"<< aggregatedMessageResult <<std::endl;
-            }
-            std::cout<<t_i<<" all:"<< aggregatedAllResult <<std::endl;
         }
     }
     workerPtr->counters.incr_by(profiling::WorkerCounters::shuffled_frames,createdFramesResponse.successfulAmount);
     return false;
 }
+
+void printShuffleLatency (uint64_t numThreads, uint64_t tiToPrint){
+
+    for(uint64_t t_i = 0; i < numThreads; i++){
+        double afterPoppingMeasure = 0;
+        double afterLockingMeasure = 0;
+        double afterMessageMeasure = 0;
+        double afterAllMeasure = 0;
+        for(uint64_t i = 0; i < aggregatedMsgAmount; i++){
+            afterPoppingMeasure += afterPoppingResults[t_i][i];
+            afterLockingMeasure += afterLockingResults[t_i][i];
+            afterMessageMeasure += afterMessageResults[t_i][i];
+            afterAllMeasure += afterAllResults[t_i][i];
+        }
+        double aggregatedPoppingResult = afterPoppingMeasure / (double) aggregatedMsgAmount;
+        double aggregatedLockingResult = afterLockingMeasure / (double) aggregatedMsgAmount;
+        double aggregatedMessageResult = afterMessageMeasure / (double) aggregatedMsgAmount;
+        double aggregatedAllResult = afterAllMeasure / (double) aggregatedMsgAmount;
+        if(t_i == 10){
+            std::cout<<"pop:"<< aggregatedPoppingResult <<std::endl;
+            std::cout<<"lock:"<< aggregatedLockingResult <<std::endl;
+            std::cout<<"msg:"<< aggregatedMessageResult <<std::endl;
+        }
+    std::cout<<t_i<<" all:"<< aggregatedAllResult <<std::endl;
+    }
+}
+
 
 // -------------------------------------------------------------------------------------
 void MessageHandler::stopThread() {
