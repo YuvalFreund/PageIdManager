@@ -94,8 +94,11 @@ struct MessageHandler {
     // -------------------------------------------------------------------------------------
    NodeID nodeId;
     uint64_t aggregatedMsgAmount = 200;
-    double aggregatedTimeMeasure = 0;
-    double latencyMeasureResults[1000];
+    double afterPoppingResults[1000];
+    double afterLockingResults[1000];
+    double afterMessageResults[1000];
+    double afterAllResults[1000];
+
     uint64_t aggregatedTimeMeasureCounter = 0;
     std::vector<ConnectionContext> cctxs;
     std::vector<MailboxPartition> mbPartitions;
