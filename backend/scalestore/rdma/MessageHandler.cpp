@@ -595,12 +595,12 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         }
     }
     std::chrono::steady_clock::time_point afterAll = std::chrono::steady_clock::now();
-    if( aggregatedTimeMeasureCounter < aggregatedMsgAmount ){
+    if( aggregatedTimeMeasureCounter[t_i] < aggregatedMsgAmount ){
         afterPoppingResults[t_i][aggregatedTimeMeasureCounter] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterPopping - shuffle_begin).count());
         afterLockingResults[t_i][aggregatedTimeMeasureCounter] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterLocking - shuffle_begin).count());
         afterMessageResults[t_i][aggregatedTimeMeasureCounter] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterMessage - shuffle_begin).count());
         afterAllResults[t_i][aggregatedTimeMeasureCounter] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterAll - shuffle_begin).count());
-        aggregatedTimeMeasureCounter++;
+        aggregatedTimeMeasureCounter[t_i]++;
         if(aggregatedTimeMeasureCounter == aggregatedMsgAmount){
             double afterPoppingMeasure = 0;
             double afterLockingMeasure = 0;
