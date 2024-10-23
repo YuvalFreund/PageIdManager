@@ -615,13 +615,15 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
                 //std::cout<< latencyMeasureResults[i] << " ";
             }
             std::cout << std::endl;
-            //double aggregatedPoppingResult = afterPoppingMeasure / (double) aggregatedMsgAmount;
-           //double aggregatedLockingResult = afterLockingMeasure / (double) aggregatedMsgAmount;
-            //double aggregatedMessageResult = afterMessageMeasure / (double) aggregatedMsgAmount;
+            double aggregatedPoppingResult = afterPoppingMeasure / (double) aggregatedMsgAmount;
+           double aggregatedLockingResult = afterLockingMeasure / (double) aggregatedMsgAmount;
+            double aggregatedMessageResult = afterMessageMeasure / (double) aggregatedMsgAmount;
             double aggregatedAllResult = afterAllMeasure / (double) aggregatedMsgAmount;
-           // std::cout<<"pop:"<< aggregatedPoppingResult <<std::endl;
-           // std::cout<<"lock:"<< aggregatedLockingResult <<std::endl;
-           // std::cout<<"msg:"<< aggregatedMessageResult <<std::endl;
+            if(t_i == 0){
+                std::cout<<"pop:"<< aggregatedPoppingResult <<std::endl;
+                std::cout<<"lock:"<< aggregatedLockingResult <<std::endl;
+                std::cout<<"msg:"<< aggregatedMessageResult <<std::endl;
+            }
             std::cout<<t_i<<" all:"<< aggregatedAllResult <<std::endl;
         }
     }
