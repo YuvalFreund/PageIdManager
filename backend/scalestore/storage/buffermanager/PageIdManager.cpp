@@ -190,7 +190,7 @@ PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(){
         pageIdToSsdSlotMap[workingShuffleMapIdx].partitionLock.lock();
         for(auto pair : pageIdToSsdSlotMap[workingShuffleMapIdx].map){
             uint64_t pageToShuffle = pair.first;
-            uint64_t destNode = getUpdatedNodeIdOfPage(pageToShuffle, false);
+            uint64_t destNode = 1; // todo yuval - change here
             if(destNode > highestNodeIdForShuffleJobs ) highestNodeIdForShuffleJobs = destNode;
             mapOfStacksForShuffle[destNode].push(pageToShuffle);
         }
