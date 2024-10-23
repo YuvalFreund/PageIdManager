@@ -619,7 +619,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
            double aggregatedLockingResult = afterLockingMeasure / (double) aggregatedMsgAmount;
             double aggregatedMessageResult = afterMessageMeasure / (double) aggregatedMsgAmount;
             double aggregatedAllResult = afterAllMeasure / (double) aggregatedMsgAmount;
-            if(t_i == 0){
+            if(t_i == 10){
                 std::cout<<"pop:"<< aggregatedPoppingResult <<std::endl;
                 std::cout<<"lock:"<< aggregatedLockingResult <<std::endl;
                 std::cout<<"msg:"<< aggregatedMessageResult <<std::endl;
