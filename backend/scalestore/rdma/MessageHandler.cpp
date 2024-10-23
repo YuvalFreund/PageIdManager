@@ -615,9 +615,9 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
                 //std::cout<< latencyMeasureResults[i] << " ";
             }
             std::cout << std::endl;
-            double aggregatedPoppingResult = afterPoppingMeasure / (double) aggregatedMsgAmount;
-            double aggregatedLockingResult = afterLockingMeasure / (double) aggregatedMsgAmount;
-            double aggregatedMessageResult = afterMessageMeasure / (double) aggregatedMsgAmount;
+            //double aggregatedPoppingResult = afterPoppingMeasure / (double) aggregatedMsgAmount;
+           //double aggregatedLockingResult = afterLockingMeasure / (double) aggregatedMsgAmount;
+            //double aggregatedMessageResult = afterMessageMeasure / (double) aggregatedMsgAmount;
             double aggregatedAllResult = afterAllMeasure / (double) aggregatedMsgAmount;
            // std::cout<<"pop:"<< aggregatedPoppingResult <<std::endl;
            // std::cout<<"lock:"<< aggregatedLockingResult <<std::endl;
