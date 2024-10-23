@@ -523,6 +523,7 @@ void MessageHandler::startThread() {
 
 
 bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr, [[maybe_unused]]uint64_t t_i){
+    std::chrono::steady_clock::time_point beforeMessage = std::chrono::steady_clock::now();
 
     PageIdManager::PagesShuffleJob pagesShuffleJob = pageIdManager.getNextPagesShuffleJob();
     if(pagesShuffleJob.last){
@@ -563,7 +564,6 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
     }
     auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFramesRequest>(context_.outgoing,shuffleData,pagesShuffleJob.amountToSend);
     [[maybe_unused]]auto& createdFramesResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFramesResponse>(newNodeId, onTheWayUpdateRequest);
-    std::chrono::steady_clock::time_point afterMessage = std::chrono::steady_clock::now();
 
     //if(t_i == 0){ std::cout << "A" <<std::endl;}
 
@@ -591,7 +591,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
             guard.frame->latch.unlatchExclusive();
         }
     }
-    workerPtr->counters.incr_by(profiling::WorkerCounters::shuffled_frames,createdFramesResponse.successfulAmount);
+    std::chrono::steady_clock::time_point afterMessage = std::chrono::steady_clock::now();
     if(t_i == 0 && aggregatedTimeMeasureCounter < aggregatedMsgAmount ){
         latencyMeasureResults[aggregatedTimeMeasureCounter] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterMessage - beforeMessage).count());
         aggregatedTimeMeasureCounter++;
@@ -605,6 +605,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
             std::cout<<"msgtime:"<< aggregatedResult <<std::endl;
         }
     }
+    workerPtr->counters.incr_by(profiling::WorkerCounters::shuffled_frames,createdFramesResponse.successfulAmount);
     return false;
 }
 
