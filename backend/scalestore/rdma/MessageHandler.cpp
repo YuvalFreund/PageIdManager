@@ -426,8 +426,8 @@ void MessageHandler::startThread() {
                              auto guard = bm.findFrameOrInsert<CONTENTION_METHOD::NON_BLOCKING>(PID(shuffledPid),
                                                                                                 Protocol<storage::POSSESSION::EXCLUSIVE>(),
                                                                                                 ctx.bmId, true);
-                             if (guard.state == STATE::RETRY) { // this it to deal with a case of the distrubted deadlock
-                                std::cout<<shuffledPid<<std::endl;
+                             if (guard.state == STATE::RETRY) {
+                                 // this it to deal with a case of the distrubted deadlock
                              } else {
                                  pageIdManager.addPageWithExistingPageId(shuffledPid);
                                  //bool dirCheck = pageIdManager.isNodeDirectoryOfPageId(shuffledPid);

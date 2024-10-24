@@ -130,10 +130,6 @@ struct PageIdManager {
             return retVal;
         }
 
-
-
-
-
         uint64_t getSsdSlotOfPageAndRemove(uint64_t pageId){
             uint64_t retVal;
             partitionLock.lock();
