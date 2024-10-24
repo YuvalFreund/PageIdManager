@@ -133,7 +133,7 @@ Guard Buffermanager::fix(PID pid, ACCESS functor) {
    // -------------------------------------------------------------------------------------
 restart:
    Guard guard = findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(pid, functor, nodeId, false);
-   if (guard.frame->fromShuffle){
+   if (guard.frame->shuffled){
        std::cout<<"g"<<std::endl;
    }
    ensure(guard.state != STATE::UNINITIALIZED);
