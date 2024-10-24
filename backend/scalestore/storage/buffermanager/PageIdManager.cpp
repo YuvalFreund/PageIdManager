@@ -115,25 +115,25 @@ uint64_t PageIdManager::getTargetNodeForEviction(uint64_t pageId){
 
 bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
     bool retVal;
+    uint64_t foundNodeId = 123456789;
     if(shuffleState == SHUFFLE_STATE::BEFORE_SHUFFLE){
-        uint64_t foundNodeId = searchRingForNode(pageId, true);
+        foundNodeId = searchRingForNode(pageId, true);
         retVal = (foundNodeId == nodeId);
-    }else if (shuffleState == SHUFFLE_STATE::DURING_SHUFFLE || shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE){
+    }else if (shuffleState == SHUFFLE_STATE::DURING_SHUFFLE){
         uint64_t cachedDir = getCachedDirectoryOfPage(pageId);
         if (cachedDir == nodeId){
             retVal = true;
         }else{
             retVal = false;
         }
-   /* } else if (shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE){
-        uint64_t foundNodeId = searchRingForNode(pageId, false);
+   } else if (shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE){
+        foundNodeId = searchRingForNode(pageId, false);
         retVal = (foundNodeId == nodeId);
-    }*/
    }
-    if(shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE && nodeId == 1){
-        ensure(retVal);
-    }
-    return retVal;
+   if(shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE && nodeId == 1){
+       ensure(retVal);
+   }
+   return retVal;
 }
 
 uint64_t PageIdManager::getUpdatedNodeIdOfPage(uint64_t pageId, bool searchOldRing){
@@ -268,8 +268,8 @@ void PageIdManager::redeemSsdSlot(uint64_t freedSsdSlot){
 }
 
 uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
-    uint64_t retVal;
-    std::map<uint64_t, uint64_t> *mapToSearch = searchOldRing ? (&nodesRingLocationMap ) : (&newNodesRingLocationMap);
+    uint64_t retVal = 22;
+    std::map<uint64_t, uint64_t> * mapToSearch = searchOldRing ? (&nodesRingLocationMap ) : (&newNodesRingLocationMap);
     std::vector<uint64_t> * vectorToSearch = searchOldRing ? (&nodeRingLocationsVector) : (&newNodeRingLocationsVector);
     /*if(nodeIdsInCluster->size() == 1){
         return nodeId;
