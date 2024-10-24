@@ -282,7 +282,8 @@ int main(int argc, char* argv[])
                                    if(threadsFinishedShuffle == FLAGS_worker - 1){
                                        std::chrono::steady_clock::time_point finishShuffling = std::chrono::steady_clock::now();
                                        std::cout<<"Done shuffling! shuffle percentage :" << shuffleRatio<< " shuffle time: "<< std::chrono::duration_cast<std::chrono::microseconds>(finishShuffling - beginOfShuffling).count()  <<std::endl;
-                                       mh.printShuffleLatency(FLAGS_worker,0);
+                                       //mh.printShuffleLatency(FLAGS_worker,0); //todo yuvi- clean
+                                       std::cout<<"all pages: " << pageIdManager.pagesCounter <<" shuffled: " <<pageIdManager.pagesShuffledCounter<<std::endl;
                                        pageIdManager.broadcastNodeFinishedShuffling(workerPtr);
                                        //scalestore.getPageProvider().forceEvictionAfterShuffle();
                                        break;

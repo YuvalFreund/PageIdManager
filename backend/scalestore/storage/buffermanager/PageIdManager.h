@@ -179,6 +179,8 @@ struct PageIdManager {
     std::atomic<int> workingShuffleMapIdx = 0;
     std::mutex pageIdSsdMapMtx;
     std::mutex pageIdShuffleMtx;
+    std::atomic<uint64_t> pagesCounter = 0;
+    std::atomic<uint64_t> pagesShuffledCounter = 0;
 
     //shuffling
     std::map<uint64_t, std::stack<uint64_t>> mapOfStacksForShuffle;

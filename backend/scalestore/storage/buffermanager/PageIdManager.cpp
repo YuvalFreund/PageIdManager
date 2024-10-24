@@ -35,7 +35,6 @@ void PageIdManager::initConsistentHashingInfo(bool firstInit){
     }
 }
 
-
 void PageIdManager::initSsdPartitions(){
     int ssdMaximumPagesAmount = (FLAGS_ssd_gib * 1024 * 1024) / 4;
     int partitionSize = ssdMaximumPagesAmount / FLAGS_pageIdManagerPartitions; // todo yuval - this needs to be parameterized for evaluation later.
@@ -72,6 +71,7 @@ uint64_t PageIdManager::addPage(){
     ssdSlotForNewPage |= nodeIdAtMSB;
     uint64_t partition = retVal & PARTITION_MASK;
     pageIdToSsdSlotMap[partition].insertToMap(retVal,ssdSlotForNewPage);
+    pagesCounter++;
     return retVal;
 }
 

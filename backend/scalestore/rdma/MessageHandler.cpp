@@ -519,13 +519,13 @@ void MessageHandler::startThread() {
 
 
 bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr, [[maybe_unused]]uint64_t t_i){
-    std::chrono::steady_clock::time_point shuffle_begin = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point shuffle_begin = std::chrono::steady_clock::now();//todo yuvi - clean
 
     PageIdManager::PagesShuffleJob pagesShuffleJob = pageIdManager.getNextPagesShuffleJob();
     if(pagesShuffleJob.last){
         return true;
     }
-    std::chrono::steady_clock::time_point afterPopping = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point afterPopping = std::chrono::steady_clock::now();//todo yuvi - clean
 
     PIDShuffleData shuffleData [AGGREGATED_SHUFFLE_MESSAGE_AMOUNT];
     auto newNodeId = pagesShuffleJob.newNodeId;
@@ -560,14 +560,12 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
             shuffleData[i].shuffledPid = pageId;
         }
     }
-    std::chrono::steady_clock::time_point afterLocking = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point afterLocking = std::chrono::steady_clock::now();//todo yuvi - clean
 
     auto onTheWayUpdateRequest = *MessageFabric::createMessage<CreateOrUpdateShuffledFramesRequest>(context_.outgoing,shuffleData,pagesShuffleJob.amountToSend);
     [[maybe_unused]]auto& createdFramesResponse = scalestore::threads::Worker::my().writeMsgSync<scalestore::rdma::CreateOrUpdateShuffledFramesResponse>(newNodeId, onTheWayUpdateRequest);
 
-    std::chrono::steady_clock::time_point afterMessage = std::chrono::steady_clock::now();
-
-    //if(t_i == 0){ std::cout << "A" <<std::endl;}
+    std::chrono::steady_clock::time_point afterMessage = std::chrono::steady_clock::now(); //todo yuvi - clean
 
     std::set<uint64_t> successfullyShufflePids;
     for(int i = 0; i < createdFramesResponse.successfulAmount; i++){
@@ -593,7 +591,8 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
             guard.frame->latch.unlatchExclusive();
         }
     }
-    std::chrono::steady_clock::time_point afterAll = std::chrono::steady_clock::now();
+    pageIdManager.pagesShuffledCounter += createdFramesResponse.successfulAmount;
+    std::chrono::steady_clock::time_point afterAll = std::chrono::steady_clock::now();//todo yuvi - clean
     if( aggregatedTimeMeasureCounter[t_i] < aggregatedMsgAmount ){
         afterPoppingResults[t_i][aggregatedTimeMeasureCounter[t_i]] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterPopping - shuffle_begin).count());
         afterLockingResults[t_i][aggregatedTimeMeasureCounter[t_i]] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterLocking - shuffle_begin).count());
