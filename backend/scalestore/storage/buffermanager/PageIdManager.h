@@ -217,8 +217,8 @@ struct PageIdManager {
     void handleNodeFinishedShuffling(uint64_t nodeIdLeaving);
 
     // shuffling message
-    void gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr );
-    void gossipNodeFinishedShuffling(scalestore::threads::Worker* workerPtr);
+    void broadcastNodeIsLeaving( scalestore::threads::Worker* workerPtr );
+    void broadcastNodeFinishedShuffling(scalestore::threads::Worker* workerPtr);
 
     //helper functions
     void redeemSsdSlot(uint64_t freedSsdSlot);

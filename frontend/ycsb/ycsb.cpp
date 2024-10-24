@@ -266,7 +266,7 @@ int main(int argc, char* argv[])
                            if(checkToStartShuffle == nodeLeavingTrigger){
                                std::cout<<"begin trigger" <<std::endl;
                                beginOfShuffling = std::chrono::steady_clock::now();
-                               pageIdManager.gossipNodeIsLeaving(workerPtr);
+                               pageIdManager.broadcastNodeIsLeaving(workerPtr);
                                std::cout<<"done trigger" <<std::endl;
                                pageIdManager.shuffleState = SHUFFLE_STATE::DURING_SHUFFLE;
                            }
@@ -283,7 +283,7 @@ int main(int argc, char* argv[])
                                        std::chrono::steady_clock::time_point finishShuffling = std::chrono::steady_clock::now();
                                        std::cout<<"Done shuffling! shuffle percentage :" << shuffleRatio<< " shuffle time: "<< std::chrono::duration_cast<std::chrono::microseconds>(finishShuffling - beginOfShuffling).count()  <<std::endl;
                                        mh.printShuffleLatency(FLAGS_worker,0);
-                                       pageIdManager.gossipNodeFinishedShuffling(workerPtr);
+                                       pageIdManager.broadcastNodeFinishedShuffling(workerPtr);
                                        //scalestore.getPageProvider().forceEvictionAfterShuffle();
                                        break;
                                    }

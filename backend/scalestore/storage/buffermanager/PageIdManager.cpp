@@ -220,7 +220,7 @@ PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(){
 }
 
 
-void  PageIdManager::gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr ) {
+void  PageIdManager::broadcastNodeIsLeaving( scalestore::threads::Worker* workerPtr ) {
     prepareForShuffle(nodeId);
     for (auto nodeToUpdate: nodeIdsInCluster) {
         if (nodeToUpdate == nodeId) continue;
@@ -232,7 +232,7 @@ void  PageIdManager::gossipNodeIsLeaving( scalestore::threads::Worker* workerPtr
     }
 }
 
-void  PageIdManager::gossipNodeFinishedShuffling(scalestore::threads::Worker* workerPtr){
+void  PageIdManager::broadcastNodeFinishedShuffling(scalestore::threads::Worker* workerPtr){
     for (auto nodeToUpdate: nodeIdsInCluster) {
         if (nodeToUpdate == nodeId) continue;
         auto &context_ = workerPtr->cctxs[nodeToUpdate];
