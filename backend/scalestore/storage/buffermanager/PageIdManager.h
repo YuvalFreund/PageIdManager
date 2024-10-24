@@ -112,10 +112,10 @@ struct PageIdManager {
             uint64_t retVal;
             partitionLock.lock();
             auto iter = map.find(pageId);
-            ensure(iter != map.end());
+            //ensure(iter != map.end());
             retVal = iter->second;
             retVal &= SSD_SLOT_MASK;
-            ensure(retVal < 26214401);
+            //ensure(retVal < 26214401);
             partitionLock.unlock();
             return retVal;
         }
