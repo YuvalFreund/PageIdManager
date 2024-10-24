@@ -427,13 +427,12 @@ void MessageHandler::startThread() {
                                                                                                 Protocol<storage::POSSESSION::EXCLUSIVE>(),
                                                                                                 ctx.bmId, true);
                              if (guard.state == STATE::RETRY) { // this it to deal with a case of the distrubted deadlock
-
+                                std::cout<<shuffledPid<<std::endl;
                              } else {
                                  pageIdManager.addPageWithExistingPageId(shuffledPid);
-
                                  //bool dirCheck = pageIdManager.isNodeDirectoryOfPageId(shuffledPid);
                                  //ensure(dirCheck);
-                                 ensure(pageIdManager.shuffleState != SHUFFLE_STATE::AFTER_SHUFFLE);
+                                 //ensure(pageIdManager.shuffleState != SHUFFLE_STATE::AFTER_SHUFFLE);
                                  guard.frame->possession = pidShuffleData.possession;
                                  if (pidShuffleData.possession == POSSESSION::SHARED) {
                                      guard.frame->possessors.shared.bitmap = pidShuffleData.possessors;

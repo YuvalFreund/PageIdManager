@@ -116,9 +116,12 @@ uint64_t PageIdManager::getTargetNodeForEviction(uint64_t pageId){
 bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
     bool retVal;
     uint64_t foundNodeId;
+
+    // before shuffle - search old ring
     if(shuffleState == SHUFFLE_STATE::BEFORE_SHUFFLE){
         foundNodeId = searchRingForNode(pageId, true);
         retVal = (foundNodeId == nodeId);
+        // during shuffle - check the cached directory
     }else if (shuffleState == SHUFFLE_STATE::DURING_SHUFFLE){
         uint64_t cachedDir = getCachedDirectoryOfPage(pageId);
         if (cachedDir == nodeId){
@@ -126,6 +129,7 @@ bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
         }else{
             retVal = false;
         }
+        // after shuffle - search the new ring
    } else if (shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE){
         foundNodeId = searchRingForNode(pageId, false);
         retVal = (foundNodeId == nodeId);
