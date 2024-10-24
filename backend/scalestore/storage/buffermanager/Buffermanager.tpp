@@ -63,13 +63,13 @@ restart:
     g.frame->latch.latchExclusive(); // POSSIBLE ERROR?
     ensure(g.frame->pid == EMPTY_PID);
     bool localPage = pageIdManager.isNodeDirectoryOfPageId(pid.id);
-    g.frame->state = fromShuffle; // todo yuval - just debug
+    g.frame->state =
             localPage ? BF_STATE::IO_SSD : BF_STATE::IO_RDMA;  // important to modify state before releasing the hashtable latch
    g.frame->page = page;
    g.frame->pid = pid;
    g.frame->epoch = globalEpoch.load();
    g.frame->setPossession(POSSESSION::NOBODY);
-   g.frame->shuffled =
+   g.frame->shuffled = fromShuffle;
    // -------------------------------------------------------------------------------------
    ht_latch.unlatchExclusive();
    // -------------------------------------------------------------------------------------
@@ -133,7 +133,7 @@ Guard Buffermanager::fix(PID pid, ACCESS functor) {
    // -------------------------------------------------------------------------------------
 restart:
    Guard guard = findFrameOrInsert<CONTENTION_METHOD::BLOCKING>(pid, functor, nodeId, false);
-   if(guard.frame->shuffled){
+   if (guard.frame->fromShuffle){
        std::cout<<"g"<<std::endl;
    }
    ensure(guard.state != STATE::UNINITIALIZED);
