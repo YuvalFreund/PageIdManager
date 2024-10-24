@@ -115,7 +115,7 @@ uint64_t PageIdManager::getTargetNodeForEviction(uint64_t pageId){
 
 bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
     bool retVal;
-    uint64_t foundNodeId = 123456789;
+    uint64_t foundNodeId;
     if(shuffleState == SHUFFLE_STATE::BEFORE_SHUFFLE){
         foundNodeId = searchRingForNode(pageId, true);
         retVal = (foundNodeId == nodeId);
@@ -268,7 +268,7 @@ void PageIdManager::redeemSsdSlot(uint64_t freedSsdSlot){
 }
 
 uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
-    uint64_t retVal = 987654321;
+    uint64_t retVal;
     std::map<uint64_t, uint64_t> * mapToSearch = searchOldRing ? (&nodesRingLocationMap ) : (&newNodesRingLocationMap);
     std::vector<uint64_t> * vectorToSearch = searchOldRing ? (&nodeRingLocationsVector) : (&newNodeRingLocationsVector);
     /*if(nodeIdsInCluster->size() == 1){
