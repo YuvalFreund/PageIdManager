@@ -131,6 +131,7 @@ struct PageIdManager {
         }
 
         uint64_t getSsdSlotOfPageAndRemove(uint64_t pageId){
+            std::cout<<"Page removed:" << pageId<<std::endl;
             uint64_t retVal;
             partitionLock.lock();
             auto iter = map.find(pageId);
