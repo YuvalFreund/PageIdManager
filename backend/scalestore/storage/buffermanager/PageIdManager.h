@@ -179,8 +179,10 @@ struct PageIdManager {
     std::atomic<int> workingShuffleMapIdx = 0;
     std::mutex pageIdSsdMapMtx;
     std::mutex pageIdShuffleMtx;
-    std::atomic<uint64_t> pagesCounter = 0;
-    std::atomic<uint64_t> pagesShuffledCounter = 0;
+    std::atomic<uint64_t> pagesCounter = 0; //todo yuvi - clean
+    std::atomic<uint64_t> pagesShuffledCounter = 0; //todo yuvi - clean
+    std::atomic<uint64_t> failedShuffledCounter = 0; //todo yuvi - clean
+
 
     //shuffling
     std::map<uint64_t, std::stack<uint64_t>> mapOfStacksForShuffle;
@@ -224,7 +226,6 @@ struct PageIdManager {
     uint64_t getNewPageId(bool oldRing);
     uint64_t getFreeSsdSlot();
     uint64_t searchRingForNode(uint64_t pageId, bool searchOldRing);
-
 };
 
 
