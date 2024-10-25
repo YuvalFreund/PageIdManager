@@ -176,7 +176,7 @@ struct PageIdManager {
 
     //locks and atomics
     std::atomic<SHUFFLE_STATE> shuffleState = SHUFFLE_STATE::BEFORE_SHUFFLE;  // Define an atomic enum
-    std::atomic<int> workingShuffleMapIdx = 0;
+    std::atomic<int> workingShuffleMapIdx = -1; // initialize to -1, so at the first round th index will be 0
     std::mutex pageIdSsdMapMtx;
     std::mutex pageIdShuffleMtx;
     std::atomic<uint64_t> pagesCounter = 0; //todo yuvi - clean
