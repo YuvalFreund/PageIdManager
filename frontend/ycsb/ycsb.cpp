@@ -283,10 +283,8 @@ int main(int argc, char* argv[])
                                        std::chrono::steady_clock::time_point finishShuffling = std::chrono::steady_clock::now();
                                        std::cout<<"Done shuffling! shuffle percentage :" << shuffleRatio<< " shuffle time: "<< std::chrono::duration_cast<std::chrono::microseconds>(finishShuffling - beginOfShuffling).count()  <<std::endl;
                                        //mh.printShuffleLatency(FLAGS_worker,0); //todo yuvi- clean
-                                       std::cout<<"all pages: " << pageIdManager.pagesCounter <<" shuffled: " <<pageIdManager.pagesShuffledCounter<<" diff: " <<pageIdManager.pagesCounter - pageIdManager.pagesShuffledCounter<<std::endl ;
-                                       std::cout<<"failed shuffles: " << pageIdManager.failedShuffledCounter<<std::endl;
                                        pageIdManager.broadcastNodeFinishedShuffling(workerPtr);
-                                       //scalestore.getPageProvider().forceEvictionAfterShuffle();
+                                       scalestore.getPageProvider().forceEvictionAfterShuffle();
                                        break;
                                    }
                                }
