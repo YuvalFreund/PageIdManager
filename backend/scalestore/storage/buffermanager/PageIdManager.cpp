@@ -71,7 +71,7 @@ uint64_t PageIdManager::addPage(){
     ssdSlotForNewPage |= nodeIdAtMSB;
     uint64_t partition = retVal & PARTITION_MASK;
     pageIdToSsdSlotMap[partition].insertToMap(retVal,ssdSlotForNewPage);
-    pagesCounter++;
+    pagesCounter++; // todo yuvi - clean
     return retVal;
 }
 
@@ -218,6 +218,7 @@ PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(){
             goto restart;
         }
     }
+
     retVal.amountToSend = shuffledJobs;
     pageIdShuffleMtx.unlock();
     return retVal;

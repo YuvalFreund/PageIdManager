@@ -591,8 +591,8 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
             guard.frame->latch.unlatchExclusive();
         }
     }
-    pageIdManager.failedShuffledCounter += pagesShuffleJob.amountToSend - createdFramesResponse.successfulAmount;
-    pageIdManager.pagesShuffledCounter += createdFramesResponse.successfulAmount;
+    pageIdManager.failedShuffledCounter += pagesShuffleJob.amountToSend - createdFramesResponse.successfulAmount;//todo yuvi - clean
+    pageIdManager.pagesShuffledCounter += createdFramesResponse.successfulAmount;//todo yuvi - clean
     std::chrono::steady_clock::time_point afterAll = std::chrono::steady_clock::now();//todo yuvi - clean
     if( aggregatedTimeMeasureCounter[t_i] < aggregatedMsgAmount ){
         afterPoppingResults[t_i][aggregatedTimeMeasureCounter[t_i]] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterPopping - shuffle_begin).count());
