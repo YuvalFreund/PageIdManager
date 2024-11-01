@@ -219,7 +219,10 @@ void MessageHandler::startThread() {
                              continue;
                          }
                          // -------------------------------------------------------------------------------------
-                         ensure(guard.state != STATE::NOT_FOUND);
+                         // this is
+                         if(pageIdManager.shuffleState != SHUFFLE_STATE::AFTER_SHUFFLE){
+                             ensure(guard.state != STATE::NOT_FOUND);
+                         }
                          ensure(guard.state != STATE::UNINITIALIZED);
                          ensure(guard.frame);
                          ensure(request.pid == guard.frame->pid);
@@ -593,8 +596,6 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
             guard.frame->latch.unlatchExclusive();
         }
     }
-    pageIdManager.failedShuffledCounter += pagesShuffleJob.amountToSend - createdFramesResponse.successfulAmount;//todo yuvi - clean
-    pageIdManager.pagesShuffledCounter += createdFramesResponse.successfulAmount;//todo yuvi - clean
     std::chrono::steady_clock::time_point afterAll = std::chrono::steady_clock::now();//todo yuvi - clean
     if( aggregatedTimeMeasureCounter[t_i] < aggregatedMsgAmount ){
         afterPoppingResults[t_i][aggregatedTimeMeasureCounter[t_i]] = double(std::chrono::duration_cast<std::chrono::microseconds>(afterPopping - shuffle_begin).count());

@@ -71,7 +71,6 @@ uint64_t PageIdManager::addPage(){
     ssdSlotForNewPage |= nodeIdAtMSB;
     uint64_t partition = retVal & PARTITION_MASK;
     pageIdToSsdSlotMap[partition].insertToMap(retVal,ssdSlotForNewPage);
-    pagesCounter++; // todo yuvi - clean
     return retVal;
 }
 

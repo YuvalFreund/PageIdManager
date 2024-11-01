@@ -179,9 +179,6 @@ struct PageIdManager {
     std::atomic<int> workingShuffleMapIdx = -1; // initialize to -1, so at the first round the index will be 0
     std::mutex pageIdSsdMapMtx;
     std::mutex pageIdShuffleMtx;
-    std::atomic<uint64_t> pagesCounter = 0; //todo yuvi - clean
-    std::atomic<uint64_t> pagesShuffledCounter = 0; //todo yuvi - clean
-    std::atomic<uint64_t> failedShuffledCounter = 0; //todo yuvi - clean
 
 
     //shuffling
