@@ -284,9 +284,7 @@ int main(int argc, char* argv[])
                                        std::cout<<"Done shuffling! shuffle percentage :" << shuffleRatio<< " shuffle time: "<< std::chrono::duration_cast<std::chrono::microseconds>(finishShuffling - beginOfShuffling).count()  <<std::endl;
                                        //mh.printShuffleLatency(FLAGS_worker,0); //todo yuvi- clean
                                        pageIdManager.broadcastNodeFinishedShuffling(workerPtr);
-                                       std::cout<<"before"<<std::endl;
                                        scalestore.getPageProvider().forceEvictionAfterShuffle();
-                                       std::cout<<"after"<<std::endl;
                                        break;
                                    }
                                }

@@ -60,7 +60,7 @@ PageProvider::~PageProvider() {
 }
 // -------------------------------------------------------------------------------------
 void PageProvider::forceEvictionAfterShuffle(){
-    shuffleAllPagesFlag = true;
+    forceEvictionAfterShuffleFlag = true;
     std::cout<<"start force eviction"<<std::endl;
 }
 
@@ -155,13 +155,13 @@ void PageProvider::startThread() {
          uint64_t tmpPages = bm.getFreePages();
 
          // Limit at which PP starts incrementing epochs i.e. 90% full
-         auto pp_triggered_condition = [&]() { return (bm.getFreePages()) < (coolingBFLimit); };
+         auto pp_triggered_condition = [&]() { return (bm.getFreePages()) < (coolingBFLimit) || forceEvictionAfterShuffleFlag; };
          // epoch condtion
          auto pp_increment_epoch_condition = [&](uint64_t tmpPages, uint64_t evicted) {
             return ((bm.getFreePages() + (freeBFLimit * 0.1)) < (tmpPages + evicted));
          };
          // start real eviction
-         auto pp_start_eviction_condition = [&]() { return (bm.getFreePages() < freeBFLimit) || shuffleAllPagesFlag; };
+         auto pp_start_eviction_condition = [&]() { return (bm.getFreePages() < freeBFLimit) || forceEvictionAfterShuffleFlag; };
          // -------------------------------------------------------------------------------------
          RingBuffer<BufferFrame*> coolingBuffer(1000);
          RingBuffer<Page*> privatePageBuffer(batchSize * FLAGS_nodes * 4);
