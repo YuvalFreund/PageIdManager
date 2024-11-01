@@ -61,6 +61,7 @@ PageProvider::~PageProvider() {
 // -------------------------------------------------------------------------------------
 void PageProvider::forceEvictionAfterShuffle(){
     shuffleAllPagesFlag = true;
+    std::cout<<"start force eviction"<<std::endl;
 }
 
 void PageProvider::startThread() {
@@ -525,7 +526,7 @@ void PageProvider::startThread() {
                   sampling_needed = true;
                }
                if (pp_start_eviction_condition()) {  // start eviction
-
+                   std::cout<<"trying eviction"<<std::endl;
                   uint64_t begin_offset = (current_batch_offset % partition_size);
                   uint64_t end_offset = (current_batch_offset + pp_batch_size);
                   if (end_offset > partition_size) end_offset = partition_size;
