@@ -413,6 +413,8 @@ void MessageHandler::startThread() {
                      case MESSAGE_TYPE::NFSR:{
                          auto &request = *reinterpret_cast<NodeFinishedShuffleRequest *>(ctx.request);
                          pageIdManager.handleNodeFinishedShuffling(request.leavingNodeId);
+                         auto &response = *MessageFabric::createMessage<rdma::NodeFinishedShuffleResponse>(ctx.response);
+                         writeMsg(clientId, response, threads::ThreadContext::my().page_handle);
                          std::cout<<"nsfr"<<std::endl;
                          break;
                      }
@@ -587,7 +589,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
 
         }// the case where the page wasn't shuffled successfully
         else{
-            pageIdManager.pushJobToStack(pid,newNodeId); // todo - look if there is no edge case in returning to a stack that wasn't finished
+            pageIdManager.pushJobToStack(pid,newNodeId);
             guard.frame->latch.unlatchExclusive();
         }
     }
