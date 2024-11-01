@@ -237,6 +237,7 @@ void  PageIdManager::broadcastNodeIsLeaving( scalestore::threads::Worker* worker
 }
 
 void  PageIdManager::broadcastNodeFinishedShuffling(scalestore::threads::Worker* workerPtr){
+    this->shuffleState = SHUFFLE_STATE::AFTER_SHUFFLE;
     for (auto nodeToUpdate: nodeIdsInCluster) {
         if (nodeToUpdate == nodeId) continue;
         auto &context_ = workerPtr->cctxs[nodeToUpdate];
