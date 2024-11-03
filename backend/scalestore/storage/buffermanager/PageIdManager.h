@@ -204,7 +204,7 @@ struct PageIdManager {
 
     // shuffling functions
     void prepareForShuffle(uint64_t nodeIdLeft);
-    PagesShuffleJob getNextPagesShuffleJob(uint64_t t_i);
+    PagesShuffleJob getNextPagesShuffleJob(uint64_t t_i,uint64_t workerAmount);
     void pushJobToStack(uint64_t pageId,uint64_t nodeIdToShuffle);
     uint64_t getCachedDirectoryOfPage(uint64_t pageId);
     void setDirectoryOfPage(uint64_t pageId, uint64_t directory);

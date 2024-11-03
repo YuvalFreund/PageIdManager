@@ -158,7 +158,7 @@ void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
         // for the leaving node this is done after all other nodes are aware
         shuffleState = SHUFFLE_STATE::DURING_SHUFFLE;
     }else{ // leaving node has to prepare stack for shuffle jobs
-        for(int i = 0; i< FLAGS_worker; i++){
+        for(int i = 0; i< 20; i++){ // todo yuvi should maybe be worker flags..
             // -1 ensures that the first thread is starting with 0.
             threadsWorkingShuffleMapIdx[i] = -1 + i;
             // This is initiated that way so when the first shuffle starts, the map will be initiated
@@ -181,14 +181,14 @@ void PageIdManager::setDirectoryOfPage(uint64_t pageId, uint64_t directory){
     pageIdToSsdSlotMap[partition].setDirectoryForPage(pageId,directory);
 }
 
-PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(uint64_t t_i){
+PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(uint64_t t_i, uint64_t workerAmount){
     PagesShuffleJob retVal;
     pageIdShuffleMtx.lock(); //todo yuvi -remove lock when we are ready
 
     restart:
     // preparing a new map of stacks
     if(highestNodeIdForShuffleJobs[t_i] < currentNodeIdForShuffleJobs[t_i]){
-        threadsWorkingShuffleMapIdx[t_i]++;
+        threadsWorkingShuffleMapIdx[t_i] += workerAmount;
         if(threadsWorkingShuffleMapIdx[t_i] >= SSD_PID_MAPS_AMOUNT){ // the case where there is no more to shuffle
             retVal.last = true;
             pageIdShuffleMtx.unlock();

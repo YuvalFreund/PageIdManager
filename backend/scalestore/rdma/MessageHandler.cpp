@@ -523,10 +523,10 @@ void MessageHandler::startThread() {
 
 
 
-bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr, [[maybe_unused]]uint64_t t_i){
+bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr, [[maybe_unused]]uint64_t t_i, uint64_t workerAmount){
     std::chrono::steady_clock::time_point shuffle_begin = std::chrono::steady_clock::now();//todo yuvi - clean
 
-    PageIdManager::PagesShuffleJob pagesShuffleJob = pageIdManager.getNextPagesShuffleJob(t_i);
+    PageIdManager::PagesShuffleJob pagesShuffleJob = pageIdManager.getNextPagesShuffleJob(t_i,workerAmount);
     if(pagesShuffleJob.last){
         return true;
     }
