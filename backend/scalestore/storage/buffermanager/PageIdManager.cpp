@@ -153,10 +153,18 @@ uint64_t PageIdManager::getSsdSlotOfPageId(uint64_t pageId){
 
 void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
     nodeIdsInCluster.erase(nodeIdLeft);
-    nodeLeaving = nodeIdLeft;
     initConsistentHashingInfo(false);
     if(nodeIdLeft != nodeId){
+        // for the leaving node this is done after all other nodes are aware
         shuffleState = SHUFFLE_STATE::DURING_SHUFFLE;
+    }else{ // leaving node has to prepare stack for shuffle jobs
+        for(int i = 0; i< FLAGS_worker; i++){
+            // -1 ensures that the first thread is starting with 0.
+            threadsWorkingShuffleMapIdx[i] = -1 + i;
+            // This is initiated that way so when the first shuffle starts, the map will be initiated
+            highestNodeIdForShuffleJobs[i] = 0;
+            currentNodeIdForShuffleJobs[i] = 10;
+        }
     }
 }
 
@@ -173,35 +181,35 @@ void PageIdManager::setDirectoryOfPage(uint64_t pageId, uint64_t directory){
     pageIdToSsdSlotMap[partition].setDirectoryForPage(pageId,directory);
 }
 
-PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(){
+PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(uint64_t t_i)){
     PagesShuffleJob retVal;
-    pageIdShuffleMtx.lock();
+    pageIdShuffleMtx.lock(); //todo yuvi -remove lock when we are ready
 
     restart:
     // preparing a new map of stacks
-    if(highestNodeIdForShuffleJobs < currentNodeIdForShuffleJobs){
-        workingShuffleMapIdx++;
-        if(workingShuffleMapIdx >= SSD_PID_MAPS_AMOUNT){ // the case where there is no more to shuffle
+    if(highestNodeIdForShuffleJobs[t_i] < currentNodeIdForShuffleJobs[t_i]){
+        workingShuffleMapIdx[t_i]++;
+        if(workingShuffleMapIdx[t_i] >= SSD_PID_MAPS_AMOUNT){ // the case where there is no more to shuffle
             retVal.last = true;
             pageIdShuffleMtx.unlock();
             return retVal;
         }
-        highestNodeIdForShuffleJobs = 0;
-        currentNodeIdForShuffleJobs = 0;
-        pageIdToSsdSlotMap[workingShuffleMapIdx].partitionLock.lock();
-        for(auto pair : pageIdToSsdSlotMap[workingShuffleMapIdx].map){
+        highestNodeIdForShuffleJobs[t_i] = 0;
+        currentNodeIdForShuffleJobs[t_i] = 0;
+        pageIdToSsdSlotMap[workingShuffleMapIdx[t_i]].partitionLock.lock();
+        for(auto pair : pageIdToSsdSlotMap[workingShuffleMapIdx[t_i]].map){
             uint64_t pageToShuffle = pair.first;
             uint64_t destNode = 1; // todo yuval - change here
-            if(destNode > highestNodeIdForShuffleJobs ) highestNodeIdForShuffleJobs = destNode;
-            mapOfStacksForShuffle[destNode].push(pageToShuffle);
+            if(destNode > highestNodeIdForShuffleJobs[t_i] ) highestNodeIdForShuffleJobs[t_i] = destNode;
+            mapOfStacksForShuffle[t_i][destNode].push(pageToShuffle);
         }
-        pageIdToSsdSlotMap[workingShuffleMapIdx].partitionLock.unlock();
+        pageIdToSsdSlotMap[workingShuffleMapIdx[t_i]].partitionLock.unlock();
     }
     // loop to try and get AGGREGATED_SHUFFLE_MESSAGE_AMOUNT jobs
     int shuffledJobs = 0;
-    while(mapOfStacksForShuffle[currentNodeIdForShuffleJobs].empty() == false && shuffledJobs < AGGREGATED_SHUFFLE_MESSAGE_AMOUNT){
-        uint64_t pageToShuffle = mapOfStacksForShuffle[currentNodeIdForShuffleJobs].top();
-        mapOfStacksForShuffle[currentNodeIdForShuffleJobs].pop();
+    while(mapOfStacksForShuffle[currentNodeIdForShuffleJobs[t_i]].empty() == false && shuffledJobs < AGGREGATED_SHUFFLE_MESSAGE_AMOUNT){
+        uint64_t pageToShuffle = mapOfStacksForShuffle[currentNodeIdForShuffleJobs[t_i]].top();
+        mapOfStacksForShuffle[currentNodeIdForShuffleJobs[t_i]].pop();
         retVal.newNodeId = currentNodeIdForShuffleJobs;
         retVal.pageIds[shuffledJobs] = pageToShuffle;
         shuffledJobs++;
@@ -209,7 +217,7 @@ PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(){
 
     if(shuffledJobs < AGGREGATED_SHUFFLE_MESSAGE_AMOUNT) {
         // didn't get AGGREGATED_SHUFFLE_MESSAGE_AMOUNT pages to shuffle. if it is more than 0 - we return whatever we found.
-        currentNodeIdForShuffleJobs++;
+        currentNodeIdForShuffleJobs[t_i]++;
         if (shuffledJobs == 0){
             // either stack is finished or mapped is finished- but still we want to return pages to shuffle
             goto restart;

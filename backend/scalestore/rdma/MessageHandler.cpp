@@ -526,7 +526,7 @@ void MessageHandler::startThread() {
 bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr, [[maybe_unused]]uint64_t t_i){
     std::chrono::steady_clock::time_point shuffle_begin = std::chrono::steady_clock::now();//todo yuvi - clean
 
-    PageIdManager::PagesShuffleJob pagesShuffleJob = pageIdManager.getNextPagesShuffleJob();
+    PageIdManager::PagesShuffleJob pagesShuffleJob = pageIdManager.getNextPagesShuffleJob(t_i);
     if(pagesShuffleJob.last){
         return true;
     }

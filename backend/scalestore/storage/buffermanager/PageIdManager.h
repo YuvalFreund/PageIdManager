@@ -177,17 +177,16 @@ struct PageIdManager {
     //locks and atomics
     std::atomic<SHUFFLE_STATE> shuffleState = SHUFFLE_STATE::BEFORE_SHUFFLE;  // Define an atomic enum
     std::atomic<int> workingShuffleMapIdx = -1; // initialize to -1, so at the first round the index will be 0
+    int threadsWorkingShuffleMapIdx [FLAGS_worker];
     std::mutex pageIdSsdMapMtx;
     std::mutex pageIdShuffleMtx;
 
 
     //shuffling
-    std::map<uint64_t, std::stack<uint64_t>> mapOfStacksForShuffle;
-    // This is initiated that way so when the first shuffle starts, the map will be initiated
-    std::atomic<uint64_t> highestNodeIdForShuffleJobs = 0;
-    std::atomic<uint64_t> currentNodeIdForShuffleJobs = 10;
-    // for page provider
-    uint64_t nodeLeaving;
+    std::map<uint64_t, std::stack<uint64_t>> [FLAGS_worker] mapOfStacksForShuffle;
+    uint64_t highestNodeIdForShuffleJobs[FLAGS_worker];
+    uint64_t currentNodeIdForShuffleJobs[FLAGS_worker];
+
 
     // init functions
     void initPageIdManager();
@@ -206,7 +205,7 @@ struct PageIdManager {
 
     // shuffling functions
     void prepareForShuffle(uint64_t nodeIdLeft);
-    PagesShuffleJob getNextPagesShuffleJob();
+    PagesShuffleJob getNextPagesShuffleJob(uint64_t t_i));
     void pushJobToStack(uint64_t pageId,uint64_t nodeIdToShuffle);
     uint64_t getCachedDirectoryOfPage(uint64_t pageId);
     void setDirectoryOfPage(uint64_t pageId, uint64_t directory);
