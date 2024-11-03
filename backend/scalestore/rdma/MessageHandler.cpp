@@ -592,7 +592,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
 
         }// the case where the page wasn't shuffled successfully
         else{
-            pageIdManager.pushJobToStack(pid,newNodeId);
+            pageIdManager.pushJobToStack(pid,newNodeId,t_i);
             guard.frame->latch.unlatchExclusive();
         }
     }
