@@ -207,10 +207,10 @@ PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(uint64_t t_
     }
     // loop to try and get AGGREGATED_SHUFFLE_MESSAGE_AMOUNT jobs
     int shuffledJobs = 0;
-    while(mapOfStacksForShuffle[currentNodeIdForShuffleJobs[t_i]].empty() == false && shuffledJobs < AGGREGATED_SHUFFLE_MESSAGE_AMOUNT){
-        uint64_t pageToShuffle = mapOfStacksForShuffle[currentNodeIdForShuffleJobs[t_i]].top();
-        mapOfStacksForShuffle[currentNodeIdForShuffleJobs[t_i]].pop();
-        retVal.newNodeId = currentNodeIdForShuffleJobs;
+    while(mapOfStacksForShuffle[t_i][currentNodeIdForShuffleJobs[t_i]].empty() == false && shuffledJobs < AGGREGATED_SHUFFLE_MESSAGE_AMOUNT){
+        uint64_t pageToShuffle = mapOfStacksForShuffle[t_i][currentNodeIdForShuffleJobs[t_i]].top();
+        mapOfStacksForShuffle[t_i][currentNodeIdForShuffleJobs[t_i]].pop();
+        retVal.newNodeId = currentNodeIdForShuffleJobs[t_i];
         retVal.pageIds[shuffledJobs] = pageToShuffle;
         shuffledJobs++;
     }
