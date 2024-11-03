@@ -188,22 +188,22 @@ PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(uint64_t t_
     restart:
     // preparing a new map of stacks
     if(highestNodeIdForShuffleJobs[t_i] < currentNodeIdForShuffleJobs[t_i]){
-        workingShuffleMapIdx[t_i]++;
-        if(workingShuffleMapIdx[t_i] >= SSD_PID_MAPS_AMOUNT){ // the case where there is no more to shuffle
+        threadsWorkingShuffleMapIdx[t_i]++;
+        if(threadsWorkingShuffleMapIdx[t_i] >= SSD_PID_MAPS_AMOUNT){ // the case where there is no more to shuffle
             retVal.last = true;
             pageIdShuffleMtx.unlock();
             return retVal;
         }
         highestNodeIdForShuffleJobs[t_i] = 0;
         currentNodeIdForShuffleJobs[t_i] = 0;
-        pageIdToSsdSlotMap[workingShuffleMapIdx[t_i]].partitionLock.lock();
-        for(auto pair : pageIdToSsdSlotMap[workingShuffleMapIdx[t_i]].map){
+        pageIdToSsdSlotMap[threadsWorkingShuffleMapIdx[t_i]].partitionLock.lock();
+        for(auto pair : pageIdToSsdSlotMap[threadsWorkingShuffleMapIdx[t_i]].map){
             uint64_t pageToShuffle = pair.first;
             uint64_t destNode = 1; // todo yuval - change here
             if(destNode > highestNodeIdForShuffleJobs[t_i] ) highestNodeIdForShuffleJobs[t_i] = destNode;
             mapOfStacksForShuffle[t_i][destNode].push(pageToShuffle);
         }
-        pageIdToSsdSlotMap[workingShuffleMapIdx[t_i]].partitionLock.unlock();
+        pageIdToSsdSlotMap[threadsWorkingShuffleMapIdx[t_i]].partitionLock.unlock();
     }
     // loop to try and get AGGREGATED_SHUFFLE_MESSAGE_AMOUNT jobs
     int shuffledJobs = 0;

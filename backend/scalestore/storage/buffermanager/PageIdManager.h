@@ -176,7 +176,6 @@ struct PageIdManager {
 
     //locks and atomics
     std::atomic<SHUFFLE_STATE> shuffleState = SHUFFLE_STATE::BEFORE_SHUFFLE;  // Define an atomic enum
-    std::atomic<int> workingShuffleMapIdx = -1; // initialize to -1, so at the first round the index will be 0
     int threadsWorkingShuffleMapIdx [20];// todo yuvi - this should be the maximum amount of flags
     std::mutex pageIdSsdMapMtx;
     std::mutex pageIdShuffleMtx;
