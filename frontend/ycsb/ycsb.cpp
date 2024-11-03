@@ -273,7 +273,7 @@ int main(int argc, char* argv[])
                        }
 
                        if (scalestore.getNodeID() == leavingNodeId && pageIdManager.shuffleState == SHUFFLE_STATE::DURING_SHUFFLE && utils::RandomGenerator::getRandU64(0, 100) < shuffleRatio){
-                           bool finished = mh.shuffleFrameAndIsLastShuffle(workerPtr,t_i);
+                           bool finished = mh.shuffleFrameAndIsLastShuffle(workerPtr,t_i,FLAGS_worker);
                            if (finished){
                                if(t_i != 0) {
                                    threadsFinishedShuffle++;

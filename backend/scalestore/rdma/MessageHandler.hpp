@@ -468,7 +468,7 @@ struct MessageHandler {
    }
 
    void printShuffleLatency(uint64_t numThreads, uint64_t  tiToPrint);
-   bool shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr,uint64_t t_i);
+   bool shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* workerPtr,uint64_t t_i, uint64_t threadsAmount);
    void readEvictedPageBeforeShuffle(Guard& guard){
        ensure(guard.frame->latch.isLatched());
        if(guard.frame->page == nullptr){

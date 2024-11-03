@@ -267,9 +267,9 @@ uint64_t PageIdManager::getFreeSsdSlot(){
     return retVal;
 }
 
-void PageIdManager::pushJobToStack(uint64_t pageId, uint64_t nodeIdToShuffle){
+void PageIdManager::pushJobToStack(uint64_t pageId, uint64_t nodeIdToShuffle, uint64_t t_i){
     pageIdShuffleMtx.lock();
-    mapOfStacksForShuffle[nodeIdToShuffle].push(pageId);
+    mapOfStacksForShuffle[t_i][nodeIdToShuffle].push(pageId);
     pageIdShuffleMtx.unlock();
 }
 
