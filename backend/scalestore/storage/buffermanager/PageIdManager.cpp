@@ -272,12 +272,12 @@ void PageIdManager::redeemSsdSlot(uint64_t freedSsdSlot){
 
 uint64_t PageIdManager::linearSearchOnTheRing(uint64_t pageId, bool searchOldRing) {
     uint64_t retVal;
-    uint64_t foundLocation = -1;
+    int foundLocation = -1;
     std::map<uint64_t, uint64_t> * mapToSearch = searchOldRing ? (&nodesRingLocationMap ) : (&newNodesRingLocationMap);
     std::vector<uint64_t> * vectorToSearch = searchOldRing ? (&nodeRingLocationsVector) : (&newNodeRingLocationsVector);
     //cyclic case
     int vecSize = vectorToSearch->size();
-    for(int idx = 0 ; idx < vectorToSearch->size(); idx++ ){
+    for(int idx = 0 ; idx < vecSize; idx++ ){
         if(pageId < vectorToSearch->at(idx)){
             // cyclic case - after the 0 spot
             if(idx == 0){
@@ -292,7 +292,7 @@ uint64_t PageIdManager::linearSearchOnTheRing(uint64_t pageId, bool searchOldRin
     if(foundLocation == -1){
         foundLocation = vectorToSearch->size() -1;
     }
-    retVal = mapToSearch->find(foundLocation);
+    retVal = mapToSearch->find(foundLocation)->second;
     return retVal;
 }
 
