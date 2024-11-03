@@ -605,6 +605,7 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         aggregatedTimeMeasureCounter[t_i]++;
     }
     workerPtr->counters.incr_by(profiling::WorkerCounters::shuffled_frames,createdFramesResponse.successfulAmount);
+    pagesShuffled += createdFramesResponse.successfulAmount;
     return false;
 }
 

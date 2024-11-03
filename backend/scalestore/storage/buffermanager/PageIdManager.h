@@ -179,6 +179,8 @@ struct PageIdManager {
     int threadsWorkingShuffleMapIdx [20];// todo yuvi - this should be the maximum amount of flags
     std::mutex pageIdSsdMapMtx;
     std::mutex pageIdShuffleMtx;
+    std::atomic<int> pagesAdded = 0;
+    std::atomic<int> pagesShuffled = 0;
 
 
     //shuffling
