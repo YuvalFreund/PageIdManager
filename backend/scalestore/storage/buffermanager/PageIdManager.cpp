@@ -181,7 +181,7 @@ void PageIdManager::setDirectoryOfPage(uint64_t pageId, uint64_t directory){
     pageIdToSsdSlotMap[partition].setDirectoryForPage(pageId,directory);
 }
 
-PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(uint64_t t_i)){
+PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(uint64_t t_i){
     PagesShuffleJob retVal;
     pageIdShuffleMtx.lock(); //todo yuvi -remove lock when we are ready
 

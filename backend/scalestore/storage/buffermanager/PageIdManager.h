@@ -183,7 +183,7 @@ struct PageIdManager {
 
 
     //shuffling
-    std::map<uint64_t, std::stack<uint64_t>> [20] mapOfStacksForShuffle;
+    std::map<uint64_t, std::stack<uint64_t>>  mapOfStacksForShuffle[20];
     uint64_t highestNodeIdForShuffleJobs[20];
     uint64_t currentNodeIdForShuffleJobs[20];
 
@@ -205,7 +205,7 @@ struct PageIdManager {
 
     // shuffling functions
     void prepareForShuffle(uint64_t nodeIdLeft);
-    PagesShuffleJob getNextPagesShuffleJob(uint64_t t_i));
+    PagesShuffleJob getNextPagesShuffleJob(uint64_t t_i);
     void pushJobToStack(uint64_t pageId,uint64_t nodeIdToShuffle);
     uint64_t getCachedDirectoryOfPage(uint64_t pageId);
     void setDirectoryOfPage(uint64_t pageId, uint64_t directory);
