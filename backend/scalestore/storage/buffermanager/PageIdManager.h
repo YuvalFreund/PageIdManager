@@ -223,6 +223,8 @@ struct PageIdManager {
     uint64_t getNewPageId(bool oldRing);
     uint64_t getFreeSsdSlot();
     uint64_t searchRingForNode(uint64_t pageId, bool searchOldRing);
+    uint64_t PageIdManager::binarySearchOnRing(uint64_t pageId, bool searchOldRing);
+    uint64_t PageIdManager::linearSearchOnTheRing(uint64_t pageId, bool searchOldRing);
 };
 
 
