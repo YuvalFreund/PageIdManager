@@ -270,8 +270,33 @@ void PageIdManager::redeemSsdSlot(uint64_t freedSsdSlot){
     chosenPartition->second.insertFreedSsdSlot(freedSsdSlot);
 }
 
+uint64_t linearSearchOnTheRing(uint64_t pageId, bool searchOldRing) {
+    uint64_t retVal;
+    uint64_t foundLocation = -1;
+    std::map<uint64_t, uint64_t> * mapToSearch = searchOldRing ? (&nodesRingLocationMap ) : (&newNodesRingLocationMap);
+    std::vector<uint64_t> * vectorToSearch = searchOldRing ? (&nodeRingLocationsVector) : (&newNodeRingLocationsVector);
+    //cyclic case
 
-uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
+    for(int idx = 0 ; idx < vectorToSearch->size(); idx++ ){
+        if(pageId < vectorToSearch->at(idx)){
+            // cyclic case - after the 0 spot
+            if(idx == 0){
+                foundLocation = vectorToSearch->size() -1;
+            }else{
+                foundLocation = idx - 1;
+            }
+            break;
+        }
+    }
+    // cyclic case - before the 0 spot
+    if(foundLocation == -1){
+        foundLocation = vectorToSearch->size() -1;
+    }
+    retVal = mapToSearch->find(foundLocation);
+    return retVal;
+}
+
+uint64_t binarySearchOnRing(uint64_t pageId, bool searchOldRing){
     uint64_t retVal;
     std::map<uint64_t, uint64_t> * mapToSearch = searchOldRing ? (&nodesRingLocationMap ) : (&newNodesRingLocationMap);
     std::vector<uint64_t> * vectorToSearch = searchOldRing ? (&nodeRingLocationsVector) : (&newNodeRingLocationsVector);
@@ -297,6 +322,10 @@ uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
         }
     }
     return retVal;
+}
+
+uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
+    return binarySearchOnRing(pageId , searchOldRing);
 }
 
 uint64_t PageIdManager::getNewPageId(bool oldRing){
