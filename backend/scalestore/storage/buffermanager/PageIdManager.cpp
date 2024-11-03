@@ -293,6 +293,7 @@ uint64_t PageIdManager::linearSearchOnTheRing(uint64_t pageId, bool searchOldRin
         foundLocation = vectorToSearch->size() -1;
     }
     retVal = mapToSearch->find(foundLocation)->second;
+    ensure(retVal < 2);
     return retVal;
 }
 
