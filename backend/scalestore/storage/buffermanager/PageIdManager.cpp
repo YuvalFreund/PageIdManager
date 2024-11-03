@@ -37,7 +37,7 @@ void PageIdManager::initConsistentHashingInfo(bool firstInit){
 
 void PageIdManager::initSsdPartitions(){
     int ssdMaximumPagesAmount = (FLAGS_ssd_gib * 1024 * 1024) / 4;
-    int partitionSize = ssdMaximumPagesAmount / FLAGS_pageIdManagerPartitions; // todo yuval - this needs to be parameterized for evaluation later.
+    int partitionSize = ssdMaximumPagesAmount / FLAGS_pageIdManagerPartitions;
     uint64_t runningSSdSlotBegin = 0;
     for(uint64_t i = 0; i < numPartitions; i++){
         freeSsdSlotPartitions.try_emplace(i,runningSSdSlotBegin,partitionSize);
