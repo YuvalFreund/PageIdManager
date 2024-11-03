@@ -276,7 +276,7 @@ uint64_t PageIdManager::linearSearchOnTheRing(uint64_t pageId, bool searchOldRin
     std::map<uint64_t, uint64_t> * mapToSearch = searchOldRing ? (&nodesRingLocationMap ) : (&newNodesRingLocationMap);
     std::vector<uint64_t> * vectorToSearch = searchOldRing ? (&nodeRingLocationsVector) : (&newNodeRingLocationsVector);
     //cyclic case
-
+    int vecSize = vectorToSearch->size();
     for(int idx = 0 ; idx < vectorToSearch->size(); idx++ ){
         if(pageId < vectorToSearch->at(idx)){
             // cyclic case - after the 0 spot
