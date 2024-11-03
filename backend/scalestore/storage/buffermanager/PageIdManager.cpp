@@ -133,9 +133,7 @@ bool PageIdManager::isNodeDirectoryOfPageId(uint64_t pageId){
         foundNodeId = searchRingForNode(pageId, false);
         retVal = (foundNodeId == nodeId);
    }
-   if(shuffleState == SHUFFLE_STATE::AFTER_SHUFFLE && nodeId == 1){
-       ensure(retVal);
-   }
+
    return retVal;
 }
 
@@ -272,27 +270,27 @@ void PageIdManager::redeemSsdSlot(uint64_t freedSsdSlot){
     chosenPartition->second.insertFreedSsdSlot(freedSsdSlot);
 }
 
+
 uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
     uint64_t retVal;
     std::map<uint64_t, uint64_t> * mapToSearch = searchOldRing ? (&nodesRingLocationMap ) : (&newNodesRingLocationMap);
     std::vector<uint64_t> * vectorToSearch = searchOldRing ? (&nodeRingLocationsVector) : (&newNodeRingLocationsVector);
-    uint64_t hashedPageId = scalestore::utils::FNV::hash(pageId);
     uint64_t l = 0;
     uint64_t r = vectorToSearch->size() - 1;
     // edge case for cyclic operation
-    if(hashedPageId < vectorToSearch->at(l) || hashedPageId > vectorToSearch->at(r)) {
+    if(pageId < vectorToSearch->at(l) || pageId > vectorToSearch->at(r)) {
         auto itr = mapToSearch->find(vectorToSearch->at(r));
         return itr->second;
     }
     // binary search
     while (l <= r) {
         uint64_t m = l + (r - l) / 2;
-        if (vectorToSearch->at(m) <= hashedPageId && vectorToSearch->at(m + 1) > hashedPageId) {
+        if (vectorToSearch->at(m) <= pageId && vectorToSearch->at(m + 1) > pageId) {
             auto itr = mapToSearch->find(vectorToSearch->at(r));
             retVal = itr->second;
             break;
         }
-        if (vectorToSearch->at(m) < hashedPageId) {
+        if (vectorToSearch->at(m) < pageId) {
             l = m + 1;
         } else{
             r = m - 1;
@@ -310,17 +308,20 @@ uint64_t PageIdManager::getNewPageId(bool oldRing){
         if(lockCheck){
             uint64_t temp = chosenPartition->second.guess;
             temp++;
-            while(getUpdatedNodeIdOfPage(temp, oldRing) != nodeId){
+            retVal = scalestore::utils::FNV::hash(temp);
+            while(getUpdatedNodeIdOfPage(retVal, oldRing) != nodeId){
                 temp++;
+                retVal = scalestore::utils::FNV::hash(temp);
             }
             chosenPartition->second.storeGuess(temp);
-            retVal = temp;
             break;
         }
     }
 
     return retVal;
 }
+
+
 
 void PageIdManager::handleNodeFinishedShuffling([[maybe_unused]]uint64_t nodeIdLeaving){
     shuffleState = SHUFFLE_STATE::AFTER_SHUFFLE;
