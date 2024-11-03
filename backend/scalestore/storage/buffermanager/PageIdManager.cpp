@@ -183,7 +183,6 @@ void PageIdManager::setDirectoryOfPage(uint64_t pageId, uint64_t directory){
 
 PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(uint64_t t_i, uint64_t workerAmount){
     PagesShuffleJob retVal;
-    pageIdShuffleMtx.lock(); //todo yuvi -remove lock when we are ready
 
     restart:
     // preparing a new map of stacks
@@ -191,7 +190,6 @@ PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(uint64_t t_
         threadsWorkingShuffleMapIdx[t_i] += workerAmount;
         if(threadsWorkingShuffleMapIdx[t_i] >= SSD_PID_MAPS_AMOUNT){ // the case where there is no more to shuffle
             retVal.last = true;
-            pageIdShuffleMtx.unlock();
             return retVal;
         }
         highestNodeIdForShuffleJobs[t_i] = 0;
@@ -225,7 +223,6 @@ PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(uint64_t t_
     }
 
     retVal.amountToSend = shuffledJobs;
-    pageIdShuffleMtx.unlock();
     return retVal;
 }
 
