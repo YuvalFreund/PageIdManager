@@ -325,7 +325,7 @@ uint64_t PageIdManager::binarySearchOnRing(uint64_t pageId, bool searchOldRing){
 }
 
 uint64_t PageIdManager::searchRingForNode(uint64_t pageId, bool searchOldRing){
-    return binarySearchOnRing(pageId , searchOldRing);
+    return linearSearchOnTheRing(pageId , searchOldRing);
 }
 
 uint64_t PageIdManager::getNewPageId(bool oldRing){
