@@ -3,6 +3,7 @@
 //
 #include "PageIdManager.h"
 
+// init functions
 void PageIdManager::initPageIdManager(){
     numPartitions = FLAGS_pageIdManagerPartitions;
     std::srand (std::time (0)); // this generates a new seed for randomness
@@ -64,6 +65,7 @@ void PageIdManager::initPageIdToSsdSlotMaps(){
     }*/
 }
 
+// add and remove pages functions
 uint64_t PageIdManager::addPage(){
     bool createPidByOldRing = (shuffleState == SHUFFLE_STATE::BEFORE_SHUFFLE);
     uint64_t retVal = getNewPageId(createPidByOldRing);
@@ -88,6 +90,7 @@ void PageIdManager::removePage(uint64_t pageId){
     uint64_t slotToFree = pageIdToSsdSlotMap[partition].getSsdSlotOfPageAndRemove(pageId);
     redeemSsdSlot(slotToFree);
 }
+
 
 uint64_t PageIdManager::getTargetNodeForEviction(uint64_t pageId){
     uint64_t retVal;
@@ -162,7 +165,7 @@ void PageIdManager::prepareForShuffle(uint64_t nodeIdLeft){
     }else{ // leaving node has to prepare stack for shuffle jobs
         for(int i = 0; i< 20; i++){ // todo yuvi should maybe be worker flags..
             // -1 ensures that the first thread is starting with 0.
-            threadsWorkingShuffleMapIdx[i] = -1 + i;
+            threadsWorkingShuffleMapIdx[i] = -1;
             // This is initiated that way so when the first shuffle starts, the map will be initiated
             highestNodeIdForShuffleJobs[i] = 0;
             currentNodeIdForShuffleJobs[i] = 10;
@@ -189,7 +192,12 @@ PageIdManager::PagesShuffleJob PageIdManager::getNextPagesShuffleJob(uint64_t t_
     restart:
     // preparing a new map of stacks
     if(highestNodeIdForShuffleJobs[t_i] < currentNodeIdForShuffleJobs[t_i]){
-        threadsWorkingShuffleMapIdx[t_i] += workerAmount;
+        // this is to ensure correct initiation
+        if(threadsWorkingShuffleMapIdx[t_i] < 0){
+            threadsWorkingShuffleMapIdx[t_i] = t_i;
+        }else{
+            threadsWorkingShuffleMapIdx[t_i] += workerAmount;
+        }
         if(threadsWorkingShuffleMapIdx[t_i] >= SSD_PID_MAPS_AMOUNT){ // the case where there is no more to shuffle
             retVal.last = true;
             return retVal;
