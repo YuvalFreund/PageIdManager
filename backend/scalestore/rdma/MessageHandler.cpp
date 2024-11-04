@@ -219,7 +219,7 @@ void MessageHandler::startThread() {
                              continue;
                          }
                          // -------------------------------------------------------------------------------------
-                         // this is
+                         // this is to fix the page eviction problem
                          if(pageIdManager.shuffleState != SHUFFLE_STATE::AFTER_SHUFFLE){
                              ensure(guard.state != STATE::NOT_FOUND);
                          }
@@ -582,13 +582,13 @@ bool MessageHandler::shuffleFrameAndIsLastShuffle(scalestore::threads::Worker* w
         auto& guard = guardPidPair.first;
         auto& pid = guardPidPair.second;
         if(successfullyShufflePids.find(guardPidPair.second) != successfullyShufflePids.end()) {
-            bm.removeFrame(*guard.frame, [](BufferFrame& /*frame*/) {});
-            /*if(guard.frame->isPossessor(pageIdManager.nodeId) == false){
+            if(guard.frame->isPossessor(pageIdManager.nodeId) == false){
+                bm.removeFrame(*guard.frame, [](BufferFrame& /*frame*/) {});
                 // guard is unlatched here^^^^^
             }else{
                 guard.frame->shuffled = true; // just for debug
                 guard.frame->latch.unlatchExclusive();
-            }*/
+            }
 
         }// the case where the page wasn't shuffled successfully
         else{
