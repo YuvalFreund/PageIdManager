@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
         shuffleRatio = FLAGS_YCSB_shuffle_ratio;
     }
 
-    uint64_t nodeLeavingTrigger = 2000000;
+    uint64_t nodeLeavingTrigger = 100000;
 
 
     auto nodePartition = partition(scalestore.getNodeID(), FLAGS_nodes, YCSB_tuple_count);
@@ -334,3 +334,4 @@ int main(int argc, char* argv[])
    scalestore.getBuffermanager().reportHashTableStats();
    return 0;
 }
+
